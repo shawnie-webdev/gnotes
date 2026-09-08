@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Corkboard</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0b111e;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .controls {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn-add {
+            background-color: #ff6600;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-add:hover {
+            background-color: #e65c00;
+            transform: translateY(-2px);
+        }
+
+        .btn-add:active {
+            transform: translateY(0);
+        }
+
+        .room-tag {
+            background-color: #1e293b;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #94a3b8;
+            border: 1px solid #334155;
+        }
+
+        /* Corkboard Container */
+        #corkboard {
+            width: 100%;
+            max-width: 95%;
+            height: 1000px;
+            /* Simulated Cork Texture Pattern */
+            background-color: #bc8248;
+            background-image:
+                    radial-gradient(#8d5b28 15%, transparent 16%),
+                    radial-gradient(#8d5b28 15%, transparent 16%);
+            background-size: 16px 16px;
+            background-position: 0 0, 8px 8px;
+            border: 12px solid #5c3a1e;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6), 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Sticky Note Elements */
+        .sticky-note {
+            width: 180px;
+            min-height: 180px;
+            background-color: #feff9c;
+            color: #333333;
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            padding: 28px 12px 12px 12px;
+            border-radius: 2px;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            transform: rotate(-1deg);
+            transition: box-shadow 0.2s ease, transform 0.1s ease;
+            user-select: none;
+        }
+
+        .sticky-note:hover {
+            box-shadow: 0 14px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Push Pin Visual Effect */
+        .sticky-note::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 14px;
+            height: 14px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset -2px -2px 0 rgba(0,0,0,0.2);
+        }
+
+        /* Header Bar for Dragging */
+        .note-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 25px;
+            cursor: move;
+        }
+
+        /* Editable Text Area */
+        .note-body {
+            width: 100%;
+            height: 100%;
+            flex-grow: 1;
+            border: none;
+            outline: none;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Segoe Print', sans-serif;
+            font-size: 15px;
+            line-height: 1.3;
+            color: #222222;
+            overflow-y: auto;
+            word-wrap: break-word;
+            user-select: text;
+        }
+
+        /* Delete Button */
+        .btn-delete {
+            position: absolute;
+            top: 4px;
+            right: 6px;
+            background: none;
+            border: none;
+            color: #888888;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 2px 5px;
+            line-height: 1;
+            border-radius: 3px;
+        }
+
+        .btn-delete:hover {
+            color: #ef4444;
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+    </style>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="controls">
+    <button id="add-note-btn" class="btn-add">+ Add Sticky Note</button>
+    <button id="back" class="btn-add">Go back</button>
+    <div id="room-display" class="room-tag">Room: main-room</div>
+</div>
+
+<div id="corkboard"></div>
+
+<script>
+    // 1. Supabase Setup
+    const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Dynamic Room variable (can be configured via URL query string e.g. ?room=team-a)
+    const urlParams = new URLSearchParams(window.location.search);
+    const CURRENT_ROOM = urlParams.get('room') || 'main-room';
+    document.getElementById('room-display').innerText = `Room: ${CURRENT_ROOM}`;
+
+    const corkboard = document.getElementById('corkboard');
+    const addNoteBtn = document.getElementById('add-note-btn');
+    const noteColors = ['#feff9c', '#ff7eb9', '#7afcff', '#69ff94', '#fff740'];
+    let zIndexCounter = 10;
+
+    // Helper: Debounce function to limit Supabase API calls during active typing
+    function debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
+
+    // 2. Check if the 'notes' table exists before performing queries
+    async function checkTableExists() {
+        const { error } = await supabaseClient
+            .from('notes')
+            .select('id', { count: 'exact', head: true });
+
+        if (error) {
+            if (error.code === '42P01') {
+                console.error("Supabase Error: Table 'notes' does not exist in your database.");
+                alert("Table 'notes' does not exist in Supabase. Please run the SQL schema script in your Supabase dashboard.");
+                return false;
+            }
+            console.error("Error connecting to Supabase table:", error.message);
+            return false;
+        }
+        return true;
+    }
+
+    // 3. Fetch notes from Supabase for the current room
+    async function fetchNotesJSON() {
+        const { data, error } = await supabaseClient
+            .from('notes')
+            .select('id, x, y, text, color')
+            .eq('room', CURRENT_ROOM);
+
+        if (error) {
+            console.error('Error fetching notes:', error.message);
+            return [];
+        }
+
+        console.log('Notes JSON Payload for room:', CURRENT_ROOM, data);
+        return data; // Returns array formatted like: [{ id, x, y, text, color }, ...]
+    }
+
+    // 4. Render or update note UI element
+    function renderNoteUI(noteData) {
+        let note = document.getElementById(`note-${noteData.id}`);
+
+        if (!note) {
+            note = document.createElement('div');
+            note.id = `note-${noteData.id}`;
+            note.classList.add('sticky-note');
+
+            // Set random rotation once upon creation
+            const randomRotation = (Math.random() * 6 - 3).toFixed(1);
+            note.style.transform = `rotate(${randomRotation}deg)`;
+
+            note.innerHTML = `
+                <div class="note-header"></div>
+                <button class="btn-delete" title="Delete note">&times;</button>
+                <div class="note-body" contenteditable="true" placeholder="Write here..."></div>
+            `;
+
+            corkboard.appendChild(note);
+            makeDraggable(note, noteData.id);
+
+            // Delete Handler
+            const deleteBtn = note.querySelector('.btn-delete');
+            deleteBtn.addEventListener('click', async () => {
+                note.remove();
+                await supabaseClient.from('notes').delete().eq('id', noteData.id);
+            });
+
+            // Text Input Handler with Debounce
+            const body = note.querySelector('.note-body');
+            body.addEventListener('input', debounce(async () => {
+                await supabaseClient
+                    .from('notes')
+                    .update({ text: body.innerText })
+                    .eq('id', noteData.id);
+            }, 400));
+        }
+
+        // Sync positions and background colors
+        note.style.left = `${noteData.x}px`;
+        note.style.top = `${noteData.y}px`;
+        note.style.backgroundColor = noteData.color || '#feff9c';
+
+        // Update text only if user is not actively editing this element
+        const body = note.querySelector('.note-body');
+        if (document.activeElement !== body) {
+            body.innerText = noteData.text || '';
+        }
+    }
+
+    // 5. Create a new note in Supabase
+    async function createStickyNote() {
+        const randomColor = noteColors[Math.floor(Math.random() * noteColors.length)];
+        const initialX = Math.floor(Math.random() * (corkboard.clientWidth - 200)) + 20;
+        const initialY = Math.floor(Math.random() * (corkboard.clientHeight - 200)) + 20;
+
+        const { data, error } = await supabaseClient
+            .from('notes')
+            .insert([{
+                room: CURRENT_ROOM,
+                x: initialX,
+                y: initialY,
+                text: '',
+                color: randomColor
+            }])
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error adding sticky note:', error.message);
+            return;
+        }
+
+        renderNoteUI(data);
+
+        // Focus text area on new creation
+        const newNote = document.getElementById(`note-${data.id}`);
+        if (newNote) {
+            newNote.querySelector('.note-body').focus();
+        }
+    }
+
+    // 6. Drag and Drop with Supabase Position Sync
+    function makeDraggable(element, noteId) {
+        let startX = 0, startY = 0;
+        let initialLeft = 0, initialTop = 0;
+        let isDragging = false;
+
+        const header = element.querySelector('.note-header');
+
+        element.addEventListener('mousedown', () => {
+            element.style.zIndex = zIndexCounter++;
+        });
+
+        header.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            initialLeft = element.offsetLeft;
+            initialTop = element.offsetTop;
+
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', onMouseUp);
+        });
+
+        function onMouseMove(e) {
+            if (!isDragging) return;
+
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+
+            let newLeft = initialLeft + dx;
+            let newTop = initialTop + dy;
+
+            const maxLeft = corkboard.clientWidth - element.offsetWidth;
+            const maxTop = corkboard.clientHeight - element.offsetHeight;
+
+            newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+            newTop = Math.max(0, Math.min(newTop, maxTop));
+
+            element.style.left = `${newLeft}px`;
+            element.style.top = `${newTop}px`;
+        }
+
+        async function onMouseUp() {
+            if (!isDragging) return;
+            isDragging = false;
+            window.removeEventListener('mousemove', onMouseMove);
+            window.removeEventListener('mouseup', onMouseUp);
+
+            // Persist final positions to database
+            await supabaseClient
+                .from('notes')
+                .update({ x: element.offsetLeft, y: element.offsetTop })
+                .eq('id', noteId);
+        }
+    }
+
+    // 7. Realtime Subscription for Room Changes
+    function subscribeToRoomChanges() {
+        supabaseClient
+            .channel(`room:${CURRENT_ROOM}`)
+            .on('postgres_changes', {
+                event: '*',
+                schema: 'public',
+                table: 'notes',
+                filter: `room=eq.${CURRENT_ROOM}`
+            }, (payload) => {
+                if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+                    renderNoteUI(payload.new);
+                } else if (payload.eventType === 'DELETE') {
+                    const deletedNote = document.getElementById(`note-${payload.old.id}`);
+                    if (deletedNote) deletedNote.remove();
+                }
+            })
+            .subscribe();
+    }
+
+    // 8. Application Initialization
+    document.addEventListener('DOMContentLoaded', async () => {
+        const tableOK = await checkTableExists();
+        if (!tableOK) return;
+
+        // Fetch and display initial notes
+        const existingNotes = await fetchNotesJSON();
+        existingNotes.forEach(note => renderNoteUI(note));
+
+        // Connect real-time WebSocket listener
+        subscribeToRoomChanges();
+
+        // Bind event listeners
+        addNoteBtn.addEventListener('click', createStickyNote);
+    });
+
+    const back = document.getElementById('back')
+    back.addEventListener('click', (e) => {
+        history.back()
+    })
+</script>
+</body>
+</html>

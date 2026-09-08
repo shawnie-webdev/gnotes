@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoldenNotes - Dashboard</title>
+
+    <!-- Supabase JS Client via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0b111e;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .dashboard-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #151f32;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #1e2d4a;
+            box-shadow: 0 8px 32px rgba(11, 17, 30, 0.8);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1e2d4a;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .user-info {
+            background-color: #0f172a;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            margin-bottom: 25px;
+        }
+
+        .user-info p {
+            margin-bottom: 10px;
+            color: #8da2c0;
+            font-size: 16px;
+        }
+
+        .user-info span {
+            color: #ff6600;
+            font-weight: bold;
+        }
+
+        .logout-btn {
+            background-color: #ef4444;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            background-color: #dc2626;
+        }
+    </style>
+    <link rel="stylesheet" href="./../style.css">
+</head>
+<body>
+
+<header class="top-header">
+    <div class="nav-actions">
+        <div class="header-left">
+            <img src="./../favicon.jpeg" alt="logo" id="logo">
+        </div>
+        <form action="/credits.html" method="get" style="display: inline;">
+            <button type="submit" class="generic_button primary" id="credits">Credits</button>
+        </form>
+        <form action="/" method="get" style="display: inline;">
+            <button type="submit" class="generic_button" id="dashboard">Homepage</button>
+        </form>
+        <form action="/corkboard" method="get" style="display: inline;">
+            <button type="submit" class="generic_button" id="corkboard">Corkboard</button>
+        </form>
+    </div>
+</header>
+
+<div>
+    <h1>‎ </h1>
+    <h1>‎ </h1>
+</div>
+
+<div class="dashboard-container">
+    <div class="header">
+        <h2>Dashboard</h2>
+        <button id="logout-btn" class="logout-btn">Log Out</button>
+    </div>
+
+    <div class="user-info">
+        <p>Username: <span id="display-username">Loading...</span></p>
+        <p>Email: <span id="display-email">Loading...</span></p>
+        <p>User ID (UUID): <span id="display-id" style="font-size: 12px; color: #64748b;">Loading...</span></p>
+    </div>
+
+    <h3>Your Notes</h3>
+    <p style="color: #8da2c0; margin-top: 10px;">Your private note-taking area goes here.</p>
+</div>
+
+<script>
+    // Ensure these match your login page credentials exactly
+    const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const usernameEl = document.getElementById('display-username');
+        const emailEl = document.getElementById('display-email');
+        const idEl = document.getElementById('display-id');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        // Function to verify and display user session
+        async function loadUserProfile() {
+            const { data: { session }, error } = await supabaseClient.auth.getSession();
+
+            if (error || !session) {
+                console.warn('No active session found.');
+                // Update path to match where your login.html file lives relative to dashboard
+                window.location.href = '/login';
+                return;
+            }
+
+            const user = session.user;
+
+            if (emailEl) emailEl.textContent = user.email;
+            if (idEl) idEl.textContent = user.id;
+            if (usernameEl) usernameEl.textContent = user.user_metadata?.username || 'No username set';
+        }
+
+        // Run initial auth check
+        await loadUserProfile();
+
+        // Listen for Auth state changes (handles logouts across tabs)
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_OUT' || !session) {
+                window.location.href = '../login.html';
+            }
+        });
+
+        // Handle Logout
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', async () => {
+                await supabaseClient.auth.signOut();
+                window.location.href = '../login.html';
+            });
+        }
+    });
+</script>
+
+</body>
+</html>

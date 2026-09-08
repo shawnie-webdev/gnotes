@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project GoldenNotes</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Supabase JS Client via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0b111e;
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .top-header {
+            background-color: #273b60;
+            border-bottom: 1px solid #1e2d4a;
+            width: 100%;
+            padding: 15px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #logo {
+            width: 42px;
+            height: 42px;
+            object-fit: contain;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .generic_button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            background-color: #0f172a;
+            color: #ffffff;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .generic_button:hover {
+            background-color: #1e2d4a;
+            border-color: #ff6600;
+            color: #ff6600;
+            transform: translateY(-2px);
+        }
+
+        .generic_button.primary {
+            background-color: #ff6600;
+            border-color: #ff6600;
+            color: #ffffff;
+        }
+
+        .generic_button.primary:hover {
+            background-color: #e65c00;
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(255, 102, 0, 0.4);
+        }
+
+        /* Hero Content */
+        .hero-container {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            width: 90%;
+            max-width: 800px;
+        }
+
+        .big-font {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 10px;
+            letter-spacing: -0.5px;
+        }
+
+        #splashtext {
+            font-size: 1.25rem;
+            color: #ff6600;
+            font-weight: 500;
+            min-height: 30px;
+        }
+    </style>
+</head>
+<body>
+
+<header class="top-header">
+    <div class="header-left">
+        <img src="favicon.jpeg" alt="logo" id="logo">
+    </div>
+
+    <div class="nav-actions">
+        <form action="./credits.html" method="get" style="display: inline;">
+            <button type="submit" class="generic_button" id="credits">Credits</button>
+        </form>
+        <form action="./auth/dashboard.html" method="get" style="display: inline;">
+            <button type="submit" class="generic_button" id="dashboard">Dashboard</button>
+        </form>
+        <button class="generic_button primary" id="login">Login</button>
+    </div>
+</header>
+
+<main class="hero-container">
+    <h1 id="header" class="big-font">Project GoldenNotes</h1>
+    <h2 id="splashtext">A project by Ram</h2>
+</main>
+
+<script>
+    // Supabase Credentials
+    const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Check Auth State on DOM Content Loaded
+    document.addEventListener('DOMContentLoaded', async () => {
+        const loginBtn = document.getElementById("login");
+
+        // Fetch session from Supabase client
+        const { data: { session } } = await supabaseClient.auth.getSession();
+
+        if (session) {
+            const user = session.user;
+
+            // Access the username from user_metadata
+            const username = user.user_metadata?.username || "User";
+
+            const loginBtn = document.getElementById("login");
+            loginBtn.innerText = `Hi, ${username}!`;
+        } else {
+            // User is not signed in
+            loginBtn.innerText = "Login";
+            loginBtn.addEventListener("click", () => {
+                window.location.href = "./login.html";
+            });
+        }
+
+        // Listen for Auth changes in real-time
+        supabaseClient.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                loginBtn.innerText = "Hi there!";
+            } else {
+                loginBtn.innerText = "Login";
+            }
+        });
+    });
+
+    /* Lower Text randomizer */
+    const splashtxt = [
+        "A project by Ram",
+        "A place where you can save notes",
+        "Hi!",
+        "#7-gold yay",
+        "Programmed by Roshaun",
+        "Batch 32!",
+        "Another person viewing this text",
+        "Python is an interpreter --Ram",
+        "'What is your favorite subject?' -- Soccer science they said",
+        "This text was written before this was accessible worldwide",
+        "are you a goldie?",
+        "did this reach the higher grades now?",
+        "Another 200 on the homepage",
+        "Gold is NOT stealing ideas bro",
+        "Ram is THE batch governor now yay =D",
+        "7th grader's land",
+        "Can you even remember why you came here?",
+        "Should not be played while driving.",
+        "Hark! The scholar seeketh knowledge for an impending task.",
+        "Lo! The disciple archeth for wisdom on a past-due scroll.",
+        "Come forth, and show thy scrolls, that others may understand!",
+        "im sounding a bit british for some texts today am i?",
+        "그럼 구글 번역기를 사용하고 계시는군요는군요?",
+        "Pneumonoultramicroscopicsilicovolcanoconiosis!"
+    ];
+
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+    const splash = document.getElementById("splashtext");
+
+    async function typewriter(next) {
+        let text = splash.innerText;
+
+        // 1. Smoothly delete current text from end to start
+        while (text.length > 0) {
+            text = text.slice(0, -1);
+            splash.innerText = text + '|';
+            await sleep(25);
+        }
+
+        await sleep(200);
+
+        // 2. Type out the new text character by character
+        for (let i = 0; i < next.length; i++) {
+            text += next[i];
+            splash.innerText = text + '|';
+            await sleep(75);
+        }
+    }
+
+    async function main() {
+        while (true) {
+            const ran = Math.floor(Math.random() * splashtxt.length);
+            const nxt = splashtxt[ran];
+
+            await typewriter(nxt);
+            await sleep(2500);
+        }
+    }
+
+    main();
+</script>
+</body>
+</html>

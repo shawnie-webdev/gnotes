@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project GoldenNotes - Sign Up</title>
+
+    <!-- 1. Load Supabase JS Client via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0b111e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+
+        .signup-container {
+            background-color: #151f32;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(11, 17, 30, 0.8), 0 0 15px rgba(0, 123, 255, 0.05);
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #1e2d4a;
+        }
+
+        .signup-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .signup-header h2 {
+            color: #ffffff;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .signup-header p {
+            color: #8da2c0;
+            font-size: 14px;
+        }
+
+        /* Error and Success Alert Styling */
+        .message-box {
+            display: none;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .message-box.error {
+            background-color: rgba(239, 68, 68, 0.15);
+            border: 1px solid #ef4444;
+            color: #f87171;
+        }
+
+        .message-box.success {
+            background-color: rgba(34, 197, 94, 0.15);
+            border: 1px solid #22c55e;
+            color: #4ade80;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #cbd5e1;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            font-size: 16px;
+            color: #ffffff;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-group input:focus {
+            border-color: #ff6600;
+            box-shadow: 0 0 8px rgba(255, 102, 0, 0.4);
+            outline: none;
+        }
+
+        .signup-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #ff6600;
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            margin-top: 10px;
+        }
+
+        .signup-btn:hover {
+            background-color: #e65c00;
+        }
+
+        .signup-btn:active {
+            transform: scale(0.98);
+        }
+
+        .signup-btn:disabled {
+            background-color: #7c3a00;
+            cursor: not-allowed;
+        }
+
+        .signup-footer {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .signup-footer a {
+            color: #38bdf8;
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.2s ease;
+        }
+
+        .signup-footer a:hover {
+            color: #0ea5e9;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<div class="signup-container">
+    <div class="signup-header">
+        <h2>Create Account</h2>
+        <p>Join GoldenNotes to get started</p>
+    </div>
+
+    <!-- Alert Box for success or error feedback -->
+    <div id="message-box" class="message-box"></div>
+
+    <form id="signupForm">
+
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" placeholder="johndoe" required autocomplete="username">
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email">
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="new-password" minlength="8">
+        </div>
+
+        <button type="submit" id="submit-btn" class="signup-btn">Sign Up</button>
+    </form>
+
+    <div class="signup-footer">
+        Already have an account? <a href="/login">Sign In</a>
+    </div>
+    <button onclick="history.back()" class="login-btn">Go Back</button>
+</div>
+<script>
+    // 1. Initialize Supabase Client (Renamed to 'supabaseClient' to avoid identifier collision)
+    const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Wait until DOM is fully loaded before attaching events
+    document.addEventListener('DOMContentLoaded', () => {
+        // DOM Elements
+        const signupForm = document.getElementById('signupForm');
+        const usernameInput = document.getElementById('username');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const submitBtn = document.getElementById('submit-btn');
+        const messageBox = document.getElementById('message-box');
+
+        // Helper to display UI feedback
+        function showMessage(text, isError = false) {
+            messageBox.textContent = text;
+            messageBox.className = isError ? 'message-box error' : 'message-box success';
+            messageBox.style.display = 'block';
+        }
+
+        if (!signupForm) return;
+
+        // Handle Form Submission
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault(); // Prevents GET submission and keeping sensitive data out of URL
+
+            // Reset state
+            messageBox.style.display = 'none';
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating Account...';
+
+            const username = usernameInput.value.trim();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+            // Sign Up user with Supabase
+            const { data, error } = await supabaseClient.auth.signUp({
+                email: email,
+                password: password,
+                options: {
+                    data: {
+                        username: username
+                    }
+                }
+            });
+
+            if (error) {
+                showMessage(error.message, true);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Sign Up';
+                return;
+            }
+
+            // If email confirmation is enabled in Supabase dashboard
+            if (data.user && data.session === null) {
+                showMessage('Account created! Check your email for a confirmation link.');
+                submitBtn.textContent = 'Account Created';
+            } else {
+                // If email confirmation is disabled, session is ready immediately
+                showMessage('Account created successfully! Redirecting...');
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1000);
+            }
+        });
+    });
+</script>
+</body>
+</html>

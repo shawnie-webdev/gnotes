@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GoldenNotes - Join A Corkboard</title>
+    <link rel="stylesheet" href="./../style.css">
+
+    <style>
+        #floating-join {
+            display: flex;
+            flex-direction: column; /* Stacks form and link vertically */
+            justify-content: center;
+            align-items: center;
+            gap: 20px;               /* Space between form and help link */
+
+            width: 320px;            /* Fixed width or max-width works better than % */
+            max-width: 90%;
+            padding: 30px 20px;      /* Generous padding instead of fixed height */
+
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+
+            background-color: rgba(59, 77, 110, 0.85);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        #form {
+            display: flex;
+            flex-direction: column;  /* Stacks input and button vertically */
+            align-items: center;
+            gap: 15px;               /* Space between input and button */
+            width: 100%;             /* Allows children to take full form width */
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-size: 0.95rem;
+            text-align: center;
+            box-sizing: border-box; /* Prevents input padding from overflowing */
+        }
+
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        #floating-join a {
+            color: #cbd5e1;
+            font-size: 0.85rem;
+            text-decoration: underline;
+        }
+
+        #floating-join a:hover {
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+
+<header class="top-header">
+    <div class="nav-actions">
+        <div class="header-left">
+            <img src="./../favicon.jpeg" alt="logo" id="logo">
+        </div>
+        <form action="/credits.html" method="get" style="display: inline;">
+            <button type="submit" class="generic_button primary" id="credits">Credits</button>
+        </form>
+        <form action="/" method="get" style="display: inline;">
+            <button type="submit" class="generic_button" id="dashboard">Homepage</button>
+        </form>
+        <form action="/dashboard" method="get" style="display: inline;">
+            <button type="submit" class="generic_button" id="corkboard">Dashboard</button>
+        </form>
+    </div>
+</header>
+
+<h1 class="center">Join a Corkboard Room</h1>
+<h3 class="center">Join a Corkboard Room and collaborate with others</h3>
+
+<div id="floating-join">
+    <form id="form">
+        <input
+                class="form-input"
+                type="text"
+                id="roomid"
+                name="room id"
+                inputmode="numeric"
+                pattern="[A-Za-z0-9]{6}"
+                maxlength="6"
+                placeholder="Your 6-character room ID"
+                required
+        >
+        <input
+                class="form-input"
+                type="text"
+                id="subject"
+                name="room id"
+                inputmode="numeric"
+                pattern="[A-Za-z0-9]{6}"
+                maxlength="6"
+                placeholder="Enter your subject (use 'main' if no subject)"
+                required
+        >
+        <button id="submit" type="submit" class="generic_button">Attempt to join</button>
+    </form>
+    <a href="/corkboard/help">Don't know your room ID?</a>
+</div>
+    <script>
+        const entry = document.getElementById("roomid")
+        const subj = document.getElementById("subject")
+        const button = document.getElementById("submit")
+        button.addEventListener("click", (e) => {
+            e.preventDefault(); // STOP native HTML submission
+            const roomid = entry.value
+            if (roomid === undefined) {
+                return;
+            }
+            const link = `/corkboard/join?room=${roomid}-${subj.value}`
+            window.location.href = link
+        })
+    </script>
+</body>
+</html>
