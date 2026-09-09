@@ -1,33 +1,33 @@
 /* ==========================================================================
-   1. CSS VARIABLES & THEME SETUP
+   1. CSS VARIABLES & THEME SETUP (LIGHT MODE)
    ========================================================================== */
 :root {
     /* Color Palette */
-    --bg-main: #0b111e;          /* Deep navy dark background */
-    --bg-card: #151d2a;          /* Lighter navy for cards/containers */
-    --bg-card-hover: #1c2738;    /* Interactive card state */
+    --bg-main: #f4f6f9;          /* Crisp light gray/blue background */
+    --bg-card: #ffffff;          /* Pure white for cards/containers */
+    --bg-card-hover: #f8fafc;    /* Interactive card state */
 
-    --accent-orange: #ff6600;    /* Primary vibrant orange */
-    --accent-orange-hover: #e65c00;
-    --accent-blue: #7afcff;      /* Cyan/blue accent */
-    --accent-blue-hover: #52e0e3;
+    --accent-orange: #ea580c;    /* Vibrant orange (higher contrast for light mode) */
+    --accent-orange-hover: #c2410c;
+    --accent-blue: #0284c7;      /* Vivid cyan/blue accent */
+    --accent-blue-hover: #0369a1;
 
-    --text-main: #f8fafc;        /* Off-white primary text */
-    --text-muted: #94a3b8;       /* Slate muted text */
-    --border-color: #2a364f;     /* Subtle blue-gray borders */
+    --text-main: #0f172a;        /* Slate dark navy primary text */
+    --text-muted: #64748b;       /* Cool gray muted text */
+    --border-color: #e2e8f0;     /* Light slate borders */
 
     /* Functional Colors */
     --danger: #ef4444;
-    --success: #22c55e;
-    --warning: #f59e0b;
+    --success: #16a34a;
+    --warning: #d97706;
 
     /* Layout & Utilities */
     --radius-sm: 4px;
     --radius-md: 8px;
     --radius-lg: 12px;
-    --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.2);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
-    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.5);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
     --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -99,14 +99,14 @@ a:hover {
 }
 
 .card:hover {
-    border-color: #3b4d6e;
+    border-color: #cbd5e1;
     box-shadow: var(--shadow-lg);
 }
 
 .glass-panel {
-    background: rgba(21, 29, 42, 0.75);
+    background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: var(--radius-lg);
     padding: 24px;
 }
@@ -140,7 +140,7 @@ a:hover {
 .btn-primary:hover {
     background-color: var(--accent-orange-hover);
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(255, 102, 0, 0.35);
+    box-shadow: 0 6px 16px rgba(234, 88, 12, 0.25);
     text-decoration: none;
 }
 
@@ -156,7 +156,7 @@ a:hover {
 }
 
 .btn-secondary:hover {
-    background-color: rgba(122, 252, 255, 0.1);
+    background-color: rgba(2, 132, 199, 0.08);
     color: var(--accent-blue-hover);
     transform: translateY(-2px);
     text-decoration: none;
@@ -183,7 +183,7 @@ a:hover {
 .btn-danger:hover {
     background-color: #dc2626;
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.35);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.25);
 }
 
 /* Button Sizing */
@@ -212,7 +212,7 @@ a:hover {
 .form-textarea {
     width: 100%;
     padding: 12px 16px;
-    background-color: #0d1524;
+    background-color: #ffffff;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     color: var(--text-main);
@@ -223,21 +223,21 @@ a:hover {
 
 .form-input::placeholder,
 .form-textarea::placeholder {
-    color: #586884;
+    color: #94a3b8;
 }
 
 /* Hover and Focus States */
 .form-input:hover,
 .form-select:hover,
 .form-textarea:hover {
-    border-color: #3b4d6e;
+    border-color: #cbd5e1;
 }
 
 .form-input:focus,
 .form-select:focus,
 .form-textarea:focus {
     border-color: var(--accent-orange);
-    box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.2);
+    box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
 }
 
 .form-textarea {
@@ -249,7 +249,7 @@ a:hover {
 .form-select {
     cursor: pointer;
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%3C%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%3C%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 14px center;
     padding-right: 40px;
@@ -290,7 +290,7 @@ a:hover {
 }
 
 .table th {
-    background-color: #0d1524;
+    background-color: #f1f5f9;
     color: var(--accent-blue);
     font-weight: 600;
     padding: 14px 16px;
@@ -325,15 +325,15 @@ a:hover {
 }
 
 .badge-orange {
-    background-color: rgba(255, 102, 0, 0.15);
+    background-color: rgba(234, 88, 12, 0.1);
     color: var(--accent-orange);
-    border: 1px solid rgba(255, 102, 0, 0.3);
+    border: 1px solid rgba(234, 88, 12, 0.25);
 }
 
 .badge-blue {
-    background-color: rgba(122, 252, 255, 0.15);
+    background-color: rgba(2, 132, 199, 0.1);
     color: var(--accent-blue);
-    border: 1px solid rgba(122, 252, 255, 0.3);
+    border: 1px solid rgba(2, 132, 199, 0.25);
 }
 
 .nav-actions {
@@ -346,31 +346,31 @@ a:hover {
     padding: 10px 20px;
     font-size: 1rem;
     font-weight: 600;
-    background-color: #0f172a;
-    color: #ffffff;
-    border: 1px solid #334155;
+    background-color: #ffffff;
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .generic_button:hover {
-    background-color: #1e2d4a;
-    border-color: #ff6600;
-    color: #ff6600;
+    background-color: #f8fafc;
+    border-color: var(--accent-orange);
+    color: var(--accent-orange);
     transform: translateY(-2px);
 }
 
 .generic_button.primary {
-    background-color: #ff6600;
-    border-color: #ff6600;
+    background-color: var(--accent-orange);
+    border-color: var(--accent-orange);
     color: #ffffff;
 }
 
 .generic_button.primary:hover {
-    background-color: #e65c00;
+    background-color: var(--accent-orange-hover);
     color: #ffffff;
-    box-shadow: 0 0 12px rgba(255, 102, 0, 0.4);
+    box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);
 }
 
 #logo {
@@ -380,35 +380,35 @@ a:hover {
 }
 
 .top-header {
-    background-color: #273b60;
-    border-bottom: 1px solid #1e2d4a;
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--border-color);
     width: 100%;
     padding: 15px 40px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
 }
 
 .height-15 {
-    height: 15%
+    height: 15%;
 }
 
 .effect_button {
     font-size: 1rem;
     font-weight: 600;
-    background-color: #0f172a;
-    color: #ffffff;
-    border: 1px solid #334155;
+    background-color: #ffffff;
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .effect_button:hover {
-    background-color: #1e2d4a;
-    border-color: #ff6600;
-    color: #ff6600;
+    background-color: #f8fafc;
+    border-color: var(--accent-orange);
+    color: var(--accent-orange);
     transform: translateY(-2px);
 }
 
