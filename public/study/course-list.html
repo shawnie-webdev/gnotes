@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>GoldenNotes - Create a New Topic</title>
+
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+        <link rel="stylesheet" href="./../style.css">
+
+        <style>
+            .button-container {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                width: 100%;
+                margin: 30px auto;
+            }
+
+            #topics-container {
+                display: grid;
+                flex-direction: column;
+
+                left: 100%;
+
+                grid-template-columns: repeat(8, max-content);
+                gap: 1rem;
+                padding: 1px;
+            }
+
+            .topic-card {
+                width: 250px;
+                background-color: #4367a5;
+                border-radius: 15px;
+
+                border: 1px solid black;
+                text-align: center;
+            }
+
+            .card-member {
+                right: 20%;
+            }
+
+            #search-label {
+                font-size: 18px;
+            }
+
+            #search-bar {
+                width: 50%;
+                height: 20%;
+
+                font-size: 24px;
+            }
+        </style>
+    </head>
+    <body>
+
+    <header class="top-header">
+        <div class="nav-actions">
+            <div class="header-left">
+                <img src="./../favicon.jpeg" alt="logo" id="logo">
+            </div>
+            <form action="/credits.html" method="get" style="display: inline;">
+                <button type="submit" class="generic_button primary" id="credits">Credits</button>
+            </form>
+            <form action="/public" method="get" style="display: inline;">
+                <button type="submit" class="generic_button" id="dashboard">Homepage</button>
+            </form>
+            <form action="/corkboard" method="get" style="display: inline;">
+                <button type="submit" class="generic_button" id="corkboard">Corkboard</button>
+            </form>
+            <form action="/study" method="get" style="display: inline;">
+                <button type="submit" class="generic_button" id="study">Study</button>
+            </form>
+        </div>
+    </header>
+
+    <span class="height-15">
+        <p>‎ </p>
+        <form>
+            <!-- The 'for' value must exactly match the input 'id' -->
+            <label for="search-bar" id="search-label">Search a Topic:</label>
+            <input type="text" id="search-bar" name="search">
+
+            <button type="submit" class="generic_button">Submit</button>
+        </form>
+        <p>‎ </p>
+    </span>
+
+    <div id="topics-container" class="topics-grid">
+        <h1 id="info">Loading topics...</h1>
+    </div>
+    <div id="button-container">
+        <button class="generic_button" id="add-topic">Add a topic</button>
+    </div>
+
+    <script>
+        // Ensure you use your initialized client
+        const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
+
+        // Safety check in case CDN fails to load
+        if (!window.supabase) {
+            console.error("Supabase CDN failed to load. Check script inclusion.");
+        }
+
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const button = document.getElementById('add-topic');
+        button.addEventListener('click', () => {
+            window.location.href = "/study/new-topic"
+        })
+
+        async function displayStudyTopics() {
+            const container = document.getElementById('topics-container');
+            const info = document.getElementById('info');
+
+            const { data: topics, error } = await supabaseClient
+                .from('study')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                info.innerHTML = `<p style="color: #ef4444;">Failed to load topics: ${error.message}</p>`;
+                return;
+            }
+
+            if (!topics || topics.length === 0) {
+                info.innerHTML = `<p style="color: #cbd5e1;">No topics created yet.</p>`;
+                return;
+            }
+
+            // Clear existing content and render cards
+            info.innerHTML = '';
+            topics.forEach(topic => {
+                const card = document.createElement('span');
+                card.className = 'topic-card effect_button ';
+
+                // Unpack subject jsonb object safely
+                const subjectName = topic.subject?.name || 'General';
+
+                card.innerHTML = `
+                    <div class="card-header" data-id="${topic.id}">
+                        <span class="card-member badge-subject">${escapeHtml(subjectName)}</span>
+                        <span class="card-member badge-sg">${escapeHtml(topic.sg || 'SG N/A')}</span>
+                    </div>
+                    <h3 class="card-member">${escapeHtml(topic.name)}</h3>
+                    <div class="card-member card-footer">
+                        <small>By: ${escapeHtml(topic.author || 'Anonymous')}</small>
+                    </div>
+                `;
+
+                card.addEventListener('click', () => {
+                    window.location.href=`/study/view?id=${topic.id}`;
+                    console.log("ok")
+                })
+
+                container.appendChild(card);
+            });
+        }
+
+        // Basic HTML escaping helper to prevent XSS
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        }
+
+        // Call on page load
+        document.addEventListener("DOMContentLoaded", displayStudyTopics);
+    </script>
+    </body>
+</html>

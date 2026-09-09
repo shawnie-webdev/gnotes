@@ -389,3 +389,35 @@ a:hover {
     justify-content: space-between;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
+
+.height-15 {
+    height: 15%
+}
+
+.effect_button {
+    font-size: 1rem;
+    font-weight: 600;
+    background-color: #0f172a;
+    color: #ffffff;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.effect_button:hover {
+    background-color: #1e2d4a;
+    border-color: #ff6600;
+    color: #ff6600;
+    transform: translateY(-2px);
+}
+
+.centerx {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.centery {
+    margin-top: auto;
+    margin-bottom: auto;
+}

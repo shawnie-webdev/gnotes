@@ -125,6 +125,21 @@ app.get("/corkboard/join", (req, res) => {
     sendFileOrError(res, '/corkboard/join', 'corkboard/main.html');
 })
 
+app.get("/study/new-topic", (req, res) => {
+    sendFileOrError(res, '/study/new-topic', 'study/courses/newtopic.html');
+})
+
+app.get("/study", (req, res) => {
+    sendFileOrError(res, '/study', 'study/course-list.html');
+})
+
+app.get("/study/view", (req, res) => {
+    sendFileOrError(res, '/study/view', 'study/courses/viewtopic.html');
+})
+
+// in your server.js
+app.use('/tinymce', express.static(path.join(__dirname, 'node_modules', 'tinymce')));
+
 app.listen(PORT, () => {
     console.log("[INFO]: Server listening - [server.js]");
     console.log("========= Project GoldenNotes =========");

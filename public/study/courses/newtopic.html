@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoldenNotes - Create a New Topic</title>
+    <link rel="stylesheet" href="./../style.css">
+
+    <!-- Supabase JS Client CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        #float {
+            width: 80%;
+            max-width: 600px;
+            margin: 30px auto;
+            display: flex;
+            justify-content: center;
+        }
+
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            padding: 30px;
+
+            background-color: rgba(59, 77, 110, 0.85);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            color: #ffffff;
+            box-sizing: border-box;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 100%;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #60a5fa;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .form-input::placeholder, .form-textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .row-group {
+            display: flex;
+            gap: 15px;
+        }
+
+        .toolbar-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-tool {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-tool:hover {
+            background: rgba(255, 255, 255, 0.25);
+            color: #ffffff;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 8px;
+            background-color: #2563eb;
+            color: #ffffff;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .submit-btn:hover {
+            background-color: #1d4ed8;
+        }
+
+        .submit-btn:disabled {
+            background-color: #64748b;
+            cursor: not-allowed;
+        }
+
+        h1.center-title {
+            text-align: center;
+            margin-top: 20px;
+            color: #ffffff;
+        }
+    </style>
+
+    <script src="/tinymce/tinymce.min.js"></script>
+    <script>
+        tinymce.init({
+            selector: '#topicData', // Target the element with this ID
+            plugins: 'lists link image table code help wordcount', // Features you want to enable
+            toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | indent outdent | bullist numlist | code'
+        });
+    </script>
+</head>
+<body>
+
+<header class="top-header">
+    <div class="nav-actions">
+        <div class="header-left">
+            <img src="./../favicon.jpeg" alt="logo" id="logo">
+        </div>
+        <form action="/credits.html" method="get" style="display: inline;">
+            <button type="submit" class="generic_button primary" id="credits">Credits</button>
+        </form>
+        <form action="/" method="get" style="display: inline;">
+            <button type="submit" class="generic_button" id="dashboard">Homepage</button>
+        </form>
+        <form action="/corkboard" method="get" style="display: inline;">
+            <button type="submit" class="generic_button" id="corkboard">Corkboard</button>
+        </form>
+        <form action="/study" method="get" style="display: inline;">
+            <button type="submit" class="generic_button" id="study">Study</button>
+        </form>
+    </div>
+</header>
+
+<h1 class="center-title">Create a New Topic</h1>
+
+<div id="float">
+    <div class="form-container">
+        <form id="studyForm">
+            <!-- Author -->
+            <div class="form-group">
+                <label for="author">Author</label>
+                <input class="form-input" type="text" id="author" name="author" placeholder="e.g. Alex" required>
+            </div>
+
+            <!-- Course/Subject & kHub Guide # side-by-side -->
+            <div class="row-group" style="margin-top: 15px;">
+                <div class="form-group" style="flex: 2;">
+                    <label for="subject">Course / Subject</label>
+                    <input class="form-input" type="text" id="subject" name="subject" placeholder="e.g. Computer Science" required>
+                </div>
+
+                <div class="form-group" style="flex: 1;">
+                    <label for="khubNumber">kHub Guide #</label>
+                    <input class="form-input" id="khubNumber" name="khubNumber" placeholder="e.g. SG. 1.0" required>
+                </div>
+            </div>
+
+            <!-- Topic Name -->
+            <div class="form-group" style="margin-top: 15px;">
+                <label for="topicName">Topic Name</label>
+                <input class="form-input" type="text" id="topicName" name="topicName" placeholder="e.g. HTML DOM & Events" required>
+            </div>
+
+            <!-- Topic Data & Attachment Tools -->
+            <div class="form-group" style="margin-top: 15px;">
+                <label for="topicData">Topic Content / Notes</label>
+                <textarea id="topicData" name="topicData" placeholder="Enter notes or markdown data here... You can ignore the text shown by inserting links and photos" required></textarea>
+            </div>
+
+            <!-- Toolbar Buttons -->
+            <div class="toolbar-buttons" style="margin-top: 10px;">
+                <button type="button" class="btn-tool" id="addImageBtn">
+                    📷 Add Image URL
+                </button>
+                <button type="button" class="btn-tool" id="addLinkBtn">
+                    🔗 Add Link
+                </button>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" id="submitBtn" class="submit-btn generic_button primary" style="margin-top: 20px;">Save Topic</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // 1. Initialize Supabase Client
+    const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const textarea = document.getElementById("topicData");
+    const form = document.getElementById("studyForm");
+    const submitBtn = document.getElementById("submitBtn");
+
+    // Insert image tag
+    document.getElementById("addImageBtn").addEventListener("click", () => {
+        const url = prompt("Enter Image URL:");
+        if (url) {
+            const altText = prompt("Enter image description (optional):") || "Image";
+            textarea.value += `\n<img src="${url}" alt="${altText}">\n`;
+        }
+    });
+
+    // Insert link tag
+    document.getElementById("addLinkBtn").addEventListener("click", () => {
+        const url = prompt("Enter Web Link URL:");
+        if (url) {
+            const linkText = prompt("Enter Link Text:") || "Link";
+            textarea.value += `\n<a href="${linkText}">${linkText}</a>\n`;
+        }
+    });
+
+    // 2. Insert payload into Supabase table
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Saving...";
+
+        const subjectTitle = document.getElementById("subject").value;
+
+        // Construct object mapping directly to table column types
+        const record = {
+            author: document.getElementById("author").value,
+            subject: { name: subjectTitle }, // jsonb column
+            name: document.getElementById("topicName").value, // varchar column
+            data: textarea.get('topicData').getContent(), // text column
+            sg: document.getElementById("khubNumber").value // text column
+        };
+
+        try {
+            const { data, error } = await supabaseClient
+                .from('study') // Replace with your exact table name if different
+                .insert([record])
+                .select();
+
+            if (error) throw error;
+
+            alert("Topic saved successfully!");
+            form.reset();
+            window.location.href = "/study"
+        } catch (err) {
+            console.error("Error inserting data:", err);
+            alert("Failed to save topic: " + err.message);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Save Topic";
+        }
+    });
+</script>
+</body>
+</html>

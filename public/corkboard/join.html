@@ -81,6 +81,9 @@
         <form action="/dashboard" method="get" style="display: inline;">
             <button type="submit" class="generic_button" id="corkboard">Dashboard</button>
         </form>
+        <form action="/study" method="get" style="display: inline;">
+            <button type="submit" class="generic_button" id="study">Study</button>
+        </form>
     </div>
 </header>
 
@@ -94,10 +97,10 @@
                 type="text"
                 id="roomid"
                 name="room id"
-                inputmode="numeric"
                 pattern="[A-Za-z0-9]{6}"
                 maxlength="6"
                 placeholder="Your 6-character room ID"
+                inputmode="text"
                 required
         >
         <input
@@ -105,9 +108,7 @@
                 type="text"
                 id="subject"
                 name="room id"
-                inputmode="numeric"
-                pattern="[A-Za-z0-9]{6}"
-                maxlength="6"
+                inputmode="text"
                 placeholder="Enter your subject (use 'main' if no subject)"
                 required
         >
