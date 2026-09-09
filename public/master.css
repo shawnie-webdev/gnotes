@@ -421,3 +421,21 @@ a:hover {
     margin-top: auto;
     margin-bottom: auto;
 }
+
+h1 {
+    color: black;
+}
+
+.big-font {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+    letter-spacing: -0.5px;
+}
+
+#splashtext {
+    font-size: 1.25rem;
+    color: #ff6600;
+    font-weight: 500;
+    min-height: 30px;
+}
