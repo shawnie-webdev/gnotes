@@ -1,0 +1,369 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+:root {
+    --navy: #17233b;
+    --navy-light: #263653;
+
+    --gold: #d6a72c;
+    --gold-light: #e7c45d;
+
+    --paper: #f8f7f2;
+    --paper-dark: #eeece4;
+
+    --text: #20242b;
+    --text-muted: #687080;
+
+    --line: #d8d6ce;
+
+    --display-font: 'Space Grotesk', Arial, sans-serif;
+    --body-font: 'Inter', Arial, sans-serif;
+    --mono-font: 'IBM Plex Mono', 'Courier New', monospace;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    margin: 0;
+
+    background: var(--paper);
+    color: var(--text);
+
+    font-family: var(--body-font);
+    font-size: 16px;
+    line-height: 1.7;
+
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+}
+::selection {
+    background: var(--gold);
+    color: var(--navy);
+}
+
+.header {
+    max-width: 900px;
+
+    margin: 0 auto;
+    padding: 110px 32px 70px;
+
+    animation: fadeUp 0.7s ease both;
+}
+
+.header::before {
+    content: "PROJECT / 2032";
+
+    display: block;
+
+    margin-bottom: 18px;
+
+    color: var(--gold);
+
+    font-family: var(--mono-font);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+
+}
+.header h1 {
+    margin: 0 0 18px;
+
+    color: var(--navy);
+
+    font-family: var(--display-font);
+    font-size: clamp(3rem, 8vw, 5.8rem);
+    font-weight: 700;
+    line-height: 0.95;
+    letter-spacing: -0.055em;
+}
+
+.header p {
+    max-width: 680px;
+
+    margin: 0;
+
+    color: var(--text-muted);
+
+    font-size: 1.05rem;
+    line-height: 1.8;
+}
+
+.technical-text {
+    max-width: 900px;
+
+    margin: 0 auto;
+    padding: 0 32px 70px;
+
+    color: var(--text-muted);
+
+    font-family: var(--mono-font);
+    font-size: 0.78rem;
+    line-height: 2;
+
+    letter-spacing: 0.035em;
+
+    animation: fadeUp 0.7s 0.1s ease both;
+}
+
+.technical-text::before {
+    content: "";
+
+    display: block;
+
+    width: 100%;
+    height: 1px;
+
+    margin-bottom: 28px;
+
+    background: var(--line);
+}
+
+.member {
+    max-width: 900px;
+
+    margin: 0 auto;
+    padding: 42px 32px;
+
+    border-top: 1px solid var(--line);
+
+    animation: fadeUp 0.7s ease both;
+}
+
+.member::before {
+    content: "TEAM MEMBER";
+
+    display: block;
+
+    margin-bottom: 12px;
+
+    color: var(--gold);
+
+    font-family: var(--mono-font);
+    font-size: 0.68rem;
+    font-weight: 500;
+
+    letter-spacing: 0.16em;
+}
+
+
+/* Member name */
+
+.member h3 {
+    margin: 0;
+
+    color: var(--navy);
+
+    font-family: var(--display-font);
+    font-size: clamp(1.5rem, 4vw, 2.25rem);
+    font-weight: 700;
+
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+}
+
+.member em {
+    display: block;
+
+    margin-top: 7px;
+
+    color: var(--gold);
+
+    font-family: var(--mono-font);
+    font-size: 0.78rem;
+    font-style: normal;
+    font-weight: 500;
+
+    letter-spacing: 0.035em;
+}
+
+.member p {
+    max-width: 700px;
+
+    margin: 20px 0 0;
+
+    color: var(--text-muted);
+
+    font-size: 0.98rem;
+    line-height: 1.8;
+}
+
+.member:hover::before {
+    letter-spacing: 0.21em;
+
+    transition: letter-spacing 0.25s ease;
+}
+
+h2 {
+    max-width: 900px;
+
+    margin: 90px auto 25px;
+    padding: 0 32px;
+
+    color: var(--navy);
+
+    font-family: var(--display-font);
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 700;
+
+    line-height: 1.1;
+    letter-spacing: -0.035em;
+}
+
+h2::before {
+    content: "—";
+
+    margin-right: 12px;
+
+    color: var(--gold);
+}
+
+h2 + p {
+    max-width: 900px;
+
+    margin: 0 auto 25px;
+    padding: 0 32px;
+
+    color: var(--text);
+
+    line-height: 1.8;
+}
+
+strong {
+    color: var(--navy);
+
+    font-family: var(--display-font);
+    font-weight: 700;
+}
+
+.final-statement {
+    max-width: 900px;
+
+    margin: 100px auto 0;
+    padding: 60px 32px 100px;
+
+    border-top: 1px solid var(--line);
+
+    color: var(--navy);
+
+    font-family: var(--display-font);
+    font-size: clamp(1.5rem, 4vw, 2.6rem);
+    font-weight: 700;
+
+    line-height: 1.2;
+    letter-spacing: -0.025em;
+
+    animation: fadeUp 0.8s ease both;
+}
+
+
+a {
+    color: var(--navy);
+
+    text-decoration: none;
+
+    border-bottom: 1px solid var(--gold);
+
+    transition:
+        color 0.2s ease,
+        border-color 0.2s ease;
+}
+
+a:hover {
+    color: var(--gold);
+    border-color: var(--navy);
+}
+
+footer {
+    padding: 30px 32px;
+
+    border-top: 1px solid var(--line);
+
+    color: var(--text-muted);
+
+    font-family: var(--mono-font);
+    font-size: 0.7rem;
+
+    text-align: center;
+    letter-spacing: 0.04em;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+@media (max-width: 600px) {
+
+    .header {
+        padding: 75px 22px 50px;
+    }
+
+    .header h1 {
+        font-size: clamp(2.7rem, 15vw, 4rem);
+    }
+
+    .header p {
+        font-size: 0.95rem;
+    }
+
+    .technical-text {
+        padding: 0 22px 50px;
+
+        font-size: 0.7rem;
+    }
+
+    .member {
+        padding: 35px 22px;
+    }
+
+    .member h3 {
+        font-size: 1.55rem;
+    }
+
+    .member p {
+        font-size: 0.92rem;
+    }
+
+    h2 {
+        margin-top: 70px;
+        padding: 0 22px;
+    }
+
+    h2 + p {
+        padding: 0 22px;
+    }
+
+    .final-statement {
+        padding: 50px 22px 80px;
+    }
+
+    footer {
+        padding: 25px 22px;
+    }
+}
