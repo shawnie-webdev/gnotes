@@ -140,8 +140,24 @@ app.get("/study/view", (req, res) => {
 // in your server.js
 app.use('/tinymce', express.static(path.join(__dirname, 'node_modules', 'tinymce')));
 
+app.get('/study', (req, res) => { /* ... */ });
+app.get('/corkboard', (req, res) => { /* ... */ });
+
+// 404 Catch-All Route (Must be placed AFTER all other routes)
+app.use((req, res) => {
+    res.status(404).send(`
+        <div style="text-align: center; font-family: sans-serif; padding: 50px;">
+            <h1>404 - Page Not Found</h1>
+            <p>The endpoint <code>${req.originalUrl}</code> does not exist.</p>
+            <a href="/">Return to Home</a>
+        </div>
+    `);
+});
+
 app.listen(PORT, () => {
     console.log("[INFO]: Server listening - [server.js]");
     console.log("========= Project GoldenNotes =========");
     console.log(`Server AT: ${localIP}:${PORT}`);
+
+
 });
