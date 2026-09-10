@@ -112,7 +112,7 @@
             window.location.href = "/study/new-topic"
         })
 
-        async function displayStudyTopics() {
+        async function displayStudyTopics(search='') {
             const container = document.getElementById('topics-container');
             const info = document.getElementById('info');
 
@@ -140,7 +140,8 @@
                 // Unpack subject jsonb object safely
                 const subjectName = topic.subject?.name || 'General';
 
-                card.innerHTML = `
+                if (topic.name.contains(search)) {
+                    card.innerHTML = `
                     <div class="card-header" data-id="${topic.id}">
                         <span class="card-member badge-subject">${escapeHtml(subjectName)}</span>
                         <span class="card-member badge-sg">${escapeHtml(topic.sg || 'SG N/A')}</span>
@@ -151,12 +152,13 @@
                     </div>
                 `;
 
-                card.addEventListener('click', () => {
-                    window.location.href=`/study/view?id=${topic.id}`;
-                    console.log("ok")
-                })
+                    card.addEventListener('click', () => {
+                        window.location.href=`/study/view?id=${topic.id}`;
+                        console.log("ok")
+                    })
 
-                container.appendChild(card);
+                    container.appendChild(card);
+                }
             });
         }
 
@@ -170,7 +172,17 @@
         }
 
         // Call on page load
-        document.addEventListener("DOMContentLoaded", displayStudyTopics);
+
+        const params = new URLSearchParams(window.location.search);
+        let searchparams = params.get("search")
+        if (!(searchparams === null)) {
+            searchparams = decodeURIComponent(searchparams)
+            searchparams = searchparams.toLowerCase()
+
+            displayStudyTopics(searchparams)
+        } else {
+            document.addEventListener("DOMContentLoaded", displayStudyTopics);
+        }
     </script>
     </body>
 </html>
