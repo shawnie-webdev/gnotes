@@ -11,8 +11,8 @@
 
     <style>
         #float {
-            width: 80%;
-            max-width: 600px;
+            width: 90%;          /* Changed from 80% to 90% */
+            max-width: 1200px;   /* Increased max-width so it can expand on larger screens */
             margin: 30px auto;
             display: flex;
             justify-content: center;
@@ -142,7 +142,9 @@
             selector: '#topicData',
             license_key: 'gpl',
             plugins: 'lists link image table code help wordcount',
-            toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | indent outdent | bullist numlist | code'
+            toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | indent outdent | bullist numlist | code',
+            width: '100%',        /* Fills the form container width */
+            height: 500           /* Set height in pixels (e.g. 500px - 600px works best for editor viewports) */
         });
     </script>
 </head>
