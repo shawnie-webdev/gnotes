@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project GoldenNotes</title>
+    <title>GoldenNotes v1.1</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
 
     <!-- Supabase JS Client via CDN -->
@@ -43,14 +43,17 @@
         <form action="./auth/dashboard.html" method="get" style="display: inline;">
             <button type="submit" class="generic_button" id="dashboard">Dashboard</button>
         </form>
+         <form action="./files/documents.html" method="get" style="display: inline;">
+            <button type="submit" class="generic_button" id="documents">Documents</button>
+        </form>
         <button class="generic_button primary" id="login">Login</button>
     </div>
 </header>
 
 <main class="hero-container">
-    <h1 id="header" class="big-font">Project GoldenNotes (ALPHA 1.105)</h1>
-    <h3> Added Advanced Topics section (WIP)</h3>
-    <h2 id="splashtext">A project by Ram</h2>
+    <h1 id="header" class="big-font">GoldenNotes Alpha_V1.105)</h1>
+    <h3> - Added Advanced Topics section <h3>
+    <h2 id="splashtext">A project founded by Ram</h2>
 </main>
 
 <script>
@@ -86,7 +89,7 @@
         // Listen for Auth changes in real-time
         supabaseClient.auth.onAuthStateChange((event, session) => {
             if (session) {
-                loginBtn.innerText = "Hi there!";
+                loginBtn.innerText = "Uhh...";
             } else {
                 loginBtn.innerText = "Login";
             }
