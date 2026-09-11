@@ -1,60 +1,112 @@
 <!DOCTYPE html>
-
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>GoldenNotes - Create a New Topic</title>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoldenNotes - Create a New Topic</title>
 
-        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-        <link rel="stylesheet" href="../master.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="../master.css">
 
-        <style>
-            .button-container {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                width: 100%;
-                margin: 30px auto;
-            }
+    <style>
+        /* Base page layout */
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
 
-            #topics-container {
-                display: grid;
-                flex-direction: column;
+        .search-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 20px auto;
+            width: 90%;
+            max-width: 800px;
+        }
 
-                left: 100%;
+        #search-label {
+            font-size: 18px;
+        }
 
-                grid-template-columns: repeat(8, max-content);
-                gap: 1rem;
-                padding: 1px;
-            }
+        #search-bar {
+            flex-grow: 1;
+            height: 40px;
+            font-size: 18px;
+            padding: 0 12px;
+            border-radius: 8px;
+            border: 1px solid #475569;
+            background-color: #1e293b;
+            color: #fff;
+        }
 
-            .topic-card {
-                width: 250px;
-                background-color: #4367a5;
-                border-radius: 15px;
+        /* FIXED: Dynamic, responsive grid layout for topic cards */
+        #topics-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
 
-                border: 1px solid black;
-                text-align: center;
-            }
+        .topic-card {
+            background-color: #4367a5;
+            border-radius: 12px;
+            border: 1px solid #1e293b;
+            text-align: center;
+            padding: 16px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
 
-            .card-member {
-                right: 20%;
-            }
+        .topic-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
 
-            #search-label {
-                font-size: 18px;
-            }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+        }
 
-            #search-bar {
-                width: 50%;
-                height: 20%;
+        .badge-subject, .badge-sg {
+            background: rgba(0, 0, 0, 0.25);
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
 
-                font-size: 24px;
-            }
-        </style>
-    </head>
-    <body>
+        .card-footer {
+            margin-top: 12px;
+            opacity: 0.8;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+            margin: 30px auto;
+        }
+
+        #info {
+            grid-column: 1 / -1;
+            text-align: center;
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body>
 
     <header class="top-header">
         <div class="nav-actions">
@@ -76,124 +128,120 @@
         </div>
     </header>
 
-    <span class="height-15">
-        <p>‎ </p>
-        <form>
-            <!-- The 'for' value must exactly match the input 'id' -->
+    <div class="search-container">
+        <form style="display: flex; width: 100%; gap: 10px; align-items: center;">
             <label for="search-bar" id="search-label">Search a Topic:</label>
-            <input type="text" id="search-bar" name="search">
-
+            <input type="text" id="search-bar" name="search" placeholder="Type a subject or topic name...">
             <button type="submit" class="generic_button">Submit</button>
         </form>
-        <p>‎ </p>
-    </span>
+    </div>
 
     <div id="topics-container" class="topics-grid">
         <h1 id="info">Loading topics...</h1>
     </div>
-    <div id="button-container">
-        <button class="generic_button" id="add-topic">Add a topic</button>
-    </div>
-        <div id="advanced-section" class="container">
-            <button class="generic_button" id="advanced-section">Go to the Advanced Section</button>
-        </div>
 
-        <script>
-            const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
-        
-            if (!window.supabase) {
-                console.error("Supabase CDN failed to load. Check script inclusion.");
+    <!-- FIXED: Resolved duplicate ID conflicts -->
+    <div id="actions-container" class="button-container">
+        <button class="generic_button" id="add-topic">Add a topic</button>
+        <button class="generic_button" id="advanced-section">Go to the Advanced Section</button>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
+
+        if (!window.supabase) {
+            console.error("Supabase CDN failed to load. Check script inclusion.");
+        }
+
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Navigation listeners
+        document.getElementById('add-topic').addEventListener('click', () => {
+            window.location.href = "/study/new-topic";
+        });
+
+        document.getElementById('advanced-section').addEventListener('click', () => {
+            window.location.href = "/study/advanced-topics";
+        });
+
+        async function displayStudyTopics(search = '') {
+            const container = document.getElementById('topics-container');
+            const info = document.getElementById('info');
+
+            const { data: topics, error } = await supabaseClient
+                .from('study')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                info.innerHTML = `<p style="color: #ef4444;">Failed to load topics: ${escapeHtml(error.message)}</p>`;
+                return;
             }
-        
-            const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-            const button2 = document.getElementById('add-topic');
-            button2.addEventListener('click', () => {
-                window.location.href = "/study/new-topic";
+
+            if (!topics || topics.length === 0) {
+                info.innerHTML = `<p style="color: #cbd5e1;">No topics created yet.</p>`;
+                return;
+            }
+
+            // Clear loading/info message
+            info.innerHTML = '';
+            let renderedCount = 0;
+
+            topics.forEach(topic => {
+                const subjectName = topic.subject?.name || 'General';
+                const topicName = topic.name || '';
+
+                if (topicName.toLowerCase().includes(search.toLowerCase())) {
+                    renderedCount++;
+                    
+                    // FIXED: Changed span element to block div element
+                    const card = document.createElement('div');
+                    card.className = 'topic-card effect_button';
+
+                    card.innerHTML = `
+                        <div class="card-header" data-id="${topic.id}">
+                            <span class="card-member badge-subject">${escapeHtml(subjectName)}</span>
+                            <span class="card-member badge-sg">${escapeHtml(topic.sg || 'SG N/A')}</span>
+                        </div>
+                        <h3 class="card-member">${escapeHtml(topicName)}</h3>
+                        <div class="card-member card-footer">
+                            <small>By: ${escapeHtml(topic.author || 'Anonymous')}</small>
+                        </div>
+                    `;
+
+                    card.addEventListener('click', () => {
+                        window.location.href = `/study/view?id=${topic.id}`;
+                    });
+
+                    container.appendChild(card);
+                }
             });
-        
-            async function displayStudyTopics(search = '') {
-                const container = document.getElementById('topics-container');
-                const info = document.getElementById('info');
-        
-                const { data: topics, error } = await supabaseClient
-                    .from('study')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-        
-                if (error) {
-                    info.innerHTML = `<p style="color: #ef4444;">Failed to load topics: ${escapeHtml(error.message)}</p>`;
-                    return;
-                }
-        
-                if (!topics || topics.length === 0) {
-                    info.innerHTML = `<p style="color: #cbd5e1;">No topics created yet.</p>`;
-                    return;
-                }
-        
-                // Clear existing info banner
-                info.innerHTML = '';
-                let renderedCount = 0;
-        
-                topics.forEach(topic => {
-                    const subjectName = topic.subject?.name || 'General';
-                    const topicName = topic.name || '';
-        
-                    // FIXED: Use .includes() and handle case-insensitive filtering
-                    if (topicName.toLowerCase().includes(search.toLowerCase())) {
-                        renderedCount++;
-                        const card = document.createElement('span');
-                        card.className = 'topic-card effect_button';
-        
-                        card.innerHTML = `
-                            <div class="card-header" data-id="${topic.id}">
-                                <span class="card-member badge-subject">${escapeHtml(subjectName)}</span>
-                                <span class="card-member badge-sg">${escapeHtml(topic.sg || 'SG N/A')}</span>
-                            </div>
-                            <h3 class="card-member">${escapeHtml(topicName)}</h3>
-                            <div class="card-member card-footer">
-                                <small>By: ${escapeHtml(topic.author || 'Anonymous')}</small>
-                            </div>
-                        `;
-        
-                        card.addEventListener('click', () => {
-                            window.location.href = `/study/view?id=${topic.id}`;
-                        });
-        
-                        container.appendChild(card);
-                    }
-                });
-        
-                if (renderedCount === 0) {
-                    info.innerHTML = `<p style="color: #cbd5e1;">No matching topics found for "${escapeHtml(search)}".</p>`;
-                }
+
+            if (renderedCount === 0) {
+                info.innerHTML = `<p style="color: #cbd5e1;">No matching topics found for "${escapeHtml(search)}".</p>`;
             }
-              const button = document.getElementById('advanced-section');
-            button.addEventListener('click', () => {
-                window.location.href = "/study/advanced-topics";
-            });
-            
-            function escapeHtml(str) {
-                return String(str)
-                    .replace(/&/g, "&amp;")
-                    .replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;")
-                    .replace(/"/g, "&quot;");
-            }
-        
-            // Initialize logic
-            const params = new URLSearchParams(window.location.search);
-            let searchparams = params.get("search");
-        
-            if (searchparams !== null) {
-                searchparams = decodeURIComponent(searchparams).trim();
-                document.getElementById('search-bar').value = searchparams;
-                displayStudyTopics(searchparams);
-            } else {
-                // FIXED: Wrap in function to avoid passing DOM Event object to search parameter
-                document.addEventListener("DOMContentLoaded", () => displayStudyTopics());
-            }
-        </script>
-    </body>
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        }
+
+        // Initialization
+        const params = new URLSearchParams(window.location.search);
+        let searchparams = params.get("search");
+
+        if (searchparams !== null) {
+            searchparams = decodeURIComponent(searchparams).trim();
+            document.getElementById('search-bar').value = searchparams;
+            displayStudyTopics(searchparams);
+        } else {
+            document.addEventListener("DOMContentLoaded", () => displayStudyTopics());
+        }
+    </script>
+</body>
 </html>
