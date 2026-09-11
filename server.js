@@ -137,6 +137,10 @@ app.get("/study/view", (req, res) => {
     sendFileOrError(res, '/study/view', 'study/courses/viewtopic.html');
 })
 
+app.get("/study/advanced (req, res) => {
+    sendFileOrError(res, '/study/advanced', 'study/courses/viewtopic.html');
+})
+
 // in your server.js
 app.use('/tinymce', express.static(path.join(__dirname, 'node_modules', 'tinymce')));
 
