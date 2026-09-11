@@ -137,7 +137,7 @@ app.get("/study/view", (req, res) => {
     sendFileOrError(res, '/study/view', 'study/courses/viewtopic.html');
 })
 
-app.get("/study/advanced (req, res) => {
+app.get("/study/advanced", (req, res) => {
     sendFileOrError(res, '/study/advanced', 'study/courses/viewtopic.html');
 })
 
