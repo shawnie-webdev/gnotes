@@ -139,7 +139,7 @@
     <script src="/tinymce/tinymce.min.js"></script>
     <script>
         tinymce.init({
-            selector: '#topicData',
+            selector: '#advancedtopicData',
             license_key: 'gpl',
             plugins: 'lists link image table code help wordcount',
             toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | indent outdent | bullist numlist | code',
@@ -170,7 +170,7 @@
     </div>
 </header>
 
-<h1 class="center-title">Create a New Topic</h1>
+<h1 class="center-title">Create a New Advanced Topic</h1>
 
 <div id="float">
     <div class="form-container">
@@ -183,7 +183,7 @@
             <div class="row-group" style="margin-top: 15px;">
                 <div class="form-group" style="flex: 2;">
                     <label for="advancedsubject">Course / Subject</label>
-                    <input class="advancedform-input" type="text" id="advancedsubject" name="subject" placeholder="e.g. Computer Science" required>
+                    <input class="advancedform-input" type="text" id="advancedsubject" name="advancedsubject" placeholder="e.g. Computer Science" required>
                 </div>
 
             <div class="form-group" style="margin-top: 15px;">
@@ -219,7 +219,7 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const form = document.getElementById("advancedstudyForm");
+    const form = document.getElementById("studyForm");
     const submitBtn = document.getElementById("submitBtnAdv");
 
     // Insert image tag directly into TinyMCE
