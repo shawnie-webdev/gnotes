@@ -24,6 +24,9 @@
       </form>
     </div>
   </header>
+       <div id="actions-container" class="button-container">
+        <button class="generic_button" id="add-topic">Add a topic</button>
+       </div>
     <div id="container" class="topics-grid">
         <h1>WELCOME TO THE ADVANCED SUBJECTS</h1>
         <h4>This is where the hardest subjects to tackle down lie down and await for you. Know that you willingly came here.</h4>
@@ -43,12 +46,12 @@
 
         // Navigation listeners
         document.getElementById('add-topic').addEventListener('click', () => {
-            window.location.href = "/study/new-topic";
+            window.location.href = "/study/new-advanced";
         });
     
         async function displayStudyTopics(search = '') {
-            const container = document.getElementById('topics-container');
-            const info = document.getElementById('info');
+            const container = document.getElementById('topics-container-advanced');
+            const info = document.getElementById('info-advanced');
 
             const { data: topics, error } = await supabaseClient
                 .from('study')
@@ -60,8 +63,8 @@
                 return;
             }
 
-            if (!topics || topics.length === 0) {
-                info.innerHTML = `<p style="color: #cbd5e1;">No topics created yet.</p>`;
+            if (!topics_advanced || topics_advanced.length === 0) {
+                info.innerHTML = `<p style="color: #cbd5e1;">No advanced topics created yet.</p>`;
                 return;
             }
 
@@ -70,10 +73,10 @@
             let renderedCount = 0;
 
             topics.forEach(topic => {
-                const subjectName = topic.subject?.name || 'General';
-                const topicName = topic.name || '';
+                const subjectName = topic_advanced.subject?.name || 'General';
+                const topicName = topic_advanced.name || '';
 
-                if (topicName.toLowerCase().includes(search.toLowerCase())) {
+                if (topic_advancedName.toLowerCase().includes(search.toLowerCase())) {
                     renderedCount++;
                     
                     // FIXED: Changed span element to block div element
@@ -81,18 +84,18 @@
                     card.className = 'topic-card effect_button';
 
                     card.innerHTML = `
-                        <div class="card-header" data-id="${topic.id}">
-                            <span class="card-member badge-subject">${escapeHtml(subjectName)}</span>
-                            <span class="card-member badge-sg">${escapeHtml(topic.sg || 'SG N/A')}</span>
+                        <div class="card-header" data-id="${topic_advanced.id}">
+                            <span class="card-member badge-subject">${escapeHtml(subjectAdvancedName)}</span>
+                            <span class="card-member badge-sg">${escapeHtml(topic_advanced.sg || 'SG N/A')}</span>
                         </div>
-                        <h3 class="card-member">${escapeHtml(topicName)}</h3>
+                        <h3 class="card-member">${escapeHtml(topic_advancedName)}</h3>
                         <div class="card-member card-footer">
-                            <small>By: ${escapeHtml(topic.author || 'Anonymous')}</small>
+                            <small>By: ${escapeHtml(topic_advanced.author || 'Anonymous')}</small>
                         </div>
                     `;
 
                     card.addEventListener('click', () => {
-                        window.location.href = `/study/view?id=${topic.id}`;
+                        window.location.href = `/study/view?id=${topic_advanced.id}`;
                     });
 
                     container.appendChild(card);
