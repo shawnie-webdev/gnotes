@@ -148,6 +148,7 @@ app.get('/study', (req, res) => { /* ... */ });
 app.get('/corkboard', (req, res) => { /* ... */ });
 app.get("/public", (req, res) => {
     res.redirect("/")
+});
 
 // 404 Catch-All Route (Must be placed AFTER all other routes)
 app.use((req, res) => {
