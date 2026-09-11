@@ -169,7 +169,11 @@
                     info.innerHTML = `<p style="color: #cbd5e1;">No matching topics found for "${escapeHtml(search)}".</p>`;
                 }
             }
-        
+              const button = document.getElementById('advanced-section');
+            button.addEventListener('click', () => {
+                window.location.href = "/study/advanced-topics";
+            });
+            
             function escapeHtml(str) {
                 return String(str)
                     .replace(/&/g, "&amp;")
