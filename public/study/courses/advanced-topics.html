@@ -4,10 +4,454 @@
   <meta charset="UTF-8">
   <title>GoldenNotes - Advanced Topics</title>
   <link rel="stylesheet" href="master.css">
-  <!-- Supabase JS Client CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+  <- For some reason, master.css is not working. Therefore, we had to slap on the master.css script here. ->
+    <style>
+      :root {
+    /* Color Palette */
+    --bg-main: #f4f6f9;          /* Crisp light gray/blue background */
+    --bg-card: #ffffff;          /* Pure white for cards/containers */
+    --bg-card-hover: #f8fafc;    /* Interactive card state */
+
+    --accent-orange: #ea580c;    /* Vibrant orange (higher contrast for light mode) */
+    --accent-orange-hover: #c2410c;
+    --accent-blue: #0284c7;      /* Vivid cyan/blue accent */
+    --accent-blue-hover: #0369a1;
+
+    --text-main: #0f172a;        /* Slate dark navy primary text */
+    --text-muted: #64748b;       /* Cool gray muted text */
+    --border-color: #e2e8f0;     /* Light slate borders */
+
+    /* Functional Colors */
+    --danger: #ef4444;
+    --success: #16a34a;
+    --warning: #d97706;
+
+    /* Layout & Utilities */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ==========================================================================
+   2. GLOBAL RESETS & TYPOGRAPHY
+   ========================================================================== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    line-height: 1.6;
+    font-size: 16px;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* Header & Navigation Structure */
+.top-header {
+    background-color: #273b60;
+    border-bottom: 1px solid #1e2d4a;
+    width: 100%;
+    padding: 15px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#logo {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-main);
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 0.75rem;
+}
+
+h1 { font-size: 2.25rem; }
+h2 { font-size: 1.75rem; }
+h3 { font-size: 1.35rem; }
+
+p {
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+
+a {
+    color: var(--accent-blue);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+a:hover {
+    color: var(--accent-blue-hover);
+    text-decoration: underline;
+}
+
+/* ==========================================================================
+   3. LAYOUT CONTAINERS & CARDS
+   ========================================================================== */
+.container {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+.card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+    margin-bottom: 20px;
+}
+
+.card:hover {
+    border-color: #cbd5e1;
+    box-shadow: var(--shadow-lg);
+}
+
+.glass-panel {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+}
+
+/* ==========================================================================
+   4. BUTTON STYLES
+   ========================================================================== */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+    user-select: none;
+    text-decoration: none;
+}
+
+/* Primary Orange Button */
+.btn-primary {
+    background-color: var(--accent-orange);
+    color: #ffffff;
+}
+
+.btn-primary:hover {
+    background-color: var(--accent-orange-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(234, 88, 12, 0.25);
+    text-decoration: none;
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+/* Secondary Blue Accent Button */
+.btn-secondary {
+    background-color: transparent;
+    color: var(--accent-blue);
+    border: 1px solid var(--accent-blue);
+}
+
+.btn-secondary:hover {
+    background-color: rgba(2, 132, 199, 0.08);
+    color: var(--accent-blue-hover);
+    transform: translateY(-2px);
+    text-decoration: none;
+}
+
+/* Ghost / Outline Button */
+.btn-outline {
+    background-color: transparent;
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+}
+
+.btn-outline:hover {
+    background-color: var(--bg-card-hover);
+    border-color: var(--text-muted);
+}
+
+/* Danger Button */
+.btn-danger {
+    background-color: var(--danger);
+    color: #ffffff;
+}
+
+.btn-danger:hover {
+    background-color: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.25);
+}
+
+/* Button Sizing */
+.btn-sm { padding: 6px 12px; font-size: 13px; }
+.btn-lg { padding: 14px 28px; font-size: 18px; }
+
+/* Generic & Interactive Button Classes */
+.generic_button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    background-color: #ffffff;
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.generic_button:hover {
+    background-color: #f8fafc;
+    border-color: var(--accent-orange);
+    color: var(--accent-orange);
+    transform: translateY(-2px);
+}
+
+.generic_button.primary {
+    background-color: var(--accent-orange);
+    border-color: var(--accent-orange);
+    color: #ffffff;
+}
+
+.generic_button.primary:hover {
+    background-color: var(--accent-orange-hover);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);
+}
+
+.effect_button {
+    font-size: 1rem;
+    font-weight: 600;
+    background-color: #ffffff;
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.effect_button:hover {
+    background-color: #f8fafc;
+    border-color: var(--accent-orange);
+    color: var(--accent-orange);
+    transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   5. FORMS & INPUTS
+   ========================================================================== */
+.form-group {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+/* Input, Select, Textarea Shared Base */
+.form-input,
+.form-select,
+.form-textarea {
+    width: 100%;
+    padding: 12px 16px;
+    background-color: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-main);
+    font-size: 15px;
+    outline: none;
+    transition: var(--transition);
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+    color: #94a3b8;
+}
+
+/* Hover and Focus States */
+.form-input:hover,
+.form-select:hover,
+.form-textarea:hover {
+    border-color: #cbd5e1;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+    border-color: var(--accent-orange);
+    box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15);
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Select Dropdown Styling */
+.form-select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%3C%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 40px;
+}
+
+/* Checkboxes and Radios */
+.form-checkbox,
+.form-radio {
+    accent-color: var(--accent-orange);
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.form-check-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* ==========================================================================
+   6. TABLES & DATA VISUALS
+   ========================================================================== */
+.table-container {
+    width: 100%;
+    overflow-x: auto;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--bg-card);
+    text-align: left;
+}
+
+.table th {
+    background-color: #f1f5f9;
+    color: var(--accent-blue);
+    font-weight: 600;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-main);
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table tbody tr:hover {
+    background-color: var(--bg-card-hover);
+}
+
+/* ==========================================================================
+   7. BADGES, TAGS & UTILITIES
+   ========================================================================== */
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-orange {
+    background-color: rgba(234, 88, 12, 0.1);
+    color: var(--accent-orange);
+    border: 1px solid rgba(234, 88, 12, 0.25);
+}
+
+.badge-blue {
+    background-color: rgba(2, 132, 199, 0.1);
+    color: var(--accent-blue);
+    border: 1px solid rgba(2, 132, 199, 0.25);
+}
+
+.height-15 {
+    height: 15%;
+}
+
+.centerx {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.centery {
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.big-font {
+    font-size: 3.5rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+    letter-spacing: -0.5px;
+}
+
+#splashtext {
+    font-size: 1.25rem;
+    color: #ff6600;
+    font-weight: 500;
+    min-height: 30px;
+}
+    </style>
   <header class="top-header">
     <div class="nav-actions">
       <form action="/credits.html" method="get" style="display: inline;">
@@ -25,174 +469,5 @@
     <h1>ADVANCED TOPICS</h1>
     <h3>Advanced topics, such as calculus, physics, chemistry, biology, and such, will be placed here instead of the standard topics in the Study Guides section.</h3>
  </div>
-  <script>
-    const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    async function loadTopicDetails() {
-        const topichead = document.getElementById('topic-head');
-        const textcontainer = document.getElementById('text-container');
-
-        // 1. Get ID from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const topicId = urlParams.get('id');
-
-        // Check if ID is missing from URL
-        if (!topicId) {
-            topichead.textContent = "Topic Not Found";
-            textcontainer.innerHTML = "<p>No topic ID provided in URL parameter (?id=...).</p>";
-            return;
-        }
-
-        try {
-            // 2. Fetch row matching the ID from the 'study' table
-            const { data: topic, error } = await supabaseClient
-                .from('study')
-                .select('*')
-                .eq('id', topicId)
-                .single();
-
-            if (error) throw error;
-
-            // 3. Render the fetched item
-            topichead.textContent = topic.name;
-            textcontainer.innerHTML = "<div>" + topic.data + "</div>";
-
-            console.log(textcontainer.innerHTML)
-        } catch (err) {
-            console.error("Error fetching record:", err);
-            topichead.textContent = "Error Loading Topic";
-            textcontainer.innerHTML = `<p style="color: #ef4444;">Failed to load topic details: ${escapeHtml(err.message)}</p>`;
-        }
-    }
-
-    // Helper function to format markdown links and images while staying safe from XSS
-    function parseContent(rawText) {
-        let escaped = escapeHtml(rawText);
-
-        // Convert [text](url) -> <a href="url" target="_blank">text</a>
-        const markdownLinkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
-        escaped = escaped.replace(markdownLinkRegex, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-
-        // Restore safe <img> tags inserted from form toolbar
-        const imgRegex = /&lt;img src=&quot;(https?:\/\/[^\s&"]+)&quot; alt=&quot;([^&"]*)&quot;&gt;/g;
-        escaped = escaped.replace(imgRegex, '<img src="$1" alt="$2">');
-
-        return escaped;
-    }
-
-    function escapeHtml(str) {
-        return String(str || '')
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;");
-    }
-
-    document.addEventListener('DOMContentLoaded', loadTopicDetails);
-</script>
-  <script>
-       const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
-
-        if (!window.supabase) {
-            console.error("Supabase CDN failed to load. Check script inclusion.");
-        }
-
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        // Navigation listeners
-        document.getElementById('add-topic').addEventListener('click', () => {
-            window.location.href = "/study/new-topic";
-        });
-
-        document.getElementById('advanced-section').addEventListener('click', () => {
-            window.location.href = "/study/advanced-topics";
-        });
-
-        async function displayStudyTopics(search = '') {
-            const container = document.getElementById('topics-container');
-            const info = document.getElementById('info');
-
-            const { data: topics, error } = await supabaseClient
-                .from('study')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (error) {
-                info.innerHTML = `<p style="color: #ef4444;">Failed to load topics: ${escapeHtml(error.message)}</p>`;
-                return;
-            }
-
-            if (!topics || topics.length === 0) {
-                info.innerHTML = `<p style="color: #cbd5e1;">No topics created yet.</p>`;
-                return;
-            }
-
-            // Clear loading/info message
-            info.innerHTML = '';
-            let renderedCount = 0;
-
-            topics.forEach(topic => {
-                const subjectName = topic.subject?.name || 'General';
-                const topicName = topic.name || '';
-
-                if (topicName.toLowerCase().includes(search.toLowerCase())) {
-                    renderedCount++;
-                    
-                    // FIXED: Changed span element to block div element
-                    const card = document.createElement('div');
-                    card.className = 'topic-card effect_button';
-
-                    card.innerHTML = `
-                        <div class="card-header" data-id="${topic.id}">
-                            <span class="card-member badge-subject">${escapeHtml(subjectName)}</span>
-                            <span class="card-member badge-sg">${escapeHtml(topic.sg || 'SG N/A')}</span>
-                        </div>
-                        <h3 class="card-member">${escapeHtml(topicName)}</h3>
-                        <div class="card-member card-footer">
-                            <small>By: ${escapeHtml(topic.author || 'Anonymous')}</small>
-                        </div>
-                    `;
-
-                    card.addEventListener('click', () => {
-                        window.location.href = `/study/view?id=${topic.id}`;
-                    });
-
-                    container.appendChild(card);
-                }
-            });
-
-            if (renderedCount === 0) {
-                info.innerHTML = `<p style="color: #cbd5e1;">No matching topics found for "${escapeHtml(search)}".</p>`;
-            }
-        }
-
-        function escapeHtml(str) {
-            return String(str)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;");
-        }
-
-        // Initialization
-        const params = new URLSearchParams(window.location.search);
-        let searchparams = params.get("search");
-
-        if (searchparams !== null) {
-            searchparams = decodeURIComponent(searchparams).trim();
-            document.getElementById('search-bar').value = searchparams;
-            displayStudyTopics(searchparams);
-        } else {
-            document.addEventListener("DOMContentLoaded", () => displayStudyTopics());
-        }
-    </script>
-</body>
-</html>
-  </script>
-</body>
-</html>
 </body>
 </html>
