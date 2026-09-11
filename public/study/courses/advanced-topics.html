@@ -25,5 +25,74 @@
     <h1>ADVANCED TOPICS</h1>
     <h3>Advanced topics, such as calculus, physics, chemistry, biology, and such, will be placed here instead of the standard topics in the Study Guides section.</h3>
  </div>
+  <script>
+    const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function loadTopicDetails() {
+        const topichead = document.getElementById('topic-head');
+        const textcontainer = document.getElementById('text-container');
+
+        // 1. Get ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const topicId = urlParams.get('id');
+
+        // Check if ID is missing from URL
+        if (!topicId) {
+            topichead.textContent = "Topic Not Found";
+            textcontainer.innerHTML = "<p>No topic ID provided in URL parameter (?id=...).</p>";
+            return;
+        }
+
+        try {
+            // 2. Fetch row matching the ID from the 'study' table
+            const { data: topic, error } = await supabaseClient
+                .from('study')
+                .select('*')
+                .eq('id', topicId)
+                .single();
+
+            if (error) throw error;
+
+            // 3. Render the fetched item
+            topichead.textContent = topic.name;
+            textcontainer.innerHTML = "<div>" + topic.data + "</div>";
+
+            console.log(textcontainer.innerHTML)
+        } catch (err) {
+            console.error("Error fetching record:", err);
+            topichead.textContent = "Error Loading Topic";
+            textcontainer.innerHTML = `<p style="color: #ef4444;">Failed to load topic details: ${escapeHtml(err.message)}</p>`;
+        }
+    }
+
+    // Helper function to format markdown links and images while staying safe from XSS
+    function parseContent(rawText) {
+        let escaped = escapeHtml(rawText);
+
+        // Convert [text](url) -> <a href="url" target="_blank">text</a>
+        const markdownLinkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+        escaped = escaped.replace(markdownLinkRegex, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+
+        // Restore safe <img> tags inserted from form toolbar
+        const imgRegex = /&lt;img src=&quot;(https?:\/\/[^\s&"]+)&quot; alt=&quot;([^&"]*)&quot;&gt;/g;
+        escaped = escaped.replace(imgRegex, '<img src="$1" alt="$2">');
+
+        return escaped;
+    }
+
+    function escapeHtml(str) {
+        return String(str || '')
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+    }
+
+    document.addEventListener('DOMContentLoaded', loadTopicDetails);
+</script>
+</body>
+</html>
 </body>
 </html>
