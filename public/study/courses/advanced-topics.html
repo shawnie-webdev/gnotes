@@ -2,21 +2,25 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>GoldenNotes - Advanced Topics</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="master.css">
+  <title>GoldenNotes</title>
+  <link rel="stylesheet" href="./../style.css">
+
+  <!-- Supabase JS Client CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-
   <header class="top-header">
     <div class="nav-actions">
+      <div class="header-left">
+        <img src="./../favicon.jpeg" alt="logo" id="logo">
+      </div>
       <form action="/credits.html" method="get" style="display: inline;">
         <button type="submit" class="generic_button primary" id="credits">Credits</button>
       </form>
-      <form action="/credits.html" method="get" style="display: inline;">
+      <form action="/" method="get" style="display: inline;">
         <button type="submit" class="generic_button" id="dashboard">Homepage</button>
       </form>
-      <form action="/credits.html" method="get" id="corkboard" style="display: inline;">
+      <form action="/corkboard" method="get" style="display: inline;">
         <button type="submit" class="generic_button" id="corkboard">Corkboard</button>
       </form>
     </div>
