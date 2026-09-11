@@ -7,6 +7,103 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="../master.css">
+      <style>
+        /* Base page layout */
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+
+        .search-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 20px auto;
+            width: 90%;
+            max-width: 800px;
+        }
+
+        #search-label {
+            font-size: 18px;
+        }
+
+        #search-bar {
+            flex-grow: 1;
+            height: 40px;
+            font-size: 18px;
+            padding: 0 12px;
+            border-radius: 8px;
+            border: 1px solid #475569;
+            background-color: #1e293b;
+            color: #fff;
+        }
+
+        /* FIXED: Dynamic, responsive grid layout for topic cards */
+        #topics-container-advanced {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+
+        .topic-card-advanced {
+            background-color: #4367a5;
+            border-radius: 12px;
+            border: 1px solid #1e293b;
+            text-align: center;
+            padding: 16px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .topic-card-advanced:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+        }
+
+        .badge-advanced-subject, .badge-sg {
+            background: rgba(0, 0, 0, 0.25);
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+
+        .card-footer {
+            margin-top: 12px;
+            opacity: 0.8;
+        }
+
+        .button-container{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+            margin: 30px auto;
+        }
+
+        #info {
+            grid-column: 1 / -1;
+            text-align: center;
+            font-weight: normal;
+        }
+    </style>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -33,6 +130,9 @@
         <h4>This part of GoldenNotes is separate and only has one theme for now. Comprehend these subjects. I wish you the best luck.</h4>
         <h2>The Advanced Topics</h2>
     </div>
+     <div id="topics-container" class="topics-grid">
+        <h1 id="info">Loading topics...</h1>
+    </div>
 
 <script>
         const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
@@ -53,7 +153,7 @@
             const container = document.getElementById('topics-container-advanced');
             const info = document.getElementById('info-advanced');
 
-            const { data: topics, error } = await supabaseClient
+            const { data: topics_advanced, error } = await supabaseClient
                 .from('study')
                 .select('*')
                 .order('created_at', { ascending: false });
@@ -81,7 +181,7 @@
                     
                     // FIXED: Changed span element to block div element
                     const card = document.createElement('div');
-                    card.className = 'topic-card effect_button';
+                    card.className = 'topic-card-advanced effect_button';
 
                     card.innerHTML = `
                         <div class="card-header" data-id="${topic_advanced.id}">
@@ -122,9 +222,9 @@
         if (searchparams !== null) {
             searchparams = decodeURIComponent(searchparams).trim();
             document.getElementById('search-bar').value = searchparams;
-            displayStudyTopics(searchparams);
+            displayAdvancedStudyTopics(searchparams);
         } else {
-            document.addEventListener("DOMContentLoaded", () => displayStudyTopics());
+            document.addEventListener("DOMContentLoaded", () => displayAdvancedStudyTopics());
         }
     </script>
 </body>
