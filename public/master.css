@@ -46,34 +46,36 @@ body {
     min-height: 100vh;
     padding: 20px;
 }
-        .top-header {
-            background-color: #273b60;
-            border-bottom: 1px solid #1e2d4a;
-            width: 100%;
-            padding: 15px 40px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-        }
 
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
+/* Header & Navigation Structure */
+.top-header {
+    background-color: #273b60;
+    border-bottom: 1px solid #1e2d4a;
+    width: 100%;
+    padding: 15px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
 
-        #logo {
-            width: 42px;
-            height: 42px;
-            object-fit: contain;
-        }
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
 
-        .nav-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+#logo {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
 
 /* Headings */
 h1, h2, h3, h4, h5, h6 {
@@ -215,6 +217,56 @@ a:hover {
 .btn-sm { padding: 6px 12px; font-size: 13px; }
 .btn-lg { padding: 14px 28px; font-size: 18px; }
 
+/* Generic & Interactive Button Classes */
+.generic_button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: 600;
+    background-color: #ffffff;
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.generic_button:hover {
+    background-color: #f8fafc;
+    border-color: var(--accent-orange);
+    color: var(--accent-orange);
+    transform: translateY(-2px);
+}
+
+.generic_button.primary {
+    background-color: var(--accent-orange);
+    border-color: var(--accent-orange);
+    color: #ffffff;
+}
+
+.generic_button.primary:hover {
+    background-color: var(--accent-orange-hover);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);
+}
+
+.effect_button {
+    font-size: 1rem;
+    font-weight: 600;
+    background-color: #ffffff;
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.effect_button:hover {
+    background-color: #f8fafc;
+    border-color: var(--accent-orange);
+    color: var(--accent-orange);
+    transform: translateY(-2px);
+}
+
 /* ==========================================================================
    5. FORMS & INPUTS
    ========================================================================== */
@@ -337,7 +389,7 @@ a:hover {
 }
 
 /* ==========================================================================
-   7. BADGES, TAGS & STATUS INDICATORS
+   7. BADGES, TAGS & UTILITIES
    ========================================================================== */
 .badge {
     display: inline-block;
@@ -361,80 +413,8 @@ a:hover {
     border: 1px solid rgba(2, 132, 199, 0.25);
 }
 
-.nav-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.generic_button {
-    padding: 10px 20px;
-    font-size: 1rem;
-    font-weight: 600;
-    background-color: #ffffff;
-    color: var(--text-main);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.generic_button:hover {
-    background-color: #f8fafc;
-    border-color: var(--accent-orange);
-    color: var(--accent-orange);
-    transform: translateY(-2px);
-}
-
-.generic_button.primary {
-    background-color: var(--accent-orange);
-    border-color: var(--accent-orange);
-    color: #ffffff;
-}
-
-.generic_button.primary:hover {
-    background-color: var(--accent-orange-hover);
-    color: #ffffff;
-    box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);
-}
-
-#logo {
-    width: 42px;
-    height: 42px;
-    object-fit: contain;
-}
-
-.top-header {
-    background-color: #ffffff;
-    border-bottom: 1px solid var(--border-color);
-    width: 100%;
-    padding: 15px 40px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
-}
-
 .height-15 {
     height: 15%;
-}
-
-.effect_button {
-    font-size: 1rem;
-    font-weight: 600;
-    background-color: #ffffff;
-    color: var(--text-main);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.effect_button:hover {
-    background-color: #f8fafc;
-    border-color: var(--accent-orange);
-    color: var(--accent-orange);
-    transform: translateY(-2px);
 }
 
 .centerx {
@@ -445,10 +425,6 @@ a:hover {
 .centery {
     margin-top: auto;
     margin-bottom: auto;
-}
-
-h1 {
-    color: black;
 }
 
 .big-font {
