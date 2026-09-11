@@ -1,0 +1,240 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+:root {
+    --display-font: 'Space Grotesk', Arial, sans-serif;
+    --body-font: 'Inter', Arial, sans-serif;
+    --mono-font: 'IBM Plex Mono', 'Courier New', monospace;
+
+    --deepest-background: #080D18;
+    --primary-navy: #14213D;
+    --secondary-navy: #1D3153;
+    --soft-navy: #263957;
+
+    --main-gold: #D9A441;
+    --light-gold: #F1D58A;
+    --dark-gold: #A97924;
+
+    --main-text: #F8F7F2;
+    --secondary-text: #E7E8EB;
+    --muted-text: #9299A8;
+
+    --subtle-line: #26304A;
+    --strong-line: #39445F;
+}
+
+::selection {
+    background-color: var(--main-gold)
+    color: black
+}
+
+/* Surface hierarchy:
+   #080D18 → #14213D → #1D3153 → #263957 */
+
+/* Text hierarchy:
+   #9299A8 → #E7E8EB → #F8F7F2 */
+
+body {
+    margin: 0;
+    min-height: 100vh;
+
+    font-family: var(--body-font);
+    color: var(--main-text);
+
+    background-color: var(--deepest-background);
+
+    background-image:
+            radial-gradient(
+                    circle at 50% 30%,
+                    rgba(29, 49, 83, 0.45) 0%,
+                    transparent 60%
+            ),
+
+                /* Secondary grid — 192px */
+            linear-gradient(
+                    to right,
+                    rgba(57, 68, 95, 0.08) 1px,
+                    transparent 1px
+            ),
+            linear-gradient(
+                    to bottom,
+                    rgba(57, 68, 95, 0.08) 1px,
+                    transparent 1px
+            ),
+
+                /* Primary grid — 48px */
+            linear-gradient(
+                    to right,
+                    rgba(38, 48, 74, 0.15) 1px,
+                    transparent 1px
+            ),
+            linear-gradient(
+                    to bottom,
+                    rgba(38, 48, 74, 0.15) 1px,
+                    transparent 1px
+            );
+
+    background-size:
+            100% 100%,
+            192px 192px,
+            192px 192px,
+            48px 48px,
+            48px 48px;
+
+    background-attachment: fixed;
+}
+
+/* Typography */
+
+p {
+    font-family: var(--body-font);
+    color: var(--secondary-text);
+}
+
+.technical-text {
+    font-family: var(--mono-font);
+    color: var(--muted-text);
+    letter-spacing: 0.10em;
+}
+
+h1,
+h2,
+h3 {
+    font-family: var(--display-font);
+    color: var(--secondary-text);
+}
+
+h1 {
+    font-weight: 700;
+}
+
+h2 {
+    font-weight: 600;
+}
+
+h3 {
+    font-weight: 500;
+}
+
+/* Dividers */
+
+.solid-divider-subtle {
+    border: none;
+    border-top: 1px solid var(--subtle-line);
+    margin: 10px 0;
+}
+
+.solid-divider-strong {
+    border: none;
+    border-top: 3px solid var(--strong-line);
+    margin: 10px 0;
+}
+
+/* Buttons */
+
+.generic_button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 10px 20px;
+
+    border: 1px solid transparent;
+    border-radius: 7px;
+
+    font-family: var(--display-font);
+    font-size: 15px;
+    font-weight: 600;
+
+    transition:
+            transform 0.18s ease,
+            background-color 0.18s ease,
+            border-color 0.18s ease,
+            color 0.18s ease,
+            box-shadow 0.18s ease;
+}
+
+.generic_button:hover {
+    transform: translateY(-2px);
+}
+
+.generic_button:focus-visible {
+    outline: 2px solid var(--light-gold);
+    outline-offset: 3px;
+}
+
+.generic_button:disabled {
+    background-color: var(--subtle-line);
+    color: var(--muted-text);
+    border-color: var(--strong-line);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.generic_button primary {
+    background-color: var(--main-gold);
+    color: var(--deepest-background);
+    border-color: var(--dark-gold);
+}
+
+.generic_button primary:hover {
+    background-color: var(--light-gold);
+    border-color: var(--main-gold);
+    box-shadow: 0 5px 16px rgba(217, 164, 65, 0.18);
+}
+
+.generic_button primary:active {
+    transform: translateY(0);
+    background-color: var(--main-gold);
+    box-shadow: none;
+}
+
+.generic_button secondary {
+    background-color: var(--primary-navy);
+    color: var(--main-text);
+    border-color: var(--strong-line);
+}
+
+.generic_button secondary:hover {
+    background-color: var(--secondary-navy);
+    color: var(--light-gold);
+    border-color: var(--main-gold);
+}
+
+.generic_button secondary:active {
+    transform: translateY(0);
+    background-color: var(--primary-navy);
+    color: var(--main-gold);
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-orange {
+    background-color: rgba(234, 88, 12, 0.1);
+    color: var(--accent-orange);
+    border: 1px solid rgba(234, 88, 12, 0.25);
+}
+
+.badge-blue {
+    background-color: rgba(2, 132, 199, 0.1);
+    color: var(--accent-blue);
+    border: 1px solid rgba(2, 132, 199, 0.25);
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.nav-actions img {
+    width: 64px;
+}

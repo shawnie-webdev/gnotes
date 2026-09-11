@@ -124,7 +124,9 @@
 
             // 3. Render the fetched item
             topichead.textContent = topic.name;
-            textcontainer.innerHTML = topic.data;
+            textcontainer.innerHTML = "<div>" + topic.data + "</div>";
+
+            console.log(textcontainer.innerHTML)
         } catch (err) {
             console.error("Error fetching record:", err);
             topichead.textContent = "Error Loading Topic";
