@@ -30,5 +30,99 @@
         <h4>This part of GoldenNotes is separate and only has one theme for now. Comprehend these subjects. I wish you the best luck.</h4>
         <h2>The Advanced Topics</h2>
     </div>
+
+<script>
+        const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
+
+        if (!window.supabase) {
+            console.error("Supabase CDN failed to load. Check script inclusion.");
+        }
+
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Navigation listeners
+        document.getElementById('add-topic').addEventListener('click', () => {
+            window.location.href = "/study/new-topic";
+        });
+    
+        async function displayStudyTopics(search = '') {
+            const container = document.getElementById('topics-container');
+            const info = document.getElementById('info');
+
+            const { data: topics, error } = await supabaseClient
+                .from('study')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                info.innerHTML = `<p style="color: #ef4444;">Failed to load topics: ${escapeHtml(error.message)}</p>`;
+                return;
+            }
+
+            if (!topics || topics.length === 0) {
+                info.innerHTML = `<p style="color: #cbd5e1;">No topics created yet.</p>`;
+                return;
+            }
+
+            // Clear loading/info message
+            info.innerHTML = '';
+            let renderedCount = 0;
+
+            topics.forEach(topic => {
+                const subjectName = topic.subject?.name || 'General';
+                const topicName = topic.name || '';
+
+                if (topicName.toLowerCase().includes(search.toLowerCase())) {
+                    renderedCount++;
+                    
+                    // FIXED: Changed span element to block div element
+                    const card = document.createElement('div');
+                    card.className = 'topic-card effect_button';
+
+                    card.innerHTML = `
+                        <div class="card-header" data-id="${topic.id}">
+                            <span class="card-member badge-subject">${escapeHtml(subjectName)}</span>
+                            <span class="card-member badge-sg">${escapeHtml(topic.sg || 'SG N/A')}</span>
+                        </div>
+                        <h3 class="card-member">${escapeHtml(topicName)}</h3>
+                        <div class="card-member card-footer">
+                            <small>By: ${escapeHtml(topic.author || 'Anonymous')}</small>
+                        </div>
+                    `;
+
+                    card.addEventListener('click', () => {
+                        window.location.href = `/study/view?id=${topic.id}`;
+                    });
+
+                    container.appendChild(card);
+                }
+            });
+
+            if (renderedCount === 0) {
+                info.innerHTML = `<p style="color: #cbd5e1;">No matching topics found for "${escapeHtml(search)}".</p>`;
+            }
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        }
+
+        // Initialization
+        const params = new URLSearchParams(window.location.search);
+        let searchparams = params.get("search");
+
+        if (searchparams !== null) {
+            searchparams = decodeURIComponent(searchparams).trim();
+            document.getElementById('search-bar').value = searchparams;
+            displayStudyTopics(searchparams);
+        } else {
+            document.addEventListener("DOMContentLoaded", () => displayStudyTopics());
+        }
+    </script>
 </body>
 </html>
