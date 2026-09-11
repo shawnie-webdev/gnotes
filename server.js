@@ -137,8 +137,8 @@ app.get("/study/view", (req, res) => {
     sendFileOrError(res, '/study/view', 'study/courses/viewtopic.html');
 })
 
-app.get("/study/advanced", (req, res) => {
-    sendFileOrError(res, '/study/advanced', 'study/courses/advanced-topics.html');
+app.get("/study/advanced-topics", (req, res) => {
+    sendFileOrError(res, '/study/advanced-topics', 'study/courses/advanced-topics.html');
 })
 
 // in your server.js
