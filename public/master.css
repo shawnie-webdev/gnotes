@@ -46,6 +46,34 @@ body {
     min-height: 100vh;
     padding: 20px;
 }
+        .top-header {
+            background-color: #273b60;
+            border-bottom: 1px solid #1e2d4a;
+            width: 100%;
+            padding: 15px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #logo {
+            width: 42px;
+            height: 42px;
+            object-fit: contain;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
 /* Headings */
 h1, h2, h3, h4, h5, h6 {
