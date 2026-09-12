@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+   <body>
+       <head>
+        <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoldenNotes v1.1</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Supabase JS Client via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="master.css">
+       </head>
+         <header class="top-header">
+    <div class="nav-actions">
+      <div class="header-left">
+        <img src="./../favicon.jpeg" alt="logo" id="logo">
+      </div>
+      <form action="/credits.html" method="get" style="display: inline;">
+        <button type="submit" class="generic_button primary" id="credits">Credits</button>
+      </form>
+      <form action="/" method="get" style="display: inline;">
+        <button type="submit" class="generic_button" id="dashboard">Homepage</button>
+      </form>
+      <form action="/corkboard" method="get" style="display: inline;">
+        <button type="submit" class="generic_button" id="corkboard">Corkboard</button>
+      </form>
+    </div>
+  </header>
+  <h1>Welcome to the Documents Section</h1>
+  <h4>Drag and upload files, or view and download them.</h4>
+   </body>
+</html>
