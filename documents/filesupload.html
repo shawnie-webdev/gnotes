@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoldenNotes v1.1</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Supabase JS Client via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="master.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Hero Content */
+        .hero-container {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            width: 90%;
+            max-width: 800px;
+        }
+    </style>
+</head>
+<body>
+
+<header class="top-header">
+    <div class="header-left">
+        <img src="favicon.jpeg" alt="logo" id="logo">
+    </div>
+
+    <div class="nav-actions">
+        <form action="./credits.html" method="get" style="display: inline;">
+            <button type="submit" class="generic_button" id="credits">Credits</button>
+        </form>
+        <form action="./auth/dashboard.html" method="get" style="display: inline;">
+            <button type="submit" class="generic_button" id="dashboard">Dashboard</button>
+        </form>
+         <form action="./documents/filesupload.html" method="get" style="display: inline;">
+            <button type="submit" class="generic_button" id="documents">Documents</button>
+        </form>
+        <button class="generic_button primary" id="login">Login</button>
+    </div>
+</header>
+</body>
+</html>
