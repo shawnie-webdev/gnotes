@@ -1,5 +1,10 @@
 // auth.js
+const Filter = require('bad-words');
+const filter = new Filter();
+
 import { supabase } from './supabase-client'
+
+
 
 export async function signUp(email, password) {
     const { data, error } = await supabase.auth.signUp({

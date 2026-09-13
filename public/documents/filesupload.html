@@ -1,32 +1,283 @@
 <!DOCTYPE html>
-<html>
-   <body>
-       <head>
-        <meta charset="UTF-8">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GoldenNotes v1.1</title>
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
-
-    <!-- Supabase JS Client via CDN -->
+    <title>GoldenNotes - Document Management</title>
+    <!-- Supabase JS Client CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="../master.css">
-       </head>
-         <header class="top-header">
-    <div class="nav-actions">
-      <form action="/credits.html" method="get" style="display: inline;">
-        <button type="submit" class="generic_button primary" id="credits">Credits</button>
-      </form>
-      <form action="/" method="get" style="display: inline;">
-        <button type="submit" class="generic_button" id="dashboard">Homepage</button>
-      </form>
-      <form action="/corkboard" method="get" style="display: inline;">
-        <button type="submit" class="generic_button" id="corkboard">Corkboard</button>
-      </form>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1e293b;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(51, 65, 85, 0.85);
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            box-sizing: border-box;
+        }
+
+        h2, h3 {
+            margin-top: 0;
+            color: #ffffff;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"], input[type="file"] {
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(15, 23, 42, 0.6);
+            color: #ffffff;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #60a5fa;
+        }
+
+        button {
+            padding: 12px 20px;
+            background-color: #2563eb;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #1d4ed8;
+        }
+
+        button:disabled {
+            background-color: #64748b;
+            cursor: not-allowed;
+        }
+
+        .btn-refresh {
+            background-color: #059669;
+            margin-bottom: 20px;
+        }
+
+        .btn-refresh:hover {
+            background-color: #047857;
+        }
+
+        .viewer-container {
+            margin-top: 20px;
+        }
+
+        .pdf-card {
+            background: #0f172a;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .pdf-card h4 {
+            margin: 0 0 8px 0;
+            font-size: 1.1rem;
+            color: #60a5fa;
+        }
+
+        .pdf-card p {
+            margin: 0 0 15px 0;
+            color: #94a3b8;
+        }
+
+        object {
+            border-radius: 8px;
+            background: #ffffff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Upload & Read Documents</h2>
+
+    <!-- WRITE (Upload Form) -->
+    <form id="uploadForm">
+        <div class="form-group">
+            <label for="docTitle">Document Title:</label>
+            <input type="text" id="docTitle" placeholder="e.g. Computer Science Lecture Notes" required>
+        </div>
+
+        <div class="form-group">
+            <label for="filePicker">Select PDF File:</label>
+            <input type="file" id="filePicker" accept="application/pdf" required>
+        </div>
+
+        <button type="submit" id="uploadBtn">Upload Document</button>
+    </form>
+
+    <hr style="margin: 30px 0; border-color: rgba(255, 255, 255, 0.2);">
+
+    <!-- READ (Native Viewer Container) -->
+    <h3>Uploaded Documents</h3>
+    <button id="refreshBtn" class="btn-refresh">Refresh List</button>
+
+    <div id="documentsList" class="viewer-container">
+        <p>Loading documents...</p>
     </div>
-  </header>
-  <h1>Welcome to the Documents Section</h1>
-  <h4>Drag and upload files, or view and download them.</h4>
-       <button type="submit" class="generic_button" id="upload">Upload files</button>
-       <button type="submit" class="generic_button" id="download">Download files</button>
-   </body>
+</div>
+
+<script>
+    const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // 1. WRITE FUNCTION: Storage Bucket -> Database 'documents' Table
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const uploadBtn = document.getElementById('uploadBtn');
+        const fileInput = document.getElementById('filePicker').files[0];
+        const docTitle = document.getElementById('docTitle').value;
+
+        if (!fileInput) return alert("Please select a file!");
+
+        // Check authentication state for RLS
+        const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+
+        if (authError || !user) {
+            alert("Auth Error: You must be logged in to upload files.");
+            return;
+        }
+
+        uploadBtn.disabled = true;
+        uploadBtn.textContent = "Uploading...";
+
+        try {
+            // Generate unique path inside the bucket
+            const fileExt = fileInput.name.split('.').pop();
+            const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+            const filePath = `${user.id}/${fileName}`;
+
+            // Upload directly to 'documents' Storage bucket
+            const { data: storageData, error: storageError } = await supabaseClient
+                .storage
+                .from('documents')
+                .upload(filePath, fileInput, {
+                    contentType: fileInput.type,
+                    upsert: false
+                });
+
+            if (storageError) throw storageError;
+
+            // Retrieve the public URL
+            const { data: { publicUrl } } = supabaseClient
+                .storage
+                .from('documents')
+                .getPublicUrl(filePath);
+
+            // Record entry in the 'documents' Database table
+            const record = {
+                author: user.email || 'Authenticated User',
+                name: docTitle || fileInput.name,
+                file_url: publicUrl,
+                file_path: storageData.path,
+                user_id: user.id
+            };
+
+            const { error: dbError } = await supabaseClient
+                .from('documents')
+                .insert([record]);
+
+            if (dbError) throw dbError;
+
+            alert("Document successfully uploaded!");
+            document.getElementById('uploadForm').reset();
+            loadDocuments(); // Reload document list
+
+        } catch (err) {
+            console.error("Upload Error:", err);
+            alert("Error uploading file: " + err.message);
+        } finally {
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = "Upload Document";
+        }
+    });
+
+    // 2. READ FUNCTION: Fetches records from 'documents' table
+    async function loadDocuments() {
+        const container = document.getElementById('documentsList');
+        container.innerHTML = "<p>Loading documents...</p>";
+
+        try {
+            const { data: docs, error } = await supabaseClient
+                .from('documents')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+
+            if (!docs || docs.length === 0) {
+                container.innerHTML = "<p>No documents found.</p>";
+                return;
+            }
+
+            container.innerHTML = "";
+
+            docs.forEach(doc => {
+                if (doc.file_url) {
+                    const card = document.createElement('div');
+                    card.className = 'pdf-card';
+                    card.innerHTML = `
+                        <h4>${escapeHtml(doc.name)}</h4>
+                        <p><small>Uploaded by: ${escapeHtml(doc.author)}</small></p>
+                        <object data="${doc.file_url}" type="application/pdf" width="100%" height="500px">
+                            <p>Your browser does not support inline PDFs.
+                               <a href="${doc.file_url}" target="_blank">Download PDF</a>
+                            </p>
+                        </object>
+                    `;
+                    container.appendChild(card);
+                }
+            });
+
+        } catch (err) {
+            console.error("Fetch Error:", err);
+            container.innerHTML = `<p style="color: #ef4444;">Error loading documents: ${err.message}</p>`;
+        }
+    }
+
+    function escapeHtml(str) {
+        return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', loadDocuments);
+    document.addEventListener('DOMContentLoaded', loadDocuments);
+</script>
+</body>
 </html>
