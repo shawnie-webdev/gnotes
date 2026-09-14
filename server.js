@@ -153,8 +153,8 @@ app.get("/documents/add", (req, res) => {
     sendFileOrError(res, '/documents', 'documents/filesupload.html');
 })
 
-app.get("/calendar/add", (req, res) => {
-    sendFileOrError(res, '/calendar/add', 'calendar/new.html');
+app.get("/calendar/new", (req, res) => {
+    sendFileOrError(res, '/calendar/new', 'calendar/new.html');
 })
 
 // in your server.js
