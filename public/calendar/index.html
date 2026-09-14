@@ -5,15 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GoldenNotes - Calendar</title>
 
-    <!-- Project Master Stylesheet -->
-    <link rel="stylesheet" href="../master.css">
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="./../style.css">
+    <link rel="stylesheet" href="./../master.css">
 
     <!-- Supabase JS Client & FullCalendar CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 
     <style>
-        /* Essential FullCalendar dark theme variable overrides */
+        /* FullCalendar Dark Theme Overrides */
         .fc {
             --fc-border-color: #1e2d4a;
             --fc-page-bg-color: #151f32;
@@ -52,23 +53,67 @@
             color: #cbd5e1;
             text-decoration: none;
         }
+
+        /* Container Spacing for Header Layout */
+        .calendar-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .calendar-header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .error-msg {
+            display: none;
+            background-color: rgba(239, 68, 68, 0.15);
+            border: 1px solid #ef4444;
+            color: #f87171;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
 
-<div class="calendar-container">
-    <div class="header-bar">
-        <h2>GoldenNotes Calendar</h2>
-        <a href="/calendar/new" class="add-event-btn">
-            <span>+</span> Add New Event
-        </a>
+<!-- Top Header Navigation -->
+<header class="top-header">
+    <div class="nav-actions">
+        <div class="header-left">
+            <img src="./../favicon.jpeg" alt="logo" id="logo">
+        </div>
+        <form action="/credits.html" method="get" style="display: inline;">
+            <button type="submit" class="generic_button primary" id="credits">Credits</button>
+        </form>
+        <form action="/" method="get" style="display: inline;">
+            <button type="submit" class="generic_button" id="dashboard">Homepage</button>
+        </form>
+        <form action="/corkboard" method="get" style="display: inline;">
+            <button type="submit" class="generic_button" id="corkboard">Corkboard</button>
+        </form>
+    </div>
+</header>
+
+<!-- Main Calendar View -->
+<main class="calendar-container">
+    <div class="calendar-header-actions">
+        <h2>Calendar</h2>
+        <form action="/calendar/new" method="get" style="display: inline;">
+            <button type="submit" class="generic_button primary" id="add-event">+ Add Event</button>
+        </form>
     </div>
 
     <div id="error-box" class="error-msg"></div>
 
-    <!-- Calendar Target Container -->
+    <!-- Calendar Mount Point -->
     <div id="calendar"></div>
-</div>
+</main>
 
 <script>
     // Supabase Initialization
@@ -94,10 +139,10 @@
 
         if (error) {
             console.error("Database fetch error:", error);
-            showError("Failed to load events from Supabase: " + error.message);
+            showError("Failed to load events: " + error.message);
         }
 
-        // Map table rows to FullCalendar structure
+        // Map Supabase rows to FullCalendar fields
         const formattedEvents = (eventsData || []).map(item => ({
             id: item.id,
             title: item.title,
@@ -108,7 +153,7 @@
             }
         }));
 
-        // Render FullCalendar
+        // Render FullCalendar instance
         const calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
             headerToolbar: {
@@ -125,6 +170,5 @@
         calendar.render();
     });
 </script>
-
 </body>
 </html>
