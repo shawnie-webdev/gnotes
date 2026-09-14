@@ -4,12 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GoldenNotes</title>
+    
+    <!-- Link both stylesheets -->
     <link rel="stylesheet" href="./../style.css">
+    <link rel="stylesheet" href="./../master.css">
 
     <!-- Supabase JS Client CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
+        /* Header Layout Fixes */
+        .top-header {
+            background-color: #151f32;
+            padding: 12px 24px;
+            border-bottom: 1px solid #1e2d4a;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            margin-right: auto; /* Pushes navigation buttons to the right or keeps logo left */
+        }
+
+        #logo {
+            height: 36px;
+            width: auto;
+            border-radius: 6px;
+            display: block;
+        }
+
+        .nav-actions form {
+            display: inline-block;
+            margin: 0;
+        }
+
+        /* Main Container Styling */
         #main-container {
             display: flex;
             width: 80%;
@@ -38,7 +77,7 @@
         }
 
         #text-container a {
-            color: #60a5fa;
+            color: #0284c7;
             text-decoration: underline;
         }
 
@@ -52,38 +91,38 @@
 
         h1#topic-head {
             text-align: center;
-            margin-top: 20px;
-            color: #ffffff;
+            margin-top: 30px;
+            color: #000000;
         }
 
         #content-container p {
             margin-top: 0;
-            margin-bottom: 0.5em; /* Controls vertical space between lines */
+            margin-bottom: 0.5em;
         }
     </style>
 </head>
 <body>
+
 <header class="top-header">
     <div class="nav-actions">
         <div class="header-left">
             <img src="./../favicon.jpeg" alt="logo" id="logo">
         </div>
-        <form action="/credits.html" method="get" style="display: inline;">
+        <form action="/credits.html" method="get">
             <button type="submit" class="generic_button primary" id="credits">Credits</button>
         </form>
-        <form action="/" method="get" style="display: inline;">
+        <form action="/" method="get">
             <button type="submit" class="generic_button" id="dashboard">Homepage</button>
         </form>
-        <form action="/corkboard" method="get" style="display: inline;">
+        <form action="/corkboard" method="get">
             <button type="submit" class="generic_button" id="corkboard">Corkboard</button>
         </form>
-        <form action="/study" method="get" style="display: inline;">
+        <form action="/study" method="get">
             <button type="submit" class="generic_button" id="study">Study</button>
         </form>
     </div>
 </header>
 
-<!-- FIXED: Added missing closing quote in id="topic-head" -->
 <h1 id="topic-head">Loading topic name...</h1>
 
 <div id="main-container">
@@ -101,11 +140,9 @@
         const topichead = document.getElementById('topic-head');
         const textcontainer = document.getElementById('text-container');
 
-        // 1. Get ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const topicId = urlParams.get('id');
 
-        // Check if ID is missing from URL
         if (!topicId) {
             topichead.textContent = "Topic Not Found";
             textcontainer.innerHTML = "<p>No topic ID provided in URL parameter (?id=...).</p>";
@@ -113,7 +150,6 @@
         }
 
         try {
-            // 2. Fetch row matching the ID from the 'study' table
             const { data: topic, error } = await supabaseClient
                 .from('study')
                 .select('*')
@@ -122,11 +158,8 @@
 
             if (error) throw error;
 
-            // 3. Render the fetched item
             topichead.textContent = topic.name;
             textcontainer.innerHTML = "<div>" + topic.data + "</div>";
-
-            console.log(textcontainer.innerHTML)
         } catch (err) {
             console.error("Error fetching record:", err);
             topichead.textContent = "Error Loading Topic";
@@ -134,15 +167,12 @@
         }
     }
 
-    // Helper function to format markdown links and images while staying safe from XSS
     function parseContent(rawText) {
         let escaped = escapeHtml(rawText);
 
-        // Convert [text](url) -> <a href="url" target="_blank">text</a>
         const markdownLinkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
         escaped = escaped.replace(markdownLinkRegex, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
 
-        // Restore safe <img> tags inserted from form toolbar
         const imgRegex = /&lt;img src=&quot;(https?:\/\/[^\s&"]+)&quot; alt=&quot;([^&"]*)&quot;&gt;/g;
         escaped = escaped.replace(imgRegex, '<img src="$1" alt="$2">');
 
