@@ -137,6 +137,7 @@
 
             docs.forEach(doc => {
                 if (doc.file_url) {
+                    console.log("Database file_url value:", doc.file_url); // Check your browser console (F12)
                     // Clean leading slashes from file path string
                     const cleanFilePath = doc.file_url.replace(/^\/+/, '');
 
