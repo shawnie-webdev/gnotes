@@ -146,7 +146,7 @@ app.get("/study/new-advanced", (req, res) => {
 })
 
 app.get("/documents", (req, res) => {
-    sendFileOrError(res, '/documents/filesupload', 'documents/filesupload.html');
+    sendFileOrError(res, '/documents', 'documents/viewer.html');
 })
 
 // in your server.js
