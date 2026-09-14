@@ -105,6 +105,7 @@
 <div class="doc-container">
     <h3>Uploaded Documents</h3>
     <button id="refreshBtn" class="btn-refresh">Refresh List</button>
+    <button id="addBtn" class="btn-refresh">Add a file</button>
 
     <div id="documentsList">
         <p>Loading documents...</p>
@@ -173,6 +174,9 @@
     }
 
     document.getElementById('refreshBtn').addEventListener('click', loadDocuments);
+    document.getElementById('refreshBtn').addEventListener('click', {
+        window.location.href = "/documents/add"
+    });
     document.addEventListener('DOMContentLoaded', loadDocuments);
 </script>
 </body>
