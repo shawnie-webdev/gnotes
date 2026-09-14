@@ -149,6 +149,10 @@ app.get("/documents", (req, res) => {
     sendFileOrError(res, '/documents', 'documents/viewer.html');
 })
 
+app.get("/documents/add", (req, res) => {
+    sendFileOrError(res, '/documents', 'documents/filesupload.html');
+})
+
 // in your server.js
 app.use('/tinymce', express.static(path.join(__dirname, 'node_modules', 'tinymce')));
 
@@ -158,9 +162,6 @@ app.get("/public", (req, res) => {
     res.redirect("/")
 });
 
-app.get("/public", (req, res) => {
-    res.redirect("/")
-});
 // 404 Catch-All Route (Must be placed AFTER all other routes)
 app.use((req, res) => {
     res.status(404).send(`
