@@ -92,7 +92,7 @@
         h1#topic-head {
             text-align: center;
             margin-top: 30px;
-            color: #ffffff;
+            color: #000000;
         }
 
         #content-container p {
@@ -159,7 +159,7 @@
             if (error) throw error;
 
             topichead.textContent = topic.name;
-            textcontainer.innerHTML = "<div>" + parseContent(topic.data) + "</div>";
+            textcontainer.innerHTML = "<div>" + topic.data + "</div>";
         } catch (err) {
             console.error("Error fetching record:", err);
             topichead.textContent = "Error Loading Topic";
