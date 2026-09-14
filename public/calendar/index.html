@@ -14,51 +14,64 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
 
     <style>
-        /* FullCalendar Dark Theme Overrides */
+        /* FullCalendar Light Theme Overrides */
         .fc {
-            --fc-border-color: #1e2d4a;
-            --fc-page-bg-color: #151f32;
-            --fc-neutral-bg-color: #0f172a;
-            --fc-list-event-hover-bg-color: #1e293b;
-            color: #cbd5e1;
+            --fc-border-color: #e2e8f0;
+            --fc-page-bg-color: #ffffff;
+            --fc-neutral-bg-color: #f8fafc;
+            --fc-list-event-hover-bg-color: #f1f5f9;
+            color: #0f172a;
         }
 
         .fc .fc-toolbar-title {
-            color: #ffffff;
+            color: #0f172a;
             font-size: 20px;
+            font-weight: bold;
         }
 
         .fc .fc-button-primary {
-            background-color: #1e293b;
-            border-color: #334155;
-            color: #ffffff;
+            background-color: #f1f5f9;
+            border-color: #cbd5e1;
+            color: #1e293b;
+            font-weight: 600;
         }
 
         .fc .fc-button-primary:hover {
-            background-color: #334155;
-            border-color: #475569;
+            background-color: #e2e8f0;
+            border-color: #94a3b8;
+            color: #0f172a;
         }
 
         .fc .fc-button-active {
             background-color: #ff6600 !important;
             border-color: #ff6600 !important;
+            color: #ffffff !important;
         }
 
         .fc-theme-standard td, .fc-theme-standard th {
-            border-color: #1e2d4a;
+            border-color: #e2e8f0;
         }
 
         .fc .fc-daygrid-day-number,
         .fc .fc-col-header-cell-cushion {
-            color: #cbd5e1;
+            color: #334155;
             text-decoration: none;
+            font-weight: 500;
+        }
+
+        .fc .fc-daygrid-day.fc-day-today {
+            background-color: #fff7ed; /* Light highlight for today */
         }
 
         /* Container Spacing for Header Layout */
         .calendar-container {
             max-width: 1000px;
             margin: 40px auto;
-            padding: 20px;
+            padding: 24px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
         .calendar-header-actions {
@@ -68,19 +81,19 @@
             margin-bottom: 20px;
         }
 
+        .calendar-header-actions h2 {
+            color: #0f172a;
+        }
+
         .error-msg {
             display: none;
-            background-color: rgba(239, 68, 68, 0.15);
-            border: 1px solid #ef4444;
-            color: #f87171;
+            background-color: #fef2f2;
+            border: 1px solid #fca5a5;
+            color: #991b1b;
             padding: 10px;
             border-radius: 6px;
             margin-bottom: 15px;
             font-size: 14px;
-        }
-
-        #fc-dom-1 {
-            color: #000000;
         }
     </style>
 </head>
