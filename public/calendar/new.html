@@ -13,7 +13,7 @@
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%); /* Moves card back by half its width & height */
+            transform: translate(-50%, -50%);
 
             width: 100%;
             max-width: 420px;
@@ -22,6 +22,20 @@
             border-radius: 12px;
             border: 1px solid #e2e8f0;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+        }
+
+        #form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
             box-sizing: border-box;
         }
     </style>
@@ -46,68 +60,51 @@
             <button type="submit" class="generic_button" id="study">Study Guides</button>
         </form>
         <form action="/documents" method="get" style="display: inline;">
-            <button type="submit" class="generic_button"">Documents</button>
+            <button type="submit" class="generic_button">Documents</button>
         </form>
         <form action="/calendar" method="get" style="display: inline;">
-            <button type="submit" class="generic_button"">Calendar</button>
+            <button type="submit" class="generic_button">Calendar</button>
         </form>
     </div>
 </header>
 
-    <h1 class="centerx">Create a Event</h1>
-    <div class="floating-div">
-        <form id="form">
-            <label for="event_name">Event name:</label>
-            <input type="text" id="event_name" class="form-input" placeholder="Event Name">
+<h1 class="centerx">Create an Event</h1>
 
-            <label for="event_description">Event description:</label>
-            <textarea id="event_description" class="form-textarea" placeholder="Event Description"></textarea>
+<div class="floating-div">
+    <form id="form">
+        <label for="event_name">Event name:</label>
+        <input type="text" id="event_name" class="form-input" placeholder="Event Name" required>
 
-            <label for="date">Date of event:</label>
-            <input type="date" id="date" class="form-input" name="event-date">
+        <label for="event_description">Event description:</label>
+        <textarea id="event_description" class="form-textarea" placeholder="Event Description"></textarea>
 
-            <button type="submit" id="submit-button" class="generic_button">Create Event</button>
-        </form>
-    </div>
+        <label for="date">Date of event:</label>
+        <input type="date" id="date" class="form-input" name="event-date" required>
 
+        <button type="submit" id="submit-button" class="generic_button">Create Event</button>
+    </form>
+</div>
 
-</body>
 <script>
-    // This small script here gets data from supabase! you can delete this if you dont
-    // need it --Roshaun
-
-    import { createClient } from '@supabase/supabase-js';
-
-    // Initialize Supabase Client with your project credentials
+    // 1. Removed ES Module import. Initialize client from CDN global instance directly:
     const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    /**
-     * Fetches data from a Supabase table.
-     *
-     * @param {string} tableName - Name of the table to query.
-     * @param {Object|undefined} searchFor - Optional filter criteria (e.g., { id: '123' } or { name: 'John' }).
-     * @returns {Promise<Array|Object|null>} Array of rows if no search filter, single object if filtered, or null on error.
-     */
     async function fetchTable(tableName, searchFor = undefined) {
         try {
             let query = supabase.from(tableName).select('*');
 
-            // If search criteria is provided, apply filters
             if (searchFor && typeof searchFor === 'object') {
                 Object.keys(searchFor).forEach(key => {
                     query = query.eq(key, searchFor[key]);
                 });
-
-                // Get single record matching criteria
                 const { data, error } = await query.maybeSingle();
                 if (error) throw error;
                 return data;
             }
 
-            // Return all records if no search filter is specified
             const { data, error } = await query;
             if (error) throw error;
             return data;
@@ -118,27 +115,16 @@
         }
     }
 
-    /**
-     * Inserts a new record into a table or updates columns on existing record(s).
-     *
-     * @param {string} table - Name of the Supabase table.
-     * @param {Object} data - Key-value pairs representing column names and their values.
-     * @param {Object|undefined} matchCriteria - Optional criteria to target specific row(s) for an UPDATE.
-     * @returns {Promise<Array|Object|null>} Inserted or updated record(s), or null on error.
-     */
     async function newCol(table, data, matchCriteria = undefined) {
         try {
             let query;
 
             if (matchCriteria && typeof matchCriteria === 'object') {
-                // MODE A: Update specific columns for an existing record
                 query = supabase.from(table).update(data);
-
                 Object.keys(matchCriteria).forEach(key => {
                     query = query.eq(key, matchCriteria[key]);
                 });
             } else {
-                // MODE B: Insert a new row/record with column values
                 query = supabase.from(table).insert([data]);
             }
 
@@ -151,27 +137,41 @@
             console.error(`Error executing newCol on table "${table}":`, error.message);
             return null;
         }
+    } // Properly closed newCol function block
 
-        /*  MAIN CODE */
+    // 2. MAIN CODE LOGIC
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("form");
 
-        const submit = document.getElementById("submit-button");
-
-        submit.addEventListener("click", async () => {
-            // Process request
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault(); // Stop native page refresh
 
             const name = document.getElementById("event_name").value;
             const desc = document.getElementById("event_description").value;
             const date = document.getElementById("date").value;
 
-            const { data: { session }, error } = await supabase.auth.getSession()
+            const { data: { session }, error } = await supabase.auth.getSession();
+
+            if (error || !session) {
+                alert("Please log in to create events.");
+                return;
+            }
+
             const user = session.user;
 
-            newCol("calendar", {
-                'title' : name,
-                'event-date' : date,
-                'description' : desc,
+            // Corrected column name from 'event-date' to 'event_date'
+            const result = await newCol("calendar", {
+                'title': name,
+                'event_date': date,
+                'description': desc,
                 'user_id': user.id,
             });
+
+            if (result) {
+                window.location.href = "/calendar";
+            }
         });
+    });
 </script>
+</body>
 </html>
