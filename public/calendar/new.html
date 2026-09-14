@@ -10,9 +10,19 @@
 
     <style>
         .floating-div {
-            display: flex;
+            position: absolute;
+            top: 50%;
             left: 50%;
-            top: 50%
+            transform: translate(-50%, -50%); /* Moves card back by half its width & height */
+
+            width: 100%;
+            max-width: 420px;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
         }
     </style>
 </head>
@@ -47,15 +57,15 @@
     <div class="floating-div">
         <form id="form">
             <label for="event_name">Event name:</label>
-            <input type="text" id="event_name" placeholder="Event Name">
+            <input type="text" id="event_name" class="form-input" placeholder="Event Name">
 
             <label for="event_description">Event description:</label>
-            <textarea id="event_description" placeholder="Event Description"></textarea>
+            <textarea id="event_description" class="form-textarea" placeholder="Event Description"></textarea>
 
             <label for="date">Date of event:</label>
-            <input type="date" id="date" name="event-date">
+            <input type="date" id="date" class="form-input" name="event-date">
 
-            <button type="submit", class="generic_button">Create Event</button>
+            <button type="submit" id="submit-button" class="generic_button">Create Event</button>
         </form>
     </div>
 
@@ -140,5 +150,27 @@
             console.error(`Error executing newCol on table "${table}":`, error.message);
             return null;
         }
+
+        /*  MAIN CODE */
+
+        const submit = document.getElementById("submit-button");
+
+        submit.addEventListener("click", async () => {
+            // Process request
+
+            const name = document.getElementById("event_name").value;
+            const desc = document.getElementById("event_description").value;
+            const date = document.getElementById("date").value;
+
+            const { data: { session }, error } = await supabase.auth.getSession()
+            const user = session.user;
+
+            newCol("calendar", {
+                'title' : name,
+                'event-date' : date,
+                'description' : desc,
+                'user_id': user.id,
+            });
+        });
 </script>
 </html>
