@@ -143,13 +143,6 @@
 
     <hr style="margin: 30px 0; border-color: rgba(255, 255, 255, 0.2);">
 
-    <!-- READ (Native Viewer Container) -->
-    <h3>Uploaded Documents</h3>
-    <button id="refreshBtn" class="btn-refresh">Refresh List</button>
-
-    <div id="documentsList" class="viewer-container">
-        <p>Loading documents...</p>
-    </div>
 </div>
 
 <script>
@@ -218,7 +211,7 @@
 
             alert("Document successfully uploaded!");
             document.getElementById('uploadForm').reset();
-            loadDocuments(); // Reload document list
+            window.location.href = "/documents";
 
         } catch (err) {
             console.error("Upload Error:", err);
@@ -228,49 +221,6 @@
             uploadBtn.textContent = "Upload Document";
         }
     });
-
-    // 2. READ FUNCTION: Fetches records from 'documents' table
-    async function loadDocuments() {
-        const container = document.getElementById('documentsList');
-        container.innerHTML = "<p>Loading documents...</p>";
-
-        try {
-            const { data: docs, error } = await supabaseClient
-                .from('documents')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (error) throw error;
-
-            if (!docs || docs.length === 0) {
-                container.innerHTML = "<p>No documents found.</p>";
-                return;
-            }
-
-            container.innerHTML = "";
-
-            docs.forEach(doc => {
-                if (doc.file_url) {
-                    const card = document.createElement('div');
-                    card.className = 'pdf-card';
-                    card.innerHTML = `
-                        <h4>${escapeHtml(doc.name)}</h4>
-                        <p><small>Uploaded by: ${escapeHtml(doc.author)}</small></p>
-                        <object data="${doc.file_url}" type="application/pdf" width="100%" height="500px">
-                            <p>Your browser does not support inline PDFs.
-                               <a href="${doc.file_url}" target="_blank">Download PDF</a>
-                            </p>
-                        </object>
-                    `;
-                    container.appendChild(card);
-                }
-            });
-
-        } catch (err) {
-            console.error("Fetch Error:", err);
-            container.innerHTML = `<p style="color: #ef4444;">Error loading documents: ${err.message}</p>`;
-        }
-    }
 
     function escapeHtml(str) {
         return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
