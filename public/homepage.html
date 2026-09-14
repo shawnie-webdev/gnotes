@@ -89,7 +89,7 @@
         // Listen for Auth changes in real-time
         supabaseClient.auth.onAuthStateChange((event, session) => {
             if (session) {
-                loginBtn.innerText = "Uhh...";
+                loginBtn.innerText = `Hi `;
             } else {
                 loginBtn.innerText = "Login";
             }
