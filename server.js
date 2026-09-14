@@ -153,6 +153,10 @@ app.get("/documents/add", (req, res) => {
     sendFileOrError(res, '/documents', 'documents/filesupload.html');
 })
 
+app.get("/calendar/add", (req, res) => {
+    sendFileOrError(res, '/calendar/add', 'calendar/new.html');
+})
+
 // in your server.js
 app.use('/tinymce', express.static(path.join(__dirname, 'node_modules', 'tinymce')));
 
