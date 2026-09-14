@@ -174,8 +174,8 @@
     }
 
     document.getElementById('refreshBtn').addEventListener('click', loadDocuments);
-    document.getElementById('refreshBtn').addEventListener('click', {
-        window.location.href = "/documents/add"
+    document.getElementById('addBtn').addEventListener('click', () => {
+        window.location.href = "/documents/add";
     });
     document.addEventListener('DOMContentLoaded', loadDocuments);
 </script>
