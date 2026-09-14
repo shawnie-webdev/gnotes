@@ -156,7 +156,7 @@
                             <h4>${escapeHtml(doc.name || 'Untitled Document')}</h4>
                             <p>Uploaded by: ${escapeHtml(doc.author || 'Anonymous')}</p>
                         </div>
-                        <a href="${publicPdfUrl}" target="_blank" class="view-link">View PDF</a>
+                        <a href="${doc.file_url}" target="_blank" class="view-link">View PDF</a>
                     `;
                     container.appendChild(card);
                 }
