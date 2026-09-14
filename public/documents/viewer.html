@@ -4,87 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GoldenNotes - Document Management</title>
+
+    <!-- Project Stylesheets -->
+    <link rel="stylesheet" href="./../style.css">
+    <link rel="stylesheet" href="./../master.css">
+
     <!-- Supabase JS Client CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #1e293b;
-            color: #ffffff;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: rgba(51, 65, 85, 0.85);
+        .doc-container {
+            max-width: 900px;
+            margin: 30px auto;
+            background: #ffffff;
             padding: 30px;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             box-sizing: border-box;
+            color: #0f172a;
         }
 
-        h2, h3 {
+        .doc-container h3 {
             margin-top: 0;
-            color: #ffffff;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .form-group label {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: #cbd5e1;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        input[type="text"], input[type="file"] {
-            padding: 10px 14px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            background: rgba(15, 23, 42, 0.6);
-            color: #ffffff;
-            font-size: 0.95rem;
-            box-sizing: border-box;
-        }
-
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #60a5fa;
-        }
-
-        button {
-            padding: 12px 20px;
-            background-color: #2563eb;
-            color: #ffffff;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        button:hover {
-            background-color: #1d4ed8;
-        }
-
-        button:disabled {
-            background-color: #64748b;
-            cursor: not-allowed;
+            color: #0f172a;
         }
 
         .btn-refresh {
             background-color: #059669;
+            color: #ffffff;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
             margin-bottom: 20px;
         }
 
@@ -92,45 +44,69 @@
             background-color: #047857;
         }
 
-        .viewer-container {
-            margin-top: 20px;
-        }
-
         .pdf-card {
-            background: #0f172a;
+            background: #f8fafc;
             padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .pdf-card h4 {
-            margin: 0 0 8px 0;
-            font-size: 1.1rem;
-            color: #60a5fa;
-        }
-
-        .pdf-card p {
-            margin: 0 0 15px 0;
-            color: #94a3b8;
-        }
-
-        object {
             border-radius: 8px;
-            background: #ffffff;
+            margin-bottom: 16px;
+            border: 1px solid #cbd5e1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pdf-card-info h4 {
+            margin: 0 0 6px 0;
+            font-size: 1.1rem;
+            color: #0f172a;
+        }
+
+        .pdf-card-info p {
+            margin: 0;
+            color: #64748b;
+            font-size: 0.875rem;
+        }
+
+        .pdf-card a.view-link {
+            padding: 8px 16px;
+            background-color: #2563eb;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .pdf-card a.view-link:hover {
+            background-color: #1d4ed8;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <hr style="margin: 30px 0; border-color: rgba(255, 255, 255, 0.2);">
+<!-- Top Header Navigation -->
+<header class="top-header">
+    <div class="nav-actions">
+        <div class="header-left">
+            <img src="./../favicon.jpeg" alt="logo" id="logo">
+        </div>
+        <form action="/credits.html" method="get" style="display: inline;">
+            <button type="submit" class="generic_button primary" id="credits">Credits</button>
+        </form>
+        <form action="/" method="get" style="display: inline;">
+            <button type="submit" class="generic_button" id="dashboard">Homepage</button>
+        </form>
+        <form action="/corkboard" method="get" style="display: inline;">
+            <button type="submit" class="generic_button" id="corkboard">Corkboard</button>
+        </form>
+    </div>
+</header>
 
-    <!-- READ (Native Viewer Container) -->
+<div class="doc-container">
     <h3>Uploaded Documents</h3>
     <button id="refreshBtn" class="btn-refresh">Refresh List</button>
 
-    <div id="documentsList" class="viewer-container">
+    <div id="documentsList">
         <p>Loading documents...</p>
     </div>
 </div>
@@ -140,7 +116,6 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // 2. READ FUNCTION: Fetches records from 'documents' table
     async function loadDocuments() {
         const container = document.getElementById('documentsList');
         container.innerHTML = "<p>Loading documents...</p>";
@@ -162,19 +137,25 @@
 
             docs.forEach(doc => {
                 if (doc.file_url) {
-                    const card = document.createElement('div');
+                    // Clean leading slashes from file path string
+                    const cleanFilePath = doc.file_url.replace(/^\/+/, '');
+
+                    // Dynamically generate public URL for this document
                     const { data } = supabaseClient
                         .storage
                         .from('documents')
-                        .getPublicUrl('path/to/file.pdf');
+                        .getPublicUrl(cleanFilePath);
 
                     const publicPdfUrl = data.publicUrl;
 
+                    const card = document.createElement('div');
                     card.className = 'pdf-card';
                     card.innerHTML = `
-                        <h4>${escapeHtml(doc.name)}</h4>
-                        <p><small>Uploaded by: ${escapeHtml(doc.author)}</small></p>
-                        <a href="${publicPdfUrl}">View this PDF file</a>
+                        <div class="pdf-card-info">
+                            <h4>${escapeHtml(doc.name || 'Untitled Document')}</h4>
+                            <p>Uploaded by: ${escapeHtml(doc.author || 'Anonymous')}</p>
+                        </div>
+                        <a href="${publicPdfUrl}" target="_blank" class="view-link">View PDF</a>
                     `;
                     container.appendChild(card);
                 }
@@ -182,7 +163,7 @@
 
         } catch (err) {
             console.error("Fetch Error:", err);
-            container.innerHTML = `<p style="color: #ef4444;">Error loading documents: ${err.message}</p>`;
+            container.innerHTML = `<p style="color: #ef4444;">Error loading documents: ${escapeHtml(err.message)}</p>`;
         }
     }
 
