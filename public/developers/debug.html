@@ -114,12 +114,13 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", async () => {
-            const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
-            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38\n';
-            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
 
-            // List of allowed user UUIDs
+        // Declare globally so both DOMContentLoaded and submit listeners can see it
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        document.addEventListener("DOMContentLoaded", async () => {
             const ALLOWED_UUIDS = [
                 "cf495833-c543-4d38-aa7d-29f8862fab4f",
                 "c6e6cfb2-d5fe-4272-ba38-6ad47dd830b9",
@@ -128,14 +129,12 @@
 
             const { data: { session } } = await supabase.auth.getSession();
 
-            // 1. Check if user is logged in
             if (!session) {
                 alert("Access restricted. Please log in first.");
                 window.location.replace("/login");
                 return;
             }
 
-            // 2. Check if the logged-in user's UUID is allowed
             const userId = session.user.id;
             if (!ALLOWED_UUIDS.includes(userId)) {
                 alert("Forbidden: Your account does not have developer privileges.");
@@ -145,7 +144,6 @@
 
             console.log("Access granted for user:", userId);
         });
-    </script>
     </script>
 </head>
 <body>
@@ -191,19 +189,25 @@
         const command = inputEl.value.trim();
         if (!command) return;
 
-        // Display user input
         appendLine(`dev@gnotes:~$ ${command}`, 'user');
-
-        // Reset input and disable during fetch
         inputEl.value = '';
         inputEl.disabled = true;
 
         try {
+            const { data, error: sessionError } = await supabase.auth.getSession();
+
+            if (sessionError || !data || !data.session) {
+                appendLine('[Authentication Error]: No active Supabase session found. Please log in first.', 'error');
+                return;
+            }
+
+            const session = data.session;
+
             const response = await fetch(TARGET_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.access_token}` // <--- THIS WAS MISSING
+                    'Authorization': `Bearer ${session.access_token}`
                 },
                 body: JSON.stringify({ command: command })
             });
@@ -212,28 +216,25 @@
             let responseData;
 
             if (contentType && contentType.includes("application/json")) {
-                responseData = await response.json();
-                responseData = JSON.stringify(responseData, null, 2);
+                const json = await response.json();
+                responseData = json.output || JSON.stringify(json, null, 2);
             } else {
                 responseData = await response.text();
             }
 
             if (response.ok) {
-                appendLine(`[${response.status} OK]`, 'success');
                 appendLine(responseData, 'success');
             } else {
-                appendLine(`[${response.status} ${response.statusText}]`, 'error');
-                appendLine(responseData, 'error');
+                appendLine(`[${response.status}] ${responseData}`, 'error');
             }
         } catch (err) {
-            appendLine(`[Network/CORS Error]: ${err.message}`, 'error');
+            appendLine(`[Error]: ${err.message}`, 'error');
         } finally {
             inputEl.disabled = false;
             inputEl.focus();
         }
     });
 
-    // Keep focus on input when clicking terminal output area
     outputEl.addEventListener('click', () => inputEl.focus());
 </script>
 
