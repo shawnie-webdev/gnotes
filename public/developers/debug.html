@@ -202,7 +202,8 @@
             const response = await fetch(TARGET_URL, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}` // <--- THIS WAS MISSING
                 },
                 body: JSON.stringify({ command: command })
             });
