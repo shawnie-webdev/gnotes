@@ -175,15 +175,44 @@ app.get("/calendar/new", (req, res) => {
 })
 
 /* DEBBUGER ENDPOINT -- DO NOT EDIT SECTION - roshaun*/
-app.get("/developers/debug", (req, res) => {
-    const user = checkUserLoggedIn()
-    const email = user.email
+app.get("/developers/debug", async (req, res) => {
+    try {
+        // 1. Get auth token from request headers (sent from frontend client)
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+            return sendErrorPage(res, 401, "/developers/debug");
+        }
 
-    if allowedAdmins.includes(user.email)
-})
+        const token = authHeader.split(' ')[1];
+
+        // 2. Verify token with Supabase
+        const { data: { user }, error } = await supabase.auth.getUser(token);
+
+        if (error || !user) {
+            return sendErrorPage(res, 401, "/developers/debug", error);
+        }
+
+        // 3. Admin whitelist check
+        const allowedAdmins = [
+            "roshaunangelia@gmail.com"
+        ];
+
+        if (allowedAdmins.includes(user.email)) {
+            return res.json({
+                "verification": "ok",
+                "user": user.email
+            });
+        } else {
+            return sendErrorPage(res, 403, "/developers/debug");
+        }
+
+    } catch (err) {
+        console.error("[DEBUG ENDPOINT ERROR]:", err);
+        return sendErrorPage(res, 500, "/developers/debug", err);
+    }
+});
 /* DEBBUGER ENDPOINT -- DO NOT EDIT SECTION */
 
-// in your server.js
 app.use('/tinymce', express.static(path.join(__dirname, 'node_modules', 'tinymce')));
 
 app.get('/study', (req, res) => { /* ... */ });
