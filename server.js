@@ -254,7 +254,7 @@ app.post("/developers/post", async (req, res) => {
             },
 
             "check logs": () => {
-                returnSDQRWT JSON.stringify(logs, null, 2);
+                return JSON.stringify(logs, null, 2);
             },
 
             "check latest": async () => {
