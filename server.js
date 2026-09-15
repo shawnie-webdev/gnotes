@@ -87,6 +87,23 @@ function sendFileOrError(res, endpoint, raw) {
     });
 }
 
+async function checkUserLoggedIn() {
+    const { data: { session }, error } = await supabase.auth.getSession();
+
+    if (error) {
+        console.error("Error fetching session:", error.message);
+        return false;
+    }
+
+    if (session) {
+        console.log("User is logged in:", session.user.email);
+        return true;
+    } else {
+        console.log("User is NOT logged in.");
+        return false;
+    }
+}
+
 app.use(express.static("public"));
 
 /* ===---===---=== ENDPOINTS ===---===---=== */
@@ -156,6 +173,15 @@ app.get("/documents/add", (req, res) => {
 app.get("/calendar/new", (req, res) => {
     sendFileOrError(res, '/calendar/new', 'calendar/new.html');
 })
+
+/* DEBBUGER ENDPOINT -- DO NOT EDIT SECTION - roshaun*/
+app.get("/developers/debug", (req, res) => {
+    const user = checkUserLoggedIn()
+    const email = user.email
+
+    if allowedAdmins.includes(user.email)
+})
+/* DEBBUGER ENDPOINT -- DO NOT EDIT SECTION */
 
 // in your server.js
 app.use('/tinymce', express.static(path.join(__dirname, 'node_modules', 'tinymce')));
