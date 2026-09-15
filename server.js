@@ -127,6 +127,25 @@ app.get("/developers/debug", async (req, res) => {
 });
 
 app.post("/developers/post", async (req, res) => {
+    // 1. Verify Authorization Header
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({
+            status: "error",
+            message: "Unauthorized: Missing or invalid token."
+        });
+    }
+
+    const token = authHeader.split(" ")[1];
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+
+    if (error || !user) {
+        return res.status(401).json({
+            status: "error",
+            message: "Unauthorized: Invalid or expired session."
+        });
+    }
+
     const { command } = req.body;
 
     if (!command) {
