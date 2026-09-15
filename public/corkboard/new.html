@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GoldenNotes - Create Note</title>
+  <link rel="stylesheet" href="./../mastergit.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .form-container {
+      max-width: 500px;
+      margin: 40px auto;
+      padding: 24px;
+      background: #161b22;
+      color: #e6edf3;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      font-family: sans-serif;
+    }
+    .form-group {
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group label {
+      font-weight: bold;
+      font-size: 0.9rem;
+      color: #8b949e;
+    }
+    .form-control {
+      padding: 8px 12px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      color: #e6edf3;
+      border-radius: 6px;
+    }
+    select[multiple] {
+      height: 100px;
+    }
+  </style>
+</head>
+<body>
+
+<header class="top-header">
+  <div class="nav-actions">
+    <div class="header-left">
+      <img src="./../favicon.jpeg" alt="logo" id="logo">
+    </div>
+    <form action="/credits.html" method="get" style="display: inline;">
+      <button type="submit" class="generic_button primary" id="credits">Credits</button>
+    </form>
+    <form action="/" method="get" style="display: inline;">
+      <button type="submit" class="generic_button" id="dashboard">Homepage</button>
+    </form>
+    <form action="/corkboard" method="get" style="display: inline;">
+      <button type="submit" class="generic_button" id="corkboard">Corkboard</button>
+    </form>
+    <form action="/study" method="get" style="display: inline;">
+      <button type="submit" class="generic_button" id="study">Study Guides</button>
+    </form>
+    <form action="/documents" method="get" style="display: inline;">
+      <button type="submit" class="generic_button">Documents</button>
+    </form>
+    <form action="/calendar" method="get" style="display: inline;">
+      <button type="submit" class="generic_button">Calendar</button>
+    </form>
+  </div>
+</header>
+
+<main class="form-container">
+  <h2>Create Note & Assign Permissions</h2>
+  <form id="create-note-form" style="margin-top: 16px;">
+
+    <div class="form-group">
+      <label for="room">Room Name</label>
+      <input type="text" id="room" class="form-control" value="GOLD32-main" required>
+    </div>
+
+    <div class="form-group">
+      <label for="text">Note Text</label>
+      <textarea id="text" class="form-control" rows="3" placeholder="Enter note content..." required></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="color">Note Color</label>
+      <input type="color" id="color" class="form-control" value="#69ff94">
+    </div>
+
+    <div class="form-group">
+      <label for="editors">Select Editors (Hold Ctrl/Cmd to select multiple)</label>
+      <select id="editors" class="form-control" multiple required>
+        <!-- Populated dynamically or hardcoded user options -->
+      </select>
+    </div>
+
+    <button type="submit" class="generic_button primary" style="width: 100%; margin-top: 10px;">Create Note & Set Permissions</button>
+  </form>
+</main>
+
+<script>
+  const { createClient } = window.supabase;
+
+  const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Hardcoded known users (or replace by fetching from profiles table)
+  const USERS = [
+    { id: "cf495833-c543-4d38-aa7d-29f8862fab4f", label: "Roshaun" },
+    { id: "c6e6cfb2-d5fe-4272-ba38-6ad47dd830b9", label: "Ram" },
+    { id: "cf1da5cf-073c-475c-a5f1-d92ff991b2d4", label: "Betatester" }
+  ];
+
+  // Populate user dropdown on page load
+  document.addEventListener("DOMContentLoaded", () => {
+    const selectEl = document.getElementById("editors");
+    USERS.forEach(u => {
+      const opt = document.createElement("option");
+      opt.value = u.id;
+      opt.textContent = `${u.label} (${u.id.substring(0, 8)}...)`;
+      selectEl.appendChild(opt);
+    });
+  });
+
+  document.getElementById("create-note-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const room = document.getElementById("room").value;
+    const text = document.getElementById("text").value;
+    const color = document.getElementById("color").value;
+
+    // Get array of selected User UUIDs from multi-select dropdown
+    const selectEl = document.getElementById("editors");
+    const selectedUserIds = Array.from(selectEl.selectedOptions).map(opt => opt.value);
+
+    try {
+      // Step 1: Insert row into `notes` table
+      const { data: noteData, error: noteError } = await supabase
+              .from('notes')
+              .insert([{
+                room: room,
+                x: Math.floor(Math.random() * 400) + 100, // Random X offset
+                y: Math.floor(Math.random() * 200) + 50,  // Random Y offset
+                text: text,
+                color: color
+              }])
+              .select()
+              .single();
+
+      if (noteError) throw noteError;
+
+      const newNoteId = noteData.id;
+
+      // Step 2: Build permission objects array for every selected user
+      const permissionsPayload = selectedUserIds.map(userId => ({
+        note_id: newNoteId,
+        user_id: userId,
+        role: 'editor'
+      }));
+
+      // Step 3: Insert permissions into `note_permissions`
+      const { error: permError } = await supabase
+              .from('note_permissions')
+              .insert(permissionsPayload);
+
+      if (permError) throw permError;
+
+      alert(`Note created successfully! Permitted ${selectedUserIds.length} editor(s).`);
+      window.location.href = "/corkboard";
+
+    } catch (err) {
+      console.error("Error creating note with permissions:", err);
+      alert(`Failed to create note: ${err.message}`);
+    }
+  });
+</script>
+</body>
+</html>

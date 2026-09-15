@@ -160,6 +160,8 @@ app.get("/dashboard", (req, res) => sendFileOrError(res, '/dashboard', 'auth/das
 app.get("/corkboard", (req, res) => sendFileOrError(res, '/corkboard', 'corkboard/join.html'));
 app.get("/corkboard/help", (req, res) => sendFileOrError(res, '/corkboard/help', 'corkboard/help.html'));
 app.get("/corkboard/join", (req, res) => sendFileOrError(res, '/corkboard/join', 'corkboard/main.html'));
+app.get("/corkboard/new", (req, res) => sendFileOrError(res, '/corkboard/new', 'corkboard/new.html'));
+
 
 app.get("/study", (req, res) => sendFileOrError(res, '/study', 'study/course-list.html'));
 app.get("/study/new-topic", (req, res) => sendFileOrError(res, '/study/new-topic', 'study/courses/newtopic.html'));
@@ -252,7 +254,7 @@ app.post("/developers/post", async (req, res) => {
             },
 
             "check logs": () => {
-                return JSON.stringify(logs, null, 2);
+                returnSDQRWT JSON.stringify(logs, null, 2);
             },
 
             "check latest": async () => {
