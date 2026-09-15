@@ -28,6 +28,18 @@ const publicDir = path.join(__dirname, "public");
 console.log("[server.js] - Public directory at:");
 console.log(publicDir);
 
+let logs = []
+
+function log(type, param, message) {
+    const append = {
+        "type" : type,
+        "info/error" : param
+        "message" : message
+    }
+
+    logs.push(append);
+}
+
 const PORT = Number(process.env.PORT) || 3000;
 
 function getIP() {
@@ -102,6 +114,38 @@ function sendFileOrError(res, endpoint, raw) {
         }
     });
 }
+
+// Middleware to log all GET requests and their status codes
+app.use((req, res, next) => {
+    if (req.method === 'GET') {
+        const startTime = Date.now();
+
+        // The 'finish' event fires when the response has fully sent
+        res.on('finish', () => {
+            const duration = Date.now() - startTime;
+            const statusCode = res.statusCode;
+
+            log(
+                "info",
+                {
+                    timeinfo : {
+                        'start' : startTime,
+                        'end' : duration + startTime,
+                        'duration' : duration
+                    },
+                    endpoint: req.path,             // e.g. "/developers/debug"
+                    fullUrl: req.originalUrl,       // e.g. "/developers/debug?ref=nav"
+                    params: req.params,             // Route parameters
+                    query: req.query,               // Query string parameters (?key=value)
+                    statusCode : statusCode,
+                    request-type : 'get'
+                },
+                "get request on endpoint, view info to knoww more"
+            )
+        });
+    }
+    next(); // Pass control to the next route handler
+});
 
 /* ===---===---=== ENDPOINTS ===---===---=== */
 
@@ -189,13 +233,28 @@ app.post("/developers/post", async (req, res) => {
         // Command Dictionary
         const commands = {
             "ping": () => "pong",
-            "help": () => "help - shows available commands\nping - pingtest\ntime - shows server ISO time\ncheck - displays check subcommands\ncheck hash - retrieves local commit hash\ncheck latest - compares local hash with GitHub main\nbash <cmd> - executes shell command",
+            "help": () => "help - shows available commands\n" +
+                "ping - pingtest\n" +
+                "time - shows server ISO time\n" +
+                "check - displays check subcommands\n" +
+                "check hash - retrieves local commit hash\n" +
+                "check latest - compares local hash with GitHub main\n" +
+                "check logs - checks logs" +
+                "bash <cmd> - executes shell command",
+
             "time": () => new Date().toISOString(),
             "check": () => "check command -> usage: 'check hash' or 'check latest'",
+
             "check hash": () => {
                 const hash = getLocalHash();
                 return hash ? hash : "Error: Not a git repository or git binary unavailable.";
+
             },
+
+            "check logs": () => {
+                return logs
+            },
+
             "check latest": async () => {
                 const localHash = getLocalHash();
                 if (!localHash) return "Error: Could not determine local git hash.";
@@ -268,4 +327,7 @@ app.listen(PORT, () => {
     console.log("[INFO]: Server listening - [server.js]");
     console.log("========= Project GoldenNotes =========");
     console.log(`Server AT: ${localIP}:${PORT}`);
+
+    log('info', 'server-info', 'server is now listening')
+    log('info', 'server-info', `Server AT: ${localIP}:${PORT}`)
 });
