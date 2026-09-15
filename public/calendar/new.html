@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>GoldenNotes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoldenNotes - Add Event</title>
     <link rel="stylesheet" href="./../master.css">
 
     <!-- Supabase JS Client CDN -->
@@ -11,10 +12,9 @@
     <style>
         .floating-div {
             position: absolute;
-            top: 50%;
+            top: 55%;
             left: 50%;
             transform: translate(-50%, -50%);
-
             width: 100%;
             max-width: 420px;
             background: #ffffff;
@@ -28,15 +28,41 @@
         #form {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 14px;
+        }
+
+        #form label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .form-input, .form-textarea {
             width: 100%;
-            padding: 8px 10px;
+            padding: 10px 12px;
             border: 1px solid #cbd5e1;
             border-radius: 6px;
+            font-size: 0.95rem;
             box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        #submit-button {
+            margin-top: 10px;
+            width: 100%;
         }
     </style>
 </head>
@@ -68,25 +94,31 @@
     </div>
 </header>
 
-<h1 class="centerx">Create an Event</h1>
+<h1 class="centerx" style="text-align: center; margin-top: 30px;">Create an Event</h1>
 
 <div class="floating-div">
     <form id="form">
-        <label for="event_name">Event name:</label>
-        <input type="text" id="event_name" class="form-input" placeholder="Event Name" required>
+        <div>
+            <label for="event_name">Event name:</label>
+            <input type="text" id="event_name" class="form-input" placeholder="Event Name" required>
+        </div>
 
-        <label for="event_description">Event description:</label>
-        <textarea id="event_description" class="form-textarea" placeholder="Event Description"></textarea>
+        <div>
+            <label for="event_description">Event description:</label>
+            <textarea id="event_description" class="form-textarea" placeholder="Event Description"></textarea>
+        </div>
 
-        <label for="date">Date of event:</label>
-        <input type="date" id="date" class="form-input" name="event-date" required>
+        <div>
+            <label for="date">Date of event:</label>
+            <input type="date" id="date" class="form-input" name="event-date" required>
+        </div>
 
         <button type="submit" id="submit-button" class="generic_button">Create Event</button>
     </form>
 </div>
 
 <script>
-    // 1. Removed ES Module import. Initialize client from CDN global instance directly:
+    // 1. Initialize using CDN client (window.supabase)
     const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
 
@@ -95,7 +127,6 @@
     async function fetchTable(tableName, searchFor = undefined) {
         try {
             let query = supabase.from(tableName).select('*');
-
             if (searchFor && typeof searchFor === 'object') {
                 Object.keys(searchFor).forEach(key => {
                     query = query.eq(key, searchFor[key]);
@@ -104,11 +135,9 @@
                 if (error) throw error;
                 return data;
             }
-
             const { data, error } = await query;
             if (error) throw error;
             return data;
-
         } catch (error) {
             console.error(`Error fetching from table "${tableName}":`, error.message);
             return null;
@@ -118,7 +147,6 @@
     async function newCol(table, data, matchCriteria = undefined) {
         try {
             let query;
-
             if (matchCriteria && typeof matchCriteria === 'object') {
                 query = supabase.from(table).update(data);
                 Object.keys(matchCriteria).forEach(key => {
@@ -129,22 +157,20 @@
             }
 
             const { data: result, error } = await query.select();
-
             if (error) throw error;
             return result;
-
         } catch (error) {
             console.error(`Error executing newCol on table "${table}":`, error.message);
             return null;
         }
-    } // Properly closed newCol function block
+    }
 
-    // 2. MAIN CODE LOGIC
+    // 2. Form submission logic
     document.addEventListener("DOMContentLoaded", () => {
         const form = document.getElementById("form");
 
         form.addEventListener("submit", async (e) => {
-            e.preventDefault(); // Stop native page refresh
+            e.preventDefault(); // Prevents page reload on submit
 
             const name = document.getElementById("event_name").value;
             const desc = document.getElementById("event_description").value;
@@ -153,18 +179,17 @@
             const { data: { session }, error } = await supabase.auth.getSession();
 
             if (error || !session) {
-                alert("Please log in to create events.");
+                alert("Please log in to create an event.");
                 return;
             }
 
             const user = session.user;
 
-            // Corrected column name from 'event-date' to 'event_date'
             const result = await newCol("calendar", {
                 'title': name,
-                'event_date': date,
+                'event_date': date, // Fixed key: changed 'event-date' to 'event_date'
                 'description': desc,
-                'user_id': user.id,
+                'user_id': user.id
             });
 
             if (result) {
