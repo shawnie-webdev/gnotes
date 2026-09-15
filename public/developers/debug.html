@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GNotes Developer Terminal</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #0d1117;
+            color: #58a6ff;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .terminal-container {
+            width: 100%;
+            max-width: 800px;
+            height: 500px;
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background-color: #21262d;
+            padding: 10px 15px;
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .btn-close { background-color: #ff5f56; }
+        .btn-min { background-color: #ffbd2e; }
+        .btn-max { background-color: #27c93f; }
+
+        .terminal-title {
+            color: #8b949e;
+            font-size: 0.85rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .terminal-output {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 0.95rem;
+        }
+
+        .line {
+            line-height: 1.4;
+            word-break: break-all;
+            white-space: pre-wrap;
+        }
+
+        .line.system { color: #8b949e; }
+        .line.user { color: #e6edf3; }
+        .line.success { color: #3fb950; }
+        .line.error { color: #f85149; }
+
+        .terminal-input-row {
+            display: flex;
+            padding: 12px 15px;
+            background-color: #0d1117;
+            border-top: 1px solid #30363d;
+            align-items: center;
+        }
+
+        .prompt {
+            color: #2f81f7;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        #command-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #e6edf3;
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
+
+        #command-input:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+
+<div class="terminal-container">
+    <div class="terminal-header">
+        <span class="btn btn-close"></span>
+        <span class="btn btn-min"></span>
+        <span class="btn btn-max"></span>
+        <span class="terminal-title">developers/post - bash</span>
+    </div>
+
+    <div class="terminal-output" id="output">
+        <div class="line system">GoldenNotes Dev Terminal [Version 1.0.0]</div>
+        <div class="line system">Connected target: https://gnotes-ide4.onrender.com/developers/post</div>
+        <div class="line system">Type a command or payload and press Enter.</div>
+        <div class="line system">--------------------------------------------------</div>
+    </div>
+
+    <form class="terminal-input-row" id="terminal-form">
+        <span class="prompt">dev@gnotes:~$</span>
+        <input type="text" id="command-input" autocomplete="off" autofocus placeholder="Type command...">
+    </form>
+</div>
+
+<script>
+    const TARGET_URL = 'https://gnotes-ide4.onrender.com/developers/post';
+    const outputEl = document.getElementById('output');
+    const inputEl = document.getElementById('command-input');
+    const formEl = document.getElementById('terminal-form');
+
+    function appendLine(text, type = 'system') {
+        const line = document.createElement('div');
+        line.className = `line ${type}`;
+        line.textContent = text;
+        outputEl.appendChild(line);
+        outputEl.scrollTop = outputEl.scrollHeight;
+    }
+
+    formEl.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const command = inputEl.value.trim();
+        if (!command) return;
+
+        // Display user input
+        appendLine(`dev@gnotes:~$ ${command}`, 'user');
+
+        // Reset input and disable during fetch
+        inputEl.value = '';
+        inputEl.disabled = true;
+
+        try {
+            const response = await fetch(TARGET_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ command: command })
+            });
+
+            const contentType = response.headers.get("content-type");
+            let responseData;
+
+            if (contentType && contentType.includes("application/json")) {
+                responseData = await response.json();
+                responseData = JSON.stringify(responseData, null, 2);
+            } else {
+                responseData = await response.text();
+            }
+
+            if (response.ok) {
+                appendLine(`[${response.status} OK]`, 'success');
+                appendLine(responseData, 'success');
+            } else {
+                appendLine(`[${response.status} ${response.statusText}]`, 'error');
+                appendLine(responseData, 'error');
+            }
+        } catch (err) {
+            appendLine(`[Network/CORS Error]: ${err.message}`, 'error');
+        } finally {
+            inputEl.disabled = false;
+            inputEl.focus();
+        }
+    });
+
+    // Keep focus on input when clicking terminal output area
+    outputEl.addEventListener('click', () => inputEl.focus());
+</script>
+
+</body>
+</html>

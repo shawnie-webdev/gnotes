@@ -5,6 +5,9 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 
+const { execSync } = require('child_process');
+
+
 console.log("[INFO]: Server module loading - [server.js]");
 
 const app = express();
@@ -176,40 +179,99 @@ app.get("/calendar/new", (req, res) => {
 
 /* DEBBUGER ENDPOINT -- DO NOT EDIT SECTION - roshaun*/
 app.get("/developers/debug", async (req, res) => {
-    try {
-        // 1. Get auth token from request headers (sent from frontend client)
-        const authHeader = req.headers.authorization;
-        if (!authHeader) {
-            return sendErrorPage(res, 401, "/developers/debug");
-        }
+    sendFileOrError(res, "/developers/debug", '/developers/debug.html');
+});
 
-        const token = authHeader.split(' ')[1];
+// Express 4.16+ has built-in body parsers
+app.use(express.json()); // Parses application/json payloads
+app.use(express.urlencoded({ extended: true })); // Parses form submissions
+const { execSync } = require("child_process");
 
-        // 2. Verify token with Supabase
-        const { data: { user }, error } = await supabase.auth.getUser(token);
+app.post("/developers/post", async (req, res) => {
+    // 1. Get the input
+    const { command } = req.body;
 
-        if (error || !user) {
-            return sendErrorPage(res, 401, "/developers/debug", error);
-        }
-
-        // 3. Admin whitelist check
-        const allowedAdmins = [
-            "roshaunangelia@gmail.com"
-        ];
-
-        if (allowedAdmins.includes(user.email)) {
-            return res.json({
-                "verification": "ok",
-                "user": user.email
-            });
-        } else {
-            return sendErrorPage(res, 403, "/developers/debug");
-        }
-
-    } catch (err) {
-        console.error("[DEBUG ENDPOINT ERROR]:", err);
-        return sendErrorPage(res, 500, "/developers/debug", err);
+    // Validate missing input
+    if (!command) {
+        return res.status(400).json({
+            status: "error",
+            message: "No command provided in request body."
+        });
     }
+
+    // Helper function to get local git hash safely
+    const getLocalHash = () => {
+        try {
+            return execSync("git rev-parse HEAD").toString().trim();
+        } catch (err) {
+            return null;
+        }
+    };
+
+    // 2. Define Command Dictionary
+    const commands = {
+        "ping": () => "pong",
+        "help": () => "help - shows help\nping - pingtest\ntime - shows time\ncheck - checks for stuff\ncheck latest - checks if the build is latest\ncheck hash - checks hash",
+        "time": () => new Date().toISOString(),
+
+        "check": () => "check command -> try 'check hash' or 'check latest'",
+
+        "check hash": () => {
+            const hash = getLocalHash();
+            return hash ? hash : "Error: Not a git repository or git not installed.";
+        },
+
+        "check latest": async () => {
+            const localHash = getLocalHash();
+
+            if (!localHash) {
+                return "Error: Could not determine local git hash.";
+            }
+
+            try {
+                // Fetch latest commit metadata from GitHub API
+                const response = await fetch("https://api.github.com/repos/shawnie-webdev/gnotes/commits/main", {
+                    headers: {
+                        "User-Agent": "GoldenNotes-Server" // GitHub API requires a User-Agent header
+                    }
+                });
+
+                if (!response.ok) {
+                    return `GitHub API error: HTTP ${response.status}`;
+                }
+
+                const data = await response.json();
+                const latestRemoteHash = data.sha;
+
+                if (localHash === latestRemoteHash) {
+                    return `[UP TO DATE] Local commit (${localHash.substring(0, 7)}) matches GitHub main branch.`;
+                } else {
+                    return `[OUTDATED] Local commit: ${localHash.substring(0, 7)} | Latest remote commit: ${latestRemoteHash.substring(0, 7)}`;
+                }
+            } catch (err) {
+                return `Failed to verify with GitHub: ${err.message}`;
+            }
+        }
+    };
+
+    // 3. Process input
+    console.log(`[RECEIVED COMMAND]: ${command}`);
+
+    let output;
+    if (commands[command]) {
+        // Handle both synchronous and asynchronous command functions
+        output = await commands[command]();
+    } else {
+        output = `Unknown command: '${command}'. Type 'help' for available commands.`;
+    }
+
+    // 4. Send response back to client
+    return res.status(200).json({
+        status: "success",
+        inputReceived: command,
+        output: output,
+        timestamp: new Date().toISOString()
+    });
 });
 /* DEBBUGER ENDPOINT -- DO NOT EDIT SECTION */
 
