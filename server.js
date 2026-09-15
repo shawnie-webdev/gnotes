@@ -7,6 +7,13 @@ const os = require("os");
 const { execSync } = require("child_process");
 const { createClient } = require("@supabase/supabase-js"); // 1. Import createClient
 
+const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
+
+// Initialize inside block scope to avoid global collision
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+
 console.log("[INFO]: Server module loading - [server.js]");
 
 const app = express();
