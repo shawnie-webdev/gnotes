@@ -5,6 +5,7 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 const { execSync } = require("child_process");
+const { createClient } = require("@supabase/supabase-js"); // 1. Import createClient
 
 console.log("[INFO]: Server module loading - [server.js]");
 
