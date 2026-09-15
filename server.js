@@ -138,7 +138,7 @@ app.use((req, res, next) => {
                     params: req.params,             // Route parameters
                     query: req.query,               // Query string parameters (?key=value)
                     statusCode : statusCode,
-                    request-type : 'get'
+                    request_type : 'get'
                 },
                 "get request on endpoint, view info to knoww more"
             )
