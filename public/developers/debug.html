@@ -119,14 +119,33 @@
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38\n';
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+            // List of allowed user UUIDs
+            const ALLOWED_UUIDS = [
+                "cf495833-c543-4d38-aa7d-29f8862fab4f",
+                "c6e6cfb2-d5fe-4272-ba38-6ad47dd830b9",
+                "cf1da5cf-073c-475c-a5f1-d92ff991b2d4"
+            ];
+
             const { data: { session } } = await supabase.auth.getSession();
 
-            // If not logged in, redirect to login page immediately
+            // 1. Check if user is logged in
             if (!session) {
                 alert("Access restricted. Please log in first.");
                 window.location.replace("/login");
+                return;
             }
+
+            // 2. Check if the logged-in user's UUID is allowed
+            const userId = session.user.id;
+            if (!ALLOWED_UUIDS.includes(userId)) {
+                alert("Forbidden: Your account does not have developer privileges.");
+                window.location.replace("/dashboard");
+                return;
+            }
+
+            console.log("Access granted for user:", userId);
         });
+    </script>
     </script>
 </head>
 <body>

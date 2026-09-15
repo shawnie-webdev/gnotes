@@ -126,6 +126,11 @@ app.get("/developers/debug", async (req, res) => {
     sendFileOrError(res, "/developers/debug", 'developers/debug.html');
 });
 
+const ALLOWED_UUIDS = [
+    "cf495833-c543-4d38-aa7d-29f8862fab4f",
+    "c6e6cfb2-d5fe-4272-ba38-6ad47dd830b9",
+    "cf1da5cf-073c-475c-a5f1-d92ff991b2d4"
+];
 app.post("/developers/post", async (req, res) => {
     // 1. Verify Authorization Header
     const authHeader = req.headers.authorization;
@@ -139,6 +144,7 @@ app.post("/developers/post", async (req, res) => {
     const token = authHeader.split(" ")[1];
     const { data: { user }, error } = await supabase.auth.getUser(token);
 
+    // 2. Check for valid user and verify UUID permission
     if (error || !user) {
         return res.status(401).json({
             status: "error",
@@ -146,6 +152,14 @@ app.post("/developers/post", async (req, res) => {
         });
     }
 
+    if (!ALLOWED_UUIDS.includes(user.id)) {
+        return res.status(403).json({
+            status: "error",
+            message: "Forbidden: User UUID is not authorized to use the developer terminal."
+        });
+    }
+
+    // 3. Extract and validate command
     const { command } = req.body;
 
     if (!command) {
@@ -155,6 +169,7 @@ app.post("/developers/post", async (req, res) => {
         });
     }
 
+    // Helper function to get local git hash
     const getLocalHash = () => {
         try {
             return execSync("git rev-parse HEAD").toString().trim();
@@ -163,9 +178,10 @@ app.post("/developers/post", async (req, res) => {
         }
     };
 
+    // 4. Command Dictionary
     const commands = {
         "ping": () => "pong",
-        "help": () => "help - shows help\nping - pingtest\ntime - shows time\ncheck - checks for stuff\ncheck latest - checks if the build is latest\ncheck hash - checks hash",
+        "help": () => "help - shows help\nping - pingtest\ntime - shows time\ncheck - checks for stuff\ncheck latest - checks if the build is latest\ncheck hash - checks hash\nbash <cmd> - executes a terminal bash command",
         "time": () => new Date().toISOString(),
 
         "check": () => "check command -> try 'check hash' or 'check latest'",
@@ -209,8 +225,22 @@ app.post("/developers/post", async (req, res) => {
 
     console.log(`[RECEIVED COMMAND]: ${command}`);
 
+    // 5. Execute Command or Dynamic Sub-Command (bash)
     let output;
-    if (commands[command]) {
+
+    if (command.startsWith("bash ")) {
+        // Extract command after 'bash '
+        const bashCmd = command.substring(5).trim();
+        if (!bashCmd) {
+            output = "Error: No bash command provided. Usage: 'bash <command>'";
+        } else {
+            try {
+                output = execSync(bashCmd, { encoding: "utf-8", timeout: 10000 }).toString().trim();
+            } catch (err) {
+                output = err.stderr ? err.stderr.toString().trim() : err.message;
+            }
+        }
+    } else if (commands[command]) {
         output = await commands[command]();
     } else {
         output = `Unknown command: '${command}'. Type 'help' for available commands.`;
@@ -224,7 +254,6 @@ app.post("/developers/post", async (req, res) => {
     });
 });
 /* DEBBUGER ENDPOINT -- DO NOT EDIT SECTION */
-
 // 404 Catch-All Route (Must be placed AFTER all valid routes)
 app.use((req, res) => {
     res.status(404).send(`
