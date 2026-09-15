@@ -113,12 +113,11 @@
     </style>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
 
-        // Rename variable to prevent overwriting the global window.supabase library
+        // Use supabaseClient to prevent namespace collision with window.supabase
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         document.addEventListener("DOMContentLoaded", async () => {
@@ -128,7 +127,6 @@
                 "cf1da5cf-073c-475c-a5f1-d92ff991b2d4"
             ];
 
-            // Use supabaseClient here
             const { data: { session } } = await supabaseClient.auth.getSession();
 
             if (!session) {
@@ -146,7 +144,6 @@
 
             console.log("Access granted for user:", userId);
         });
-
     </script>
 </head>
 <body>
@@ -197,7 +194,7 @@
         inputEl.disabled = true;
 
         try {
-            const { data, error: sessionError } = await supabase.auth.getSession();
+            const { data, error: sessionError } = await supabaseClient.auth.getSession();
 
             if (sessionError || !data || !data.session) {
                 appendLine('[Authentication Error]: No active Supabase session found. Please log in first.', 'error');
