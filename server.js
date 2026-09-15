@@ -37,7 +37,7 @@ function log(type, param, message) {
         message : message
     }
 
-    logs.push(JSON.stringify(append));
+    logs.push(append);
 }
 
 const PORT = Number(process.env.PORT) || 3000;
@@ -252,7 +252,7 @@ app.post("/developers/post", async (req, res) => {
             },
 
             "check logs": () => {
-                return return JSON.stringify(logs, null, 2);
+                return JSON.stringify(logs, null, 2);
             },
 
             "check latest": async () => {
