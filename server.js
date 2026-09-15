@@ -132,126 +132,117 @@ const ALLOWED_UUIDS = [
     "cf1da5cf-073c-475c-a5f1-d92ff991b2d4"
 ];
 app.post("/developers/post", async (req, res) => {
-    // 1. Verify Authorization Header
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return res.status(401).json({
-            status: "error",
-            message: "Unauthorized: Missing or invalid token."
-        });
-    }
-
-    const token = authHeader.split(" ")[1];
-    const { data: { user }, error } = await supabase.auth.getUser(token);
-
-    // 2. Check for valid user and verify UUID permission
-    if (error || !user) {
-        return res.status(401).json({
-            status: "error",
-            message: "Unauthorized: Invalid or expired session."
-        });
-    }
-
-    if (!ALLOWED_UUIDS.includes(user.id)) {
-        return res.status(403).json({
-            status: "error",
-            message: "Forbidden: User UUID is not authorized to use the developer terminal."
-        });
-    }
-
-    // 3. Extract and validate command
-    const { command } = req.body;
-
-    if (!command) {
-        return res.status(400).json({
-            status: "error",
-            message: "No command provided in request body."
-        });
-    }
-
-    // Helper function to get local git hash
-    const getLocalHash = () => {
-        try {
-            return execSync("git rev-parse HEAD").toString().trim();
-        } catch (err) {
-            return null;
+    try {
+        // 1. Verify Authorization Header
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return res.status(401).json({
+                status: "error",
+                message: "Unauthorized: Missing or invalid token format."
+            });
         }
-    };
 
-    // 4. Command Dictionary
-    const commands = {
-        "ping": () => "pong",
-        "help": () => "help - shows help\nping - pingtest\ntime - shows time\ncheck - checks for stuff\ncheck latest - checks if the build is latest\ncheck hash - checks hash\nbash <cmd> - executes a terminal bash command",
-        "time": () => new Date().toISOString(),
+        const token = authHeader.split(" ")[1];
+        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
-        "check": () => "check command -> try 'check hash' or 'check latest'",
+        if (authError || !user) {
+            return res.status(401).json({
+                status: "error",
+                message: "Unauthorized: Invalid or expired session."
+            });
+        }
 
-        "check hash": () => {
-            const hash = getLocalHash();
-            return hash ? hash : "Error: Not a git repository or git not installed.";
-        },
+        // 2. Check Developer UUID Authorization
+        if (!ALLOWED_UUIDS.includes(user.id)) {
+            return res.status(403).json({
+                status: "error",
+                message: "Forbidden: Account lacks developer privileges."
+            });
+        }
 
-        "check latest": async () => {
-            const localHash = getLocalHash();
+        // 3. Extract Command
+        const { command } = req.body;
+        if (!command || typeof command !== "string") {
+            return res.status(400).json({
+                status: "error",
+                message: "Bad Request: Missing or invalid 'command' string in body."
+            });
+        }
 
-            if (!localHash) {
-                return "Error: Could not determine local git hash.";
-            }
-
+        // Helper to check Git hash safely
+        const getLocalHash = () => {
             try {
-                const response = await fetch("https://api.github.com/repos/shawnie-webdev/gnotes/commits/main", {
-                    headers: {
-                        "User-Agent": "GoldenNotes-Server"
-                    }
-                });
-
-                if (!response.ok) {
-                    return `GitHub API error: HTTP ${response.status}`;
-                }
-
-                const data = await response.json();
-                const latestRemoteHash = data.sha;
-
-                if (localHash === latestRemoteHash) {
-                    return `[UP TO DATE] Local commit (${localHash.substring(0, 7)}) matches GitHub main branch.`;
-                } else {
-                    return `[OUTDATED] Local commit: ${localHash.substring(0, 7)} | Latest remote commit: ${latestRemoteHash.substring(0, 7)}`;
-                }
+                return execSync("git rev-parse HEAD", { encoding: "utf-8" }).trim();
             } catch (err) {
-                return `Failed to verify with GitHub: ${err.message}`;
+                return null;
             }
-        }
-    };
+        };
 
-    console.log(`[RECEIVED COMMAND]: ${command}`);
+        // Command Dictionary
+        const commands = {
+            "ping": () => "pong",
+            "help": () => "help - shows available commands\nping - pingtest\ntime - shows server ISO time\ncheck - displays check subcommands\ncheck hash - retrieves local commit hash\ncheck latest - compares local hash with GitHub main\nbash <cmd> - executes shell command",
+            "time": () => new Date().toISOString(),
+            "check": () => "check command -> usage: 'check hash' or 'check latest'",
+            "check hash": () => {
+                const hash = getLocalHash();
+                return hash ? hash : "Error: Not a git repository or git binary unavailable.";
+            },
+            "check latest": async () => {
+                const localHash = getLocalHash();
+                if (!localHash) return "Error: Could not determine local git hash.";
 
-    // 5. Execute Command or Dynamic Sub-Command (bash)
-    let output;
+                try {
+                    const response = await fetch("https://api.github.com/repos/shawnie-webdev/gnotes/commits/main", {
+                        headers: { "User-Agent": "GoldenNotes-Server" }
+                    });
+                    if (!response.ok) return `GitHub API Error: HTTP ${response.status}`;
+                    const data = await response.json();
+                    const remoteHash = data.sha;
 
-    if (command.startsWith("bash ")) {
-        // Extract command after 'bash '
-        const bashCmd = command.substring(5).trim();
-        if (!bashCmd) {
-            output = "Error: No bash command provided. Usage: 'bash <command>'";
+                    return localHash === remoteHash
+                        ? `[UP TO DATE] Local commit (${localHash.substring(0, 7)}) matches GitHub main.`
+                        : `[OUTDATED] Local: ${localHash.substring(0, 7)} | Remote: ${remoteHash.substring(0, 7)}`;
+                } catch (err) {
+                    return `Failed to verify with GitHub: ${err.message}`;
+                }
+            }
+        };
+
+        let output;
+
+        // 4. Handle Shell Execution or Internal Commands
+        if (command.startsWith("bash ")) {
+            const bashCmd = command.substring(5).trim();
+            if (!bashCmd) {
+                output = "Error: Blank command. Usage: 'bash <command>'";
+            } else {
+                try {
+                    output = execSync(bashCmd, { encoding: "utf-8", timeout: 10000 }).trim();
+                } catch (err) {
+                    output = err.stderr ? err.stderr.toString().trim() : err.message;
+                }
+            }
+        } else if (commands[command]) {
+            output = await commands[command]();
         } else {
-            try {
-                output = execSync(bashCmd, { encoding: "utf-8", timeout: 10000 }).toString().trim();
-            } catch (err) {
-                output = err.stderr ? err.stderr.toString().trim() : err.message;
-            }
+            output = `Unknown command: '${command}'. Type 'help' for available options.`;
         }
-    } else if (commands[command]) {
-        output = await commands[command]();
-    } else {
-        output = `Unknown command: '${command}'. Type 'help' for available commands.`;
-    }
 
-    return res.status(200).json({
-        status: "success",
-        inputReceived: command,
-        output: output,
-        timestamp: new Date().toISOString()
-    });
+        return res.status(200).json({
+            status: "success",
+            inputReceived: command,
+            output: output,
+            timestamp: new Date().toISOString()
+        });
+
+    } catch (err) {
+        console.error("[DEV TERMINAL ERROR]:", err);
+        return res.status(500).json({
+            status: "error",
+            output: `Internal Server Error: ${err.message}`
+        });
+    }
 });
 /* DEBBUGER ENDPOINT -- DO NOT EDIT SECTION */
 // 404 Catch-All Route (Must be placed AFTER all valid routes)
