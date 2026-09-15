@@ -32,9 +32,9 @@ let logs = []
 
 function log(type, param, message) {
     const append = {
-        "type" : type,
-        "info/error" : param
-        "message" : message
+        type : type,
+        info : param,
+        message : message
     }
 
     logs.push(append);
