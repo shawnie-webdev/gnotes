@@ -37,7 +37,7 @@ function log(type, param, message) {
         message : message
     }
 
-    logs.push(append);
+    logs.push(JSON.stringify(append));
 }
 
 const PORT = Number(process.env.PORT) || 3000;
@@ -239,7 +239,7 @@ app.post("/developers/post", async (req, res) => {
                 "check - displays check subcommands\n" +
                 "check hash - retrieves local commit hash\n" +
                 "check latest - compares local hash with GitHub main\n" +
-                "check logs - checks logs" +
+                "check logs - checks logs\n" +
                 "bash <cmd> - executes shell command",
 
             "time": () => new Date().toISOString(),
@@ -252,7 +252,7 @@ app.post("/developers/post", async (req, res) => {
             },
 
             "check logs": () => {
-                return logs
+                return return JSON.stringify(logs, null, 2);
             },
 
             "check latest": async () => {
