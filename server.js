@@ -156,6 +156,8 @@ app.get("/login.html", (req, res) => sendFileOrError(res, '/login.html', 'auth/l
 app.get("/login", (req, res) => sendFileOrError(res, '/login', 'auth/login.html'));
 app.get("/signup", (req, res) => sendFileOrError(res, '/signup', 'auth/signup.html'));
 app.get("/dashboard", (req, res) => sendFileOrError(res, '/dashboard', 'auth/dashboard.html'));
+app.get("/dashboard/settings", (req, res) => sendFileOrError(res, '/dashboard/settings', 'auth/settings.html'));
+app.get("/settings", (req, res) => res.redirect(301, "/dashboard/settings"));
 
 app.get("/corkboard", (req, res) => sendFileOrError(res, '/corkboard', 'corkboard/join.html'));
 app.get("/corkboard/help", (req, res) => sendFileOrError(res, '/corkboard/help', 'corkboard/help.html'));

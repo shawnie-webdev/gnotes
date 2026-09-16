@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +8,7 @@
 
     <!-- 1. Load Supabase JS Client via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./theme.js"></script>
 
     <style>
         * {
@@ -18,12 +19,8 @@
         }
 
         body {
-            background-color: #0b111e;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            /* theme controlled by master-combined.css [data-theme] */
             min-height: 100vh;
-            padding: 20px 0;
         }
 
         .signup-container {

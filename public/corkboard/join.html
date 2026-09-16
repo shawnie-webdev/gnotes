@@ -1,9 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GoldenNotes - Join A Corkboard</title>
     <link rel="stylesheet" href="../master-combined.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../auth/theme.js"></script>
 
     <style>
         #floating-join {
@@ -19,11 +22,11 @@
             top: 55%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background-color: rgba(20, 33, 61, 0.9);
+            background-color: var(--bg-card);
             border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            border: 1px solid var(--border-color);
             backdrop-filter: blur(10px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            box-shadow: var(--shadow-md);
         }
 
         #form {
@@ -38,26 +41,26 @@
             width: 100%;
             padding: 10px 14px;
             border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.08);
-            color: #ffffff;
+            border: 1px solid var(--border-color);
+            background: var(--deepest-background);
+            color: var(--main-text);
             font-size: 0.95rem;
             text-align: center;
             box-sizing: border-box;
         }
 
         .form-input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
+            color: var(--muted-text);
         }
 
         #floating-join a {
-            color: #cbd5e1;
+            color: var(--muted-text);
             font-size: 0.85rem;
             text-decoration: underline;
         }
 
         #floating-join a:hover {
-            color: #ffffff;
+            color: var(--main-text);
         }
 
         .create-room-wrap {
@@ -92,6 +95,7 @@
         <form action="/calendar" method="get" style="display: inline;">
             <button type="submit" class="btn btn-secondary">Calendar</button>
         </form>
+        <a href="/dashboard/settings" class="btn btn-secondary" id="settings-nav">Settings</a>
     </div>
 </header>
 

@@ -1,22 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GoldenNotes - Create a New Topic</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../auth/theme.js"></script>
     <link rel="stylesheet" href="../master-combined.css">
     <script src="../auth/permissions.js"></script>
 
     <style>
         /* Base page layout */
         body {
-            font-family: system-ui, -apple-system, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #0f172a;
-            color: #f8fafc;
+            /* theme controlled by master-combined.css [data-theme] */
+            min-height: 100vh;
         }
 
         .search-container {
@@ -132,6 +130,7 @@
         <form action="/calendar" method="get" style="display: inline;">
             <button type="submit" class="btn btn-secondary">Calendar</button>
         </form>
+        <a href="/dashboard/settings" class="btn btn-secondary" id="settings-nav">Settings</a>
     </div>
 </header>
 

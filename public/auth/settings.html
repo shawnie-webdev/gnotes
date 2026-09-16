@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoldenNotes - Settings</title>
+    <link rel="stylesheet" href="../master-combined.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./theme.js"></script>
+</head>
+<body>
+
+<header class="top-header">
+    <div class="nav-actions">
+        <div class="header-left">
+            <img src="./../favicon.jpeg" alt="logo" id="logo">
+        </div>
+        <a href="/credits" class="btn btn-primary" id="credits">Credits</a>
+        <a href="/" class="btn btn-secondary" id="home">Homepage</a>
+        <a href="/dashboard" class="btn btn-secondary" id="dashboard">Dashboard</a>
+        <a href="/corkboard" class="btn btn-secondary" id="corkboard">Corkboard</a>
+        <a href="/study" class="btn btn-secondary" id="study">Study Guides</a>
+        <a href="/documents" class="btn btn-secondary" id="documents">Documents</a>
+        <a href="/calendar" class="btn btn-secondary" id="calendar">Calendar</a>
+        <a href="/dashboard/settings" class="btn btn-secondary" id="settings">Settings</a>
+    </div>
+</header>
+
+<main class="settings-card">
+    <h1>Settings</h1>
+    <p>Manage your GoldenNotes preferences. Theme choice is saved to your account.</p>
+
+    <div class="settings-row">
+        <div>
+            <h3>Light Mode</h3>
+            <p>Switch between light and dark appearance across the app.</p>
+        </div>
+        <label class="theme-toggle" aria-label="Toggle light mode">
+            <input type="checkbox" id="prefer-light-mode" role="switch">
+            <span class="slider"></span>
+        </label>
+    </div>
+
+    <div class="settings-row">
+        <div>
+            <h3>Theme</h3>
+            <p>Or pick explicitly:</p>
+        </div>
+        <select id="theme-select" class="form-select" style="max-width: 180px;">
+            <option value="dark">Dark Mode</option>
+            <option value="light">Light Mode</option>
+        </select>
+    </div>
+
+    <p id="settings-status" class="settings-status">Loading preference…</p>
+    <p style="margin-top: 20px;">
+        <a href="/dashboard" class="btn btn-secondary">Back to Dashboard</a>
+    </p>
+</main>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const toggle = document.getElementById('prefer-light-mode');
+        const select = document.getElementById('theme-select');
+        const status = document.getElementById('settings-status');
+
+        const client = window.GoldenNotesTheme.getClient();
+        if (!client) {
+            status.textContent = 'Supabase unavailable.';
+            return;
+        }
+
+        const { data: { user } } = await client.auth.getUser();
+        if (!user) {
+            status.textContent = 'Please log in to sync theme preferences.';
+            window.location.href = '/login';
+            return;
+        }
+
+        await window.GoldenNotesTheme.initThemeFromUser();
+        const isLight = window.GoldenNotesTheme.isLightThemeActive();
+        toggle.checked = isLight;
+        select.value = isLight ? 'light' : 'dark';
+        status.textContent = isLight ? 'Light mode is on.' : 'Dark mode is on.';
+
+        let saving = false;
+
+        async function setTheme(isLightMode, source) {
+            if (saving) return;
+            saving = true;
+            status.textContent = 'Saving…';
+
+            toggle.checked = isLightMode;
+            select.value = isLightMode ? 'light' : 'dark';
+
+            const { error } = await window.GoldenNotesTheme.updateThemePreference(isLightMode);
+            if (error) {
+                status.textContent = 'Could not save preference: ' + (error.message || error);
+            } else {
+                status.textContent = (isLightMode ? 'Light mode' : 'Dark mode') +
+                    ' saved' + (source ? ' (' + source + ')' : '') + '.';
+            }
+            saving = false;
+        }
+
+        toggle.addEventListener('change', () => setTheme(toggle.checked, 'toggle'));
+        select.addEventListener('change', () => setTheme(select.value === 'light', 'dropdown'));
+    });
+</script>
+</body>
+</html>
