@@ -26,22 +26,18 @@
 <body>
 
 <header class="top-header">
-    <div class="header-left">
-        <img src="favicon.jpeg" alt="logo" id="logo">
-    </div>
-
     <div class="nav-actions">
-        <form action="./credits.html" method="get" style="display: inline;">
-            <button type="submit" class="btn btn-secondary" id="credits">Credits</button>
-        </form>
-        <form action="./auth/dashboard.html" method="get" style="display: inline;">
-            <button type="submit" class="btn btn-secondary" id="dashboard">Dashboard</button>
-        </form>
-         <form action="./documents/filesupload.html" method="get" style="display: inline;">
-            <button type="submit" class="btn btn-secondary" id="documents">Documents</button>
-        </form>
-        <button class="btn btn-primary" id="login">Login</button>
+        <div class="header-left">
+            <img src="../favicon.jpeg" alt="logo" id="logo">
+        </div>
+        <a href="/credits.html" class="btn btn-primary" id="credits">Credits</a>
+        <a href="/" class="btn btn-secondary" id="dashboard">Homepage</a>
+        <a href="/corkboard" class="btn btn-secondary" id="cb">Corkboard</a>
+        <a href="/study" class="btn btn-secondary" id="study">Study Guides</a>
+        <a href="/documents" class="btn btn-secondary" id="documents">Documents</a>
+        <a href="/calendar" class="btn btn-secondary" id="calendar">Calendar</a>
         <a href="/dashboard/settings" class="btn btn-secondary" id="settings-nav">Settings</a>
+        <a href="/dashboard" class="btn btn-secondary" id="d-nav">Dashboard</a>
     </div>
 </header>
 
