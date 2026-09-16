@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GoldenNotes - Add Event</title>
-    <link rel="stylesheet" href="./../master.css">
+    <link rel="stylesheet" href="../master-combined.css">
 
     <!-- Supabase JS Client CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../auth/permissions.js"></script>
 
     <style>
         .floating-div {
@@ -71,12 +72,12 @@
             <img src="./../favicon.jpeg" alt="logo" id="logo">
         </div>
         <!-- Clean anchor tags instead of form wrappers -->
-        <a href="/credits.html" class="generic_button primary" id="credits">Credits</a>
-        <a href="/" class="generic_button" id="dashboard">Homepage</a>
-        <a href="/corkboard" class="generic_button" id="corkboard">Corkboard</a>
-        <a href="/study" class="generic_button" id="study">Study Guides</a>
-        <a href="/documents" class="generic_button">Documents</a>
-        <a href="/calendar" class="generic_button">Calendar</a>
+        <a href="/credits.html" class="btn btn-primary" id="credits">Credits</a>
+        <a href="/" class="btn btn-secondary" id="dashboard">Homepage</a>
+        <a href="/corkboard" class="btn btn-secondary" id="corkboard">Corkboard</a>
+        <a href="/study" class="btn btn-secondary" id="study">Study Guides</a>
+        <a href="/documents" class="btn btn-secondary">Documents</a>
+        <a href="/calendar" class="btn btn-secondary">Calendar</a>
     </div>
 </header>
 
@@ -99,7 +100,7 @@
             <input type="date" id="date" class="form-input" name="event-date" required>
         </div>
 
-        <button type="submit" id="submit-button" class="generic_button">Create Event</button>
+        <button type="submit" id="submit-button" class="btn btn-primary" disabled>Create Event</button>
     </form>
 </div>
 
@@ -133,9 +134,23 @@
         }
 
         const form = document.getElementById("form");
+        const submitButton = document.getElementById("submit-button");
+        let canWrite = false;
+
+        window.GoldenNotesPermissions.initWriteControls(supabase, submitButton).then((result) => {
+            canWrite = result.canWrite;
+            if (!canWrite) {
+                submitButton.textContent = "Editor access required";
+            }
+        });
 
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
+
+            if (!canWrite) {
+                alert("You do not have editor access to create calendar events.");
+                return;
+            }
 
             try {
                 const name = document.getElementById("event_name").value;
@@ -158,9 +173,12 @@
 
                 if (result) {
                     window.location.replace("/calendar");
+                } else {
+                    alert("Failed to create event. Check console for details.");
                 }
             } catch (err) {
                 console.error("Submission error:", err);
+                alert("Failed to create event: " + err.message);
             }
         });
     });

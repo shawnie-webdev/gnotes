@@ -6,8 +6,8 @@
     <title>GoldenNotes - Calendar</title>
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="./../style.css">
-    <link rel="stylesheet" href="./../master.css">
+    <link rel="stylesheet" href="../master-combined.css">
+    <script src="../auth/permissions.js"></script>
 
     <!-- Supabase JS Client & FullCalendar CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -147,22 +147,22 @@
             <img src="./../favicon.jpeg" alt="logo" id="logo">
         </div>
         <form action="/credits.html" method="get" style="display: inline;">
-            <button type="submit" class="generic_button primary" id="credits">Credits</button>
+            <button type="submit" class="btn btn-primary" id="credits">Credits</button>
         </form>
         <form action="/" method="get" style="display: inline;">
-            <button type="submit" class="generic_button" id="dashboard">Homepage</button>
+            <button type="submit" class="btn btn-secondary" id="dashboard">Homepage</button>
         </form>
         <form action="/corkboard" method="get" style="display: inline;">
-            <button type="submit" class="generic_button" id="corkboard">Corkboard</button>
+            <button type="submit" class="btn btn-secondary" id="corkboard">Corkboard</button>
         </form>
         <form action="/study" method="get" style="display: inline;">
-            <button type="submit" class="generic_button" id="study">Study Guides</button>
+            <button type="submit" class="btn btn-secondary" id="study">Study Guides</button>
         </form>
         <form action="/documents" method="get" style="display: inline;">
-            <button type="submit" class="generic_button"">Documents</button>
+            <button type="submit" class="btn btn-secondary">Documents</button>
         </form>
         <form action="/calendar" method="get" style="display: inline;">
-            <button type="submit" class="generic_button"">Calendar</button>
+            <button type="submit" class="btn btn-secondary">Calendar</button>
         </form>
     </div>
 </header>
@@ -174,7 +174,7 @@
         <h2 id="page-title">Calendar</h2>
         <div id="header-buttons">
             <form action="/calendar/new" method="get" style="display: inline;">
-                <button type="submit" class="generic_button primary" id="add-event">+ Add Event</button>
+                <button type="submit" class="btn btn-primary" id="add-event" disabled>+ Add Event</button>
             </form>
         </div>
     </div>
@@ -197,7 +197,7 @@
         <div id="detail-description" class="event-description">No description provided.</div>
 
         <div style="margin-top: 24px;">
-            <a href="/calendar" class="generic_button" style="text-decoration: none;">&larr; Back to Full Calendar</a>
+            <a href="/calendar" class="btn btn-secondary" style="text-decoration: none;">&larr; Back to Full Calendar</a>
         </div>
     </div>
 </main>
@@ -214,6 +214,20 @@
         const detailViewEl = document.getElementById('event-detail-view');
         const pageTitleEl = document.getElementById('page-title');
         const headerButtonsEl = document.getElementById('header-buttons');
+        const addEventBtn = document.getElementById('add-event');
+
+        let canWrite = false;
+        if (addEventBtn && window.GoldenNotesPermissions) {
+            const perm = await window.GoldenNotesPermissions.initWriteControls(
+                supabaseClient,
+                addEventBtn
+            );
+            canWrite = perm.canWrite;
+
+            addEventBtn.closest('form')?.addEventListener('submit', (e) => {
+                if (!canWrite) e.preventDefault();
+            });
+        }
 
         function showError(msg) {
             if (!errorBox) return;
@@ -233,7 +247,7 @@
 
             // Adjust header action button
             headerButtonsEl.innerHTML = `
-                <a href="/calendar" class="generic_button">&larr; Back to Calendar</a>
+                <a href="/calendar" class="btn btn-secondary">&larr; Back to Calendar</a>
             `;
 
             try {

@@ -6,8 +6,8 @@
     <title>GoldenNotes - Document Management</title>
 
     <!-- Project Stylesheets -->
-    <link rel="stylesheet" href="./../style.css">
-    <link rel="stylesheet" href="./../master.css">
+    <link rel="stylesheet" href="../master-combined.css">
+    <script src="../auth/permissions.js"></script>
 
     <!-- Supabase JS Client CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -77,22 +77,22 @@
             <img src="./../favicon.jpeg" alt="logo" id="logo">
         </div>
         <form action="/credits.html" method="get" style="display: inline;">
-            <button type="submit" class="generic_button primary" id="credits">Credits</button>
+            <button type="submit" class="btn btn-primary" id="credits">Credits</button>
         </form>
         <form action="/" method="get" style="display: inline;">
-            <button type="submit" class="generic_button" id="dashboard">Homepage</button>
+            <button type="submit" class="btn btn-secondary" id="dashboard">Homepage</button>
         </form>
         <form action="/corkboard" method="get" style="display: inline;">
-            <button type="submit" class="generic_button" id="corkboard">Corkboard</button>
+            <button type="submit" class="btn btn-secondary" id="corkboard">Corkboard</button>
         </form>
         <form action="/study" method="get" style="display: inline;">
-            <button type="submit" class="generic_button" id="study">Study Guides</button>
+            <button type="submit" class="btn btn-secondary" id="study">Study Guides</button>
         </form>
         <form action="/documents" method="get" style="display: inline;">
-            <button type="submit" class="generic_button"">Documents</button>
+            <button type="submit" class="btn btn-secondary">Documents</button>
         </form>
         <form action="/calendar" method="get" style="display: inline;">
-            <button type="submit" class="generic_button"">Calendar</button>
+            <button type="submit" class="btn btn-secondary">Calendar</button>
         </form>
     </div>
 </header>
@@ -100,8 +100,8 @@
 
 <div class="doc-container">
     <h3>Uploaded Documents</h3>
-    <button id="refreshBtn" class="generic_button">Refresh List</button>
-    <button id="addBtn" class="generic_button">Add a file</button>
+    <button id="refreshBtn" class="btn btn-secondary">Refresh List</button>
+    <button id="addBtn" class="btn btn-primary" disabled>Add a file</button>
 
     <div id="documentsList">
         <p>Loading documents...</p>
@@ -112,6 +112,7 @@
     const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let canWrite = false;
 
     async function loadDocuments() {
         const container = document.getElementById('documentsList');
@@ -134,18 +135,6 @@
 
             docs.forEach(doc => {
                 if (doc.file_url) {
-                    console.log("Database file_url value:", doc.file_url); // Check your browser console (F12)
-                    // Clean leading slashes from file path string
-                    const cleanFilePath = doc.file_url.replace(/^\/+/, '');
-
-                    // Dynamically generate public URL for this document
-                    const { data } = supabaseClient
-                        .storage
-                        .from('documents')
-                        .getPublicUrl(cleanFilePath);
-
-                    const publicPdfUrl = data.publicUrl;
-
                     const card = document.createElement('div');
                     card.className = 'pdf-card';
                     card.innerHTML = `
@@ -153,7 +142,7 @@
                             <h4>${escapeHtml(doc.name || 'Untitled Document')}</h4>
                             <p>Uploaded by: ${escapeHtml(doc.author || 'Anonymous')}</p>
                         </div>
-                        <a href="${doc.file_url}" target="_blank" class="view-link generic_button primary">View PDF</a>
+                        <a href="${doc.file_url}" target="_blank" class="view-link btn btn-primary">View PDF</a>
                     `;
                     container.appendChild(card);
                 }
@@ -171,9 +160,17 @@
 
     document.getElementById('refreshBtn').addEventListener('click', loadDocuments);
     document.getElementById('addBtn').addEventListener('click', () => {
+        if (!canWrite) return;
         window.location.href = "/documents/add";
     });
-    document.addEventListener('DOMContentLoaded', loadDocuments);
+    document.addEventListener('DOMContentLoaded', async () => {
+        const perm = await window.GoldenNotesPermissions.initWriteControls(
+            supabaseClient,
+            document.getElementById('addBtn')
+        );
+        canWrite = perm.canWrite;
+        loadDocuments();
+    });
 </script>
 </body>
 </html>

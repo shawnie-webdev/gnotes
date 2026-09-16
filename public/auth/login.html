@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../master-combined.css">
     <title>Project GoldenNotes - Login</title>
 
     <!-- Supabase JS Client via CDN -->
@@ -178,10 +179,10 @@
             <a href="#" class="forgot-password">Forgot password?</a>
         </div>
 
-        <button type="submit" id="submit-btn" class="login-btn">Sign In</button>
+        <button type="submit" id="submit-btn" class="btn btn-primary login-btn">Sign In</button>
     </form>
-    <button onclick="history.back()" class="login-btn">Go Back</button>
-    <button onclick="/signup" class="login-btn">Create an account</button>
+    <button onclick="history.back()" class="btn btn-secondary login-btn">Go Back</button>
+    <a href="/signup" class="btn btn-secondary login-btn">Create an account</a>
 </div>
 
 <script>

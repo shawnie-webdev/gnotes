@@ -3,39 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <title>GoldenNotes - Join A Corkboard</title>
-    <link rel="stylesheet" href="../master.css">
+    <link rel="stylesheet" href="../master-combined.css">
 
     <style>
         #floating-join {
             display: flex;
-            flex-direction: column; /* Stacks form and link vertically */
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 20px;               /* Space between form and help link */
-
-            width: 320px;            /* Fixed width or max-width works better than % */
+            gap: 20px;
+            width: 320px;
             max-width: 90%;
-            padding: 30px 20px;      /* Generous padding instead of fixed height */
-
+            padding: 30px 20px;
             position: absolute;
             top: 55%;
             left: 50%;
             transform: translate(-50%, -50%);
-
-            background-color: rgba(59, 77, 110, 0.85);
+            background-color: rgba(20, 33, 61, 0.9);
             border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-
+            border: 1px solid rgba(255, 255, 255, 0.12);
             backdrop-filter: blur(10px);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
         }
 
         #form {
             display: flex;
-            flex-direction: column;  /* Stacks input and button vertically */
+            flex-direction: column;
             align-items: center;
-            gap: 15px;               /* Space between input and button */
-            width: 100%;             /* Allows children to take full form width */
+            gap: 15px;
+            width: 100%;
         }
 
         .form-input {
@@ -43,11 +39,11 @@
             padding: 10px 14px;
             border-radius: 8px;
             border: 1px solid rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
             color: #ffffff;
             font-size: 0.95rem;
             text-align: center;
-            box-sizing: border-box; /* Prevents input padding from overflowing */
+            box-sizing: border-box;
         }
 
         .form-input::placeholder {
@@ -63,10 +59,15 @@
         #floating-join a:hover {
             color: #ffffff;
         }
+
+        .create-room-wrap {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0 10px;
+        }
     </style>
 </head>
 <body>
-
 
 <header class="top-header">
     <div class="nav-actions">
@@ -74,33 +75,32 @@
             <img src="./../favicon.jpeg" alt="logo" id="logo">
         </div>
         <form action="/credits.html" method="get" style="display: inline;">
-            <button type="submit" class="generic_button primary" id="credits">Credits</button>
+            <button type="submit" class="btn btn-primary" id="credits">Credits</button>
         </form>
         <form action="/" method="get" style="display: inline;">
-            <button type="submit" class="generic_button" id="dashboard">Homepage</button>
+            <button type="submit" class="btn btn-secondary" id="dashboard">Homepage</button>
         </form>
         <form action="/corkboard" method="get" style="display: inline;">
-            <button type="submit" class="generic_button" id="corkboard">Corkboard</button>
+            <button type="submit" class="btn btn-secondary" id="corkboard">Corkboard</button>
         </form>
         <form action="/study" method="get" style="display: inline;">
-            <button type="submit" class="generic_button" id="study">Study Guides</button>
+            <button type="submit" class="btn btn-secondary" id="study">Study Guides</button>
         </form>
         <form action="/documents" method="get" style="display: inline;">
-            <button type="submit" class="generic_button"">Documents</button>
+            <button type="submit" class="btn btn-secondary">Documents</button>
         </form>
         <form action="/calendar" method="get" style="display: inline;">
-            <button type="submit" class="generic_button"">Calendar</button>
+            <button type="submit" class="btn btn-secondary">Calendar</button>
         </form>
     </div>
 </header>
 
-
 <h1 class="center">Join a Corkboard Room</h1>
 <h3 class="center">Join a Corkboard Room and collaborate with others</h3>
 
-<form action="new" method="get">
-    <button type="submit" class="generic_button" id="join">Create a Room</button>
-</form>
+<div class="create-room-wrap">
+    <button type="button" class="btn btn-primary" id="create-room">Create a Room</button>
+</div>
 
 <div id="floating-join">
     <form id="form">
@@ -108,7 +108,7 @@
                 class="form-input"
                 type="text"
                 id="roomid"
-                name="room id"
+                name="roomid"
                 pattern="[A-Za-z0-9]{6}"
                 maxlength="6"
                 placeholder="Your 6-character room ID"
@@ -119,28 +119,51 @@
                 class="form-input"
                 type="text"
                 id="subject"
-                name="room id"
+                name="subject"
                 inputmode="text"
                 placeholder="Enter your subject (use 'main' if no subject)"
                 required
         >
-        <button id="submit" type="submit" class="generic_button">Attempt to join</button>
+        <button id="submit" type="submit" class="btn btn-secondary">Attempt to join</button>
     </form>
     <a href="/corkboard/help">Don't know your room ID?</a>
 </div>
-    <script>
-        const entry = document.getElementById("roomid")
-        const subj = document.getElementById("subject")
-        const button = document.getElementById("submit")
-        button.addEventListener("click", (e) => {
-            e.preventDefault(); // STOP native HTML submission
-            const roomid = entry.value
-            if (roomid === undefined) {
-                return;
-            }
-            const link = `/corkboard/join?room=${roomid}-${subj.value}`
-            window.location.href = link
-        })
-    </script>
+
+<script>
+    function sanitizeSegment(value, fallback) {
+        return String(value || fallback)
+            .trim()
+            .replace(/[^A-Za-z0-9_-]/g, '')
+            .slice(0, 32) || fallback;
+    }
+
+    function goToRoom(roomId, subject) {
+        const id = sanitizeSegment(roomId, '').toUpperCase();
+        const subj = sanitizeSegment(subject, 'main');
+        if (!/^[A-Za-z0-9]{6}$/.test(id)) {
+            alert('Room ID must be exactly 6 letters or numbers.');
+            return;
+        }
+        window.location.href = `/corkboard/join?room=${encodeURIComponent(id + '-' + subj)}`;
+    }
+
+    document.getElementById('form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        goToRoom(
+            document.getElementById('roomid').value,
+            document.getElementById('subject').value
+        );
+    });
+
+    document.getElementById('create-room').addEventListener('click', () => {
+        const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let roomId = '';
+        for (let i = 0; i < 6; i++) {
+            roomId += alphabet[Math.floor(Math.random() * alphabet.length)];
+        }
+        const subject = prompt('Subject for the new room? (default: main)', 'main') || 'main';
+        goToRoom(roomId, subject);
+    });
+</script>
 </body>
 </html>

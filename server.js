@@ -160,7 +160,7 @@ app.get("/dashboard", (req, res) => sendFileOrError(res, '/dashboard', 'auth/das
 app.get("/corkboard", (req, res) => sendFileOrError(res, '/corkboard', 'corkboard/join.html'));
 app.get("/corkboard/help", (req, res) => sendFileOrError(res, '/corkboard/help', 'corkboard/help.html'));
 app.get("/corkboard/join", (req, res) => sendFileOrError(res, '/corkboard/join', 'corkboard/main.html'));
-app.get("/corkboard/new", (req, res) => sendFileOrError(res, '/corkboard/new', 'corkboard/new.html'));
+app.get("/corkboard/new", (req, res) => res.redirect(301, "/corkboard"));
 
 
 app.get("/study", (req, res) => sendFileOrError(res, '/study', 'study/course-list.html'));
@@ -171,6 +171,7 @@ app.get("/study/new-advanced", (req, res) => sendFileOrError(res, '/study/new-ad
 
 app.get("/documents", (req, res) => sendFileOrError(res, '/documents', 'documents/viewer.html'));
 app.get("/documents/add", (req, res) => sendFileOrError(res, '/documents/add', 'documents/filesupload.html'));
+app.get("/calendar", (req, res) => sendFileOrError(res, '/calendar', 'calendar/index.html'));
 app.get("/calendar/new", (req, res) => sendFileOrError(res, '/calendar/new', 'calendar/new.html'));
 
 app.get("/public", (req, res) => res.redirect("/"));

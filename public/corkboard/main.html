@@ -4,68 +4,91 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Corkboard</title>
+    <link rel="stylesheet" href="../master-combined.css">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
         body {
-            background-color: #cae7ff;
-            color: #ffffff;
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            padding: 20px;
         }
 
         .controls {
-            margin-bottom: 15px;
+            margin: 15px 0;
             display: flex;
             gap: 15px;
             align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
-        .btn-add {
-            background-color: #ff6600;
-            color: white;
-            border: none;
+        .btn-add, #add-note-btn.btn, #back.btn {
+            background-color: var(--main-gold);
+            color: var(--deepest-background);
+            border: 1px solid var(--dark-gold);
             padding: 12px 24px;
             font-size: 16px;
             font-weight: bold;
+            font-family: var(--display-font);
             border-radius: 6px;
             cursor: pointer;
             transition: background-color 0.2s, transform 0.1s;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
 
-        .btn-add:hover {
-            background-color: #e65c00;
+        .btn-add:hover:not(:disabled):not(.write-disabled) {
+            background-color: var(--light-gold);
             transform: translateY(-2px);
         }
 
-        .btn-add:active {
-            transform: translateY(0);
+        .btn-add:disabled,
+        .btn-add.write-disabled {
+            background-color: var(--subtle-line);
+            color: var(--muted-text);
+            border-color: var(--strong-line);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.7;
         }
 
         .room-tag {
-            background-color: #1e293b;
+            background-color: var(--primary-navy);
             padding: 8px 16px;
             border-radius: 6px;
             font-size: 14px;
-            color: #94a3b8;
-            border: 1px solid #334155;
+            color: var(--muted-text);
+            border: 1px solid var(--strong-line);
         }
 
-        /* Corkboard Container */
+        #status-msg {
+            width: 100%;
+            max-width: 95%;
+            margin-bottom: 10px;
+            padding: 10px 14px;
+            border-radius: 6px;
+            display: none;
+            font-size: 0.95rem;
+        }
+
+        #status-msg.error {
+            display: block;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #fecaca;
+        }
+
+        #status-msg.info {
+            display: block;
+            background: rgba(217, 164, 65, 0.12);
+            border: 1px solid rgba(217, 164, 65, 0.35);
+            color: var(--light-gold);
+        }
+
         #corkboard {
             width: 100%;
             max-width: 95%;
             height: 1000px;
-            /* Simulated Cork Texture Pattern */
             background-color: #af8259;
             background-image:
                     radial-gradient(#a17140 15%, transparent 16%),
@@ -79,7 +102,6 @@
             box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.6), 0 10px 25px rgba(0, 0, 0, 0.5);
         }
 
-        /* Sticky Note Elements */
         .sticky-note {
             width: 180px;
             min-height: 180px;
@@ -102,7 +124,15 @@
             box-shadow: 0 14px 25px rgba(0, 0, 0, 0.4);
         }
 
-        /* Push Pin Visual Effect */
+        .sticky-note.read-only .btn-delete,
+        .sticky-note.read-only .note-header {
+            display: none;
+        }
+
+        .sticky-note.read-only .note-body {
+            pointer-events: none;
+        }
+
         .sticky-note::before {
             content: '';
             position: absolute;
@@ -116,7 +146,6 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset -2px -2px 0 rgba(0,0,0,0.2);
         }
 
-        /* Header Bar for Dragging */
         .note-header {
             position: absolute;
             top: 0;
@@ -126,7 +155,6 @@
             cursor: move;
         }
 
-        /* Editable Text Area */
         .note-body {
             width: 100%;
             height: 100%;
@@ -142,7 +170,6 @@
             user-select: text;
         }
 
-        /* Delete Button */
         .btn-delete {
             position: absolute;
             top: 4px;
@@ -163,11 +190,10 @@
             background-color: rgba(0, 0, 0, 0.05);
         }
     </style>
-    <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../auth/permissions.js"></script>
 </head>
 <body>
-
 
 <header class="top-header">
     <div class="nav-actions">
@@ -175,61 +201,72 @@
             <img src="./../favicon.jpeg" alt="logo" id="logo">
         </div>
         <form action="/credits.html" method="get" style="display: inline;">
-            <button type="submit" class="generic_button primary" id="credits">Credits</button>
+            <button type="submit" class="btn btn-primary" id="credits">Credits</button>
         </form>
         <form action="/" method="get" style="display: inline;">
-            <button type="submit" class="generic_button" id="dashboard">Homepage</button>
+            <button type="submit" class="btn btn-secondary" id="dashboard">Homepage</button>
         </form>
         <form action="/corkboard" method="get" style="display: inline;">
-            <button type="submit" class="generic_button" id="corkboard">Corkboard</button>
+            <button type="submit" class="btn btn-secondary" id="corkboard">Corkboard</button>
         </form>
         <form action="/study" method="get" style="display: inline;">
-            <button type="submit" class="generic_button" id="study">Study Guides</button>
+            <button type="submit" class="btn btn-secondary" id="study">Study Guides</button>
         </form>
         <form action="/documents" method="get" style="display: inline;">
-            <button type="submit" class="generic_button"">Documents</button>
+            <button type="submit" class="btn btn-secondary">Documents</button>
         </form>
         <form action="/calendar" method="get" style="display: inline;">
-            <button type="submit" class="generic_button"">Calendar</button>
+            <button type="submit" class="btn btn-secondary">Calendar</button>
         </form>
     </div>
 </header>
 
-
 <div class="controls">
-    <button id="add-note-btn" class="btn-add">+ Add Sticky Note</button>
-    <button id="back" class="btn-add">Go back</button>
+    <button id="add-note-btn" class="btn btn-primary" disabled>+ Add Sticky Note</button>
+    <button id="back" class="btn btn-secondary">Go back</button>
     <div id="room-display" class="room-tag">Room: main-room</div>
 </div>
 
+<div id="status-msg" role="status"></div>
 <div id="corkboard"></div>
 
 <script>
-    // 1. Supabase Setup
     const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Dynamic Room variable (can be configured via URL query string e.g. ?room=team-a)
     const urlParams = new URLSearchParams(window.location.search);
-    const CURRENT_ROOM = urlParams.get('room') || 'main-room';
+    const CURRENT_ROOM = (urlParams.get('room') || 'main-room').trim();
     document.getElementById('room-display').innerText = `Room: ${CURRENT_ROOM}`;
 
     const corkboard = document.getElementById('corkboard');
     const addNoteBtn = document.getElementById('add-note-btn');
+    const statusMsg = document.getElementById('status-msg');
     const noteColors = ['#feff9c', '#ff7eb9', '#7afcff', '#69ff94', '#fff740'];
     let zIndexCounter = 10;
+    let canWrite = false;
+    let currentUser = null;
+    const pendingLocalIds = new Set();
 
-    // Helper: Debounce function to limit Supabase API calls during active typing
+    function showStatus(message, type) {
+        if (!message) {
+            statusMsg.style.display = 'none';
+            statusMsg.textContent = '';
+            statusMsg.className = '';
+            return;
+        }
+        statusMsg.textContent = message;
+        statusMsg.className = type || 'info';
+    }
+
     function debounce(func, wait) {
         let timeout;
-        return function(...args) {
+        return function (...args) {
             clearTimeout(timeout);
             timeout = setTimeout(() => func.apply(this, args), wait);
         };
     }
 
-    // 2. Check if the 'notes' table exists before performing queries
     async function checkTableExists() {
         const { error } = await supabaseClient
             .from('notes')
@@ -237,17 +274,19 @@
 
         if (error) {
             if (error.code === '42P01') {
-                console.error("Supabase Error: Table 'notes' does not exist in your database.");
-                alert("Table 'notes' does not exist in Supabase. Please run the SQL schema script in your Supabase dashboard.");
+                showStatus("Table 'notes' does not exist in Supabase.", 'error');
                 return false;
             }
-            console.error("Error connecting to Supabase table:", error.message);
+            showStatus('Could not connect to notes table: ' + error.message, 'error');
             return false;
         }
         return true;
     }
 
-    // 3. Fetch notes from Supabase for the current room
+    function canEditNote() {
+        return !!canWrite;
+    }
+
     async function fetchNotesJSON() {
         const { data, error } = await supabaseClient
             .from('notes')
@@ -256,97 +295,133 @@
 
         if (error) {
             console.error('Error fetching notes:', error.message);
+            showStatus('Failed to load notes: ' + error.message, 'error');
             return [];
         }
 
-        console.log('Notes JSON Payload for room:', CURRENT_ROOM, data);
-        return data; // Returns array formatted like: [{ id, x, y, text, color }, ...]
+        return data || [];
     }
 
-    // 4. Render or update note UI element
     function renderNoteUI(noteData) {
+        if (!noteData || !noteData.id) return;
+
         let note = document.getElementById(`note-${noteData.id}`);
+        const editable = canEditNote();
 
         if (!note) {
             note = document.createElement('div');
             note.id = `note-${noteData.id}`;
             note.classList.add('sticky-note');
 
-            // Set random rotation once upon creation
             const randomRotation = (Math.random() * 6 - 3).toFixed(1);
             note.style.transform = `rotate(${randomRotation}deg)`;
 
             note.innerHTML = `
                 <div class="note-header"></div>
-                <button class="btn-delete" title="Delete note">&times;</button>
-                <div class="note-body" contenteditable="true" placeholder="Write here..."></div>
+                <button type="button" class="btn-delete" title="Delete note">&times;</button>
+                <div class="note-body" contenteditable="false"></div>
             `;
 
             corkboard.appendChild(note);
             makeDraggable(note, noteData.id);
 
-            // Delete Handler
             const deleteBtn = note.querySelector('.btn-delete');
             deleteBtn.addEventListener('click', async () => {
+                if (!canEditNote()) {
+                    showStatus('Editor access required to delete this note.', 'error');
+                    return;
+                }
+
+                const { error } = await supabaseClient
+                    .from('notes')
+                    .delete()
+                    .eq('id', noteData.id);
+
+                if (error) {
+                    console.error('Delete failed:', error.message);
+                    showStatus('Failed to delete note: ' + error.message, 'error');
+                    return;
+                }
+
                 note.remove();
-                await supabaseClient.from('notes').delete().eq('id', noteData.id);
             });
 
-            // Text Input Handler with Debounce
             const body = note.querySelector('.note-body');
             body.addEventListener('input', debounce(async () => {
-                await supabaseClient
+                if (!canEditNote()) return;
+
+                const { error } = await supabaseClient
                     .from('notes')
                     .update({ text: body.innerText })
                     .eq('id', noteData.id);
+
+                if (error) {
+                    console.error('Update text failed:', error.message);
+                    showStatus('Failed to save note text: ' + error.message, 'error');
+                    return;
+                }
+
             }, 400));
         }
 
-        // Sync positions and background colors
-        note.style.left = `${noteData.x}px`;
-        note.style.top = `${noteData.y}px`;
+        note.style.left = `${Number(noteData.x) || 0}px`;
+        note.style.top = `${Number(noteData.y) || 0}px`;
         note.style.backgroundColor = noteData.color || '#feff9c';
 
-        // Update text only if user is not actively editing this element
         const body = note.querySelector('.note-body');
+        body.contentEditable = editable ? 'true' : 'false';
+        note.classList.toggle('read-only', !editable);
+
         if (document.activeElement !== body) {
             body.innerText = noteData.text || '';
         }
     }
 
-    // 5. Create a new note in Supabase
     async function createStickyNote() {
-        const randomColor = noteColors[Math.floor(Math.random() * noteColors.length)];
-        const initialX = Math.floor(Math.random() * (corkboard.clientWidth - 200)) + 20;
-        const initialY = Math.floor(Math.random() * (corkboard.clientHeight - 200)) + 20;
-
-        const { data, error } = await supabaseClient
-            .from('notes')
-            .insert([{
-                room: CURRENT_ROOM,
-                x: initialX,
-                y: initialY,
-                text: '',
-                color: randomColor
-            }])
-            .select()
-            .single();
-
-        if (error) {
-            console.error('Error adding sticky note:', error.message);
+        if (!canWrite || !currentUser) {
+            showStatus('Editor access required to create notes.', 'error');
             return;
         }
 
-        renderNoteUI(data);
+        const randomColor = noteColors[Math.floor(Math.random() * noteColors.length)];
+        const initialX = Math.floor(Math.random() * Math.max(corkboard.clientWidth - 200, 20)) + 20;
+        const initialY = Math.floor(Math.random() * Math.max(corkboard.clientHeight - 200, 20)) + 20;
 
-        // Focus text area on new creation
-        const newNote = document.getElementById(`note-${data.id}`);
-        if (newNote) {
-            newNote.querySelector('.note-body').focus();
+        addNoteBtn.disabled = true;
+
+        try {
+            const { data, error } = await supabaseClient
+                .from('notes')
+                .insert([{
+                    room: CURRENT_ROOM,
+                    x: initialX,
+                    y: initialY,
+                    text: '',
+                    color: randomColor
+                }])
+                .select()
+                .single();
+
+            if (error) {
+                console.error('Error adding sticky note:', error.message);
+                showStatus('Failed to create note: ' + error.message, 'error');
+                return;
+            }
+
+            pendingLocalIds.add(data.id);
+            renderNoteUI(data);
+
+            const newNote = document.getElementById(`note-${data.id}`);
+            if (newNote) {
+                newNote.querySelector('.note-body').focus();
+            }
+
+            showStatus('');
+        } finally {
+            if (canWrite) addNoteBtn.disabled = false;
         }
     }
 
-    // 6. Drag and Drop with Supabase Position Sync
     function makeDraggable(element, noteId) {
         let startX = 0, startY = 0;
         let initialLeft = 0, initialTop = 0;
@@ -359,6 +434,8 @@
         });
 
         header.addEventListener('mousedown', (e) => {
+            if (!canEditNote()) return;
+
             isDragging = true;
             startX = e.clientX;
             startY = e.clientY;
@@ -394,15 +471,22 @@
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('mouseup', onMouseUp);
 
-            // Persist final positions to database
-            await supabaseClient
+            if (!canEditNote()) return;
+
+            const { error } = await supabaseClient
                 .from('notes')
                 .update({ x: element.offsetLeft, y: element.offsetTop })
                 .eq('id', noteId);
+
+            if (error) {
+                console.error('Position sync failed:', error.message);
+                showStatus('Failed to save note position: ' + error.message, 'error');
+                return;
+            }
+
         }
     }
 
-    // 7. Realtime Subscription for Room Changes
     function subscribeToRoomChanges() {
         supabaseClient
             .channel(`room:${CURRENT_ROOM}`)
@@ -413,35 +497,49 @@
                 filter: `room=eq.${CURRENT_ROOM}`
             }, (payload) => {
                 if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+                    if (payload.eventType === 'INSERT' && pendingLocalIds.has(payload.new.id)) {
+                        pendingLocalIds.delete(payload.new.id);
+                    }
                     renderNoteUI(payload.new);
                 } else if (payload.eventType === 'DELETE') {
                     const deletedNote = document.getElementById(`note-${payload.old.id}`);
                     if (deletedNote) deletedNote.remove();
                 }
             })
-            .subscribe();
+            .subscribe((status) => {
+                if (status === 'CHANNEL_ERROR') {
+                    console.error('Realtime subscription failed for room', CURRENT_ROOM);
+                }
+            });
     }
 
-    // 8. Application Initialization
     document.addEventListener('DOMContentLoaded', async () => {
         const tableOK = await checkTableExists();
         if (!tableOK) return;
 
-        // Fetch and display initial notes
+        const permResult = await window.GoldenNotesPermissions.initWriteControls(
+            supabaseClient,
+            addNoteBtn
+        );
+        currentUser = permResult.user;
+        canWrite = permResult.canWrite;
+
+        if (!currentUser) {
+            showStatus('Viewing as guest. Log in with an editors-table account to create or edit notes.', 'info');
+        } else if (!canWrite) {
+            showStatus('Signed in, but your UUID is not listed in the editors table.', 'info');
+        }
+
         const existingNotes = await fetchNotesJSON();
-        existingNotes.forEach(note => renderNoteUI(note));
+        existingNotes.forEach((note) => renderNoteUI(note));
 
-        // Connect real-time WebSocket listener
         subscribeToRoomChanges();
-
-        // Bind event listeners
         addNoteBtn.addEventListener('click', createStickyNote);
     });
 
-    const back = document.getElementById('back')
-    back.addEventListener('click', (e) => {
-        history.back()
-    })
+    document.getElementById('back').addEventListener('click', () => {
+        window.location.href = '/corkboard';
+    });
 </script>
 </body>
 </html>

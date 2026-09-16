@@ -6,7 +6,8 @@
     <title>GoldenNotes ADV</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <link rel="stylesheet" href="../master.css">
+    <link rel="stylesheet" href="../../master-combined.css">
+    <script src="../../auth/permissions.js"></script>
       <style>
         /* Base page layout */
         body {
@@ -119,28 +120,28 @@
             <img src="./../favicon.jpeg" alt="logo" id="logo">
         </div>
         <form action="/credits.html" method="get" style="display: inline;">
-            <button type="submit" class="generic_button primary" id="credits">Credits</button>
+            <button type="submit" class="btn btn-primary" id="credits">Credits</button>
         </form>
         <form action="/" method="get" style="display: inline;">
-            <button type="submit" class="generic_button" id="dashboard">Homepage</button>
+            <button type="submit" class="btn btn-secondary" id="dashboard">Homepage</button>
         </form>
         <form action="/corkboard" method="get" style="display: inline;">
-            <button type="submit" class="generic_button" id="corkboard">Corkboard</button>
+            <button type="submit" class="btn btn-secondary" id="corkboard">Corkboard</button>
         </form>
         <form action="/study" method="get" style="display: inline;">
-            <button type="submit" class="generic_button" id="study">Study Guides</button>
+            <button type="submit" class="btn btn-secondary" id="study">Study Guides</button>
         </form>
         <form action="/documents" method="get" style="display: inline;">
-            <button type="submit" class="generic_button"">Documents</button>
+            <button type="submit" class="btn btn-secondary">Documents</button>
         </form>
         <form action="/calendar" method="get" style="display: inline;">
-            <button type="submit" class="generic_button"">Calendar</button>
+            <button type="submit" class="btn btn-secondary">Calendar</button>
         </form>
     </div>
 </header>
 
        <div id="actions-container" class="button-container">
-        <button class="generic_button" id="add-topic">Add a topic</button>
+        <button class="btn btn-primary" id="add-topic" disabled>Add a topic</button>
        </div>
     <div id="container" class="topics-grid">
         <h1>WELCOME TO THE ADVANCED SUBJECTS</h1>
@@ -161,10 +162,19 @@
         }
 
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        let canWrite = false;
 
         // Navigation listeners
         document.getElementById('add-topic').addEventListener('click', () => {
+            if (!canWrite) return;
             window.location.href = "/study/new-advanced";
+        });
+
+        window.GoldenNotesPermissions.initWriteControls(
+            supabaseClient,
+            document.getElementById('add-topic')
+        ).then((result) => {
+            canWrite = result.canWrite;
         });
     
         async function displayStudyTopics(search = '') {

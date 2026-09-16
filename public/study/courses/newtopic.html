@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GoldenNotes - Create a New Topic</title>
-    <link rel="stylesheet" href="./../style.css">
+    <link rel="stylesheet" href="../../master-combined.css">
 
     <!-- Supabase JS Client CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../auth/permissions.js"></script>
 
     <style>
         #float {
@@ -156,22 +157,22 @@
             <img src="./../favicon.jpeg" alt="logo" id="logo">
         </div>
         <form action="/credits.html" method="get" style="display: inline;">
-            <button type="submit" class="generic_button primary" id="credits">Credits</button>
+            <button type="submit" class="btn btn-primary" id="credits">Credits</button>
         </form>
         <form action="/" method="get" style="display: inline;">
-            <button type="submit" class="generic_button" id="dashboard">Homepage</button>
+            <button type="submit" class="btn btn-secondary" id="dashboard">Homepage</button>
         </form>
         <form action="/corkboard" method="get" style="display: inline;">
-            <button type="submit" class="generic_button" id="corkboard">Corkboard</button>
+            <button type="submit" class="btn btn-secondary" id="corkboard">Corkboard</button>
         </form>
         <form action="/study" method="get" style="display: inline;">
-            <button type="submit" class="generic_button" id="study">Study Guides</button>
+            <button type="submit" class="btn btn-secondary" id="study">Study Guides</button>
         </form>
         <form action="/documents" method="get" style="display: inline;">
-            <button type="submit" class="generic_button"">Documents</button>
+            <button type="submit" class="btn btn-secondary">Documents</button>
         </form>
         <form action="/calendar" method="get" style="display: inline;">
-            <button type="submit" class="generic_button"">Calendar</button>
+            <button type="submit" class="btn btn-secondary">Calendar</button>
         </form>
     </div>
 </header>
@@ -223,7 +224,7 @@
             </div>
 
             <!-- Submit Button -->
-            <button type="submit" id="submitBtn" class="submit-btn generic_button primary" style="margin-top: 20px;">Save Topic</button>
+            <button type="submit" id="submitBtn" class="submit-btn btn btn-primary" style="margin-top: 20px;">Save Topic</button>
         </form>
     </div>
 </div>
@@ -236,9 +237,20 @@
 
     const form = document.getElementById("studyForm");
     const submitBtn = document.getElementById("submitBtn");
+    let canWrite = false;
+
+    submitBtn.disabled = true;
+
+    window.GoldenNotesPermissions.initWriteControls(supabaseClient, submitBtn).then((result) => {
+        canWrite = result.canWrite;
+        if (!canWrite) {
+            submitBtn.textContent = "Editor access required";
+        }
+    });
 
     // Insert image tag directly into TinyMCE
     document.getElementById("addImageBtn").addEventListener("click", () => {
+        if (!canWrite) return;
         const url = prompt("Enter Image URL:");
         if (url) {
             const altText = prompt("Enter image description (optional):") || "Image";
@@ -248,6 +260,7 @@
 
     // Insert link tag directly into TinyMCE
     document.getElementById("addLinkBtn").addEventListener("click", () => {
+        if (!canWrite) return;
         const url = prompt("Enter Web Link URL:");
         if (url) {
             const linkText = prompt("Enter Link Text:") || url;
@@ -258,6 +271,10 @@
     // 2. Insert payload into Supabase table
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
+        if (!canWrite) {
+            alert("You do not have editor access to create study guides.");
+            return;
+        }
 
         submitBtn.disabled = true;
         submitBtn.textContent = "Saving...";
@@ -288,8 +305,8 @@
             console.error("Error inserting data:", err);
             alert("Failed to save topic: " + err.message);
         } finally {
-            submitBtn.disabled = false;
-            submitBtn.textContent = "Save Topic";
+            submitBtn.disabled = !canWrite;
+            submitBtn.textContent = canWrite ? "Save Topic" : "Editor access required";
         }
     });
 </script>

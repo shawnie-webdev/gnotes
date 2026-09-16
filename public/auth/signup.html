@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../master-combined.css">
     <title>Project GoldenNotes - Sign Up</title>
 
     <!-- 1. Load Supabase JS Client via CDN -->
@@ -176,13 +177,13 @@
             <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="new-password" minlength="8">
         </div>
 
-        <button type="submit" id="submit-btn" class="signup-btn">Sign Up</button>
+        <button type="submit" id="submit-btn" class="btn btn-primary signup-btn">Sign Up</button>
     </form>
 
     <div class="signup-footer">
         Already have an account? <a href="/login">Sign In</a>
     </div>
-    <button onclick="history.back()" class="login-btn">Go Back</button>
+    <button onclick="history.back()" class="btn btn-secondary login-btn">Go Back</button>
 </div>
 <script>
     // 1. Initialize Supabase Client (Renamed to 'supabaseClient' to avoid identifier collision)

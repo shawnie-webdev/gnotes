@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GoldenNotes - Document Management</title>
+    <link rel="stylesheet" href="../master-combined.css">
     <!-- Supabase JS Client CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../auth/permissions.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -129,22 +131,22 @@
             <img src="./../favicon.jpeg" alt="logo" id="logo">
         </div>
         <form action="/credits.html" method="get" style="display: inline;">
-            <button type="submit" class="generic_button primary" id="credits">Credits</button>
+            <button type="submit" class="btn btn-primary" id="credits">Credits</button>
         </form>
         <form action="/" method="get" style="display: inline;">
-            <button type="submit" class="generic_button" id="dashboard">Homepage</button>
+            <button type="submit" class="btn btn-secondary" id="dashboard">Homepage</button>
         </form>
         <form action="/corkboard" method="get" style="display: inline;">
-            <button type="submit" class="generic_button" id="corkboard">Corkboard</button>
+            <button type="submit" class="btn btn-secondary" id="corkboard">Corkboard</button>
         </form>
         <form action="/study" method="get" style="display: inline;">
-            <button type="submit" class="generic_button" id="study">Study Guides</button>
+            <button type="submit" class="btn btn-secondary" id="study">Study Guides</button>
         </form>
         <form action="/documents" method="get" style="display: inline;">
-            <button type="submit" class="generic_button"">Documents</button>
+            <button type="submit" class="btn btn-secondary">Documents</button>
         </form>
         <form action="/calendar" method="get" style="display: inline;">
-            <button type="submit" class="generic_button"">Calendar</button>
+            <button type="submit" class="btn btn-secondary">Calendar</button>
         </form>
     </div>
 </header>
@@ -164,7 +166,7 @@
             <input type="file" id="filePicker" accept="application/pdf" required>
         </div>
 
-        <button type="submit" id="uploadBtn">Upload Document</button>
+        <button type="submit" id="uploadBtn" class="btn btn-primary" disabled>Upload Document</button>
     </form>
 
     <hr style="margin: 30px 0; border-color: rgba(255, 255, 255, 0.2);">
@@ -175,10 +177,26 @@
     const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let canWrite = false;
+
+    window.GoldenNotesPermissions.initWriteControls(
+        supabaseClient,
+        document.getElementById('uploadBtn')
+    ).then((result) => {
+        canWrite = result.canWrite;
+        if (!canWrite) {
+            document.getElementById('uploadBtn').textContent = 'Editor access required';
+        }
+    });
 
     // 1. WRITE FUNCTION: Storage Bucket -> Database 'documents' Table
     document.getElementById('uploadForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        if (!canWrite) {
+            alert("You do not have editor access to import documents.");
+            return;
+        }
 
         const uploadBtn = document.getElementById('uploadBtn');
         const fileInput = document.getElementById('filePicker').files[0];
@@ -243,13 +261,11 @@
             console.error("Upload Error:", err);
             alert("Error uploading file: " + err.message);
         } finally {
-            uploadBtn.disabled = false;
-            uploadBtn.textContent = "Upload Document";
+            uploadBtn.disabled = !canWrite;
+            uploadBtn.textContent = canWrite ? "Upload Document" : "Editor access required";
         }
     });
 
-    document.getElementById('refreshBtn').addEventListener('click', loadDocuments);
-    document.addEventListener('DOMContentLoaded', loadDocuments);
 </script>
 </body>
 </html>
