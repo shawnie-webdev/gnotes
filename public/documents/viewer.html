@@ -13,7 +13,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../auth/theme.js"></script>
     <style>
-        .doc-container {
+        .container {
             max-width: 900px;
             margin: 30px auto;
             background: #ffffff;
@@ -25,35 +25,13 @@
             color: #0f172a;
         }
 
-        .doc-container h3 {
-            margin-top: 0;
-            color: #0f172a;
-        }
-
-        .pdf-card {
-            background: #f8fafc;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            border: 1px solid #cbd5e1;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .pdf-card-info h4 {
-            margin: 0 0 6px 0;
-            font-size: 1.1rem;
-            color: #0f172a;
-        }
-
-        .pdf-card-info p {
+        .card p {
             margin: 0;
             color: #64748b;
             font-size: 0.875rem;
         }
 
-        .pdf-card a.view-link {
+        .card a.view-link {
             padding: 8px 16px;
             background-color: #2563eb;
             color: #ffffff;
@@ -63,7 +41,7 @@
             font-size: 0.9rem;
         }
 
-        .pdf-card a.view-link:hover {
+        .card a.view-link:hover {
             background-color: #1d4ed8;
         }
     </style>
@@ -89,7 +67,7 @@
 </header>
 
 
-<div class="doc-container">
+<div class="container">
     <h3>Uploaded Documents</h3>
     <button id="refreshBtn" class="btn btn-secondary">Refresh List</button>
     <button id="addBtn" class="btn btn-primary" disabled>Add a file</button>
@@ -127,9 +105,9 @@
             docs.forEach(doc => {
                 if (doc.file_url) {
                     const card = document.createElement('div');
-                    card.className = 'pdf-card';
+                    card.className = 'card';
                     card.innerHTML = `
-                        <div class="pdf-card-info">
+                        <div class="card-info">
                             <h4>${escapeHtml(doc.name || 'Untitled Document')}</h4>
                             <p>Uploaded by: ${escapeHtml(doc.author || 'Anonymous')}</p>
                         </div>
