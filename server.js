@@ -316,6 +316,50 @@ app.post("/developers/post", async (req, res) => {
         });
     }
 });
+
+app.post('/auth/signup-provider/posthttps', async (req, res) => {
+    try {
+        // 1. Extract the user object from Supabase's payload
+        const { user } = req.body;
+        const email = user?.email;
+
+        if (!email) {
+            return res.status(400).json({
+                error: {
+                    http_code: 400,
+                    message: "Email address is required."
+                }
+            });
+        }
+
+        // 2. Query AbstractAPI for email reputation
+        const apiKey = 'a84aa43c77014faba9f91654a2f8b0b3';
+        const apiUrl = `https://emailreputation.abstractapi.com/v1/?api_key=${apiKey}&email=${encodeURIComponent(email)}`;
+
+        const apiResponse = await fetch(apiUrl);
+        const reputationData = await apiResponse.json();
+
+        // 3. Block or allow based on reputation checks
+        // AbstractAPI returns fields like deliverability or quality_score
+        if (reputationData.deliverability === 'UNDELIVERABLE') {
+            // Return 400 status to inform Supabase to reject the signup
+            return res.status(400).json({
+                error: {
+                    http_code: 400,
+                    message: "The email address provided does not exist or cannot receive mail."
+                }
+            });
+        }
+
+        // 4. Return HTTP 200 with empty JSON object to allow signup
+        return res.status(200).json({});
+
+    } catch (error) {
+        console.error("Hook Error:", error);
+        return res.status(500).json({ error: error.message });
+    }
+});
+
 /* DEBBUGER ENDPOINT -- DO NOT EDIT SECTION */
 // 404 Catch-All Route (Must be placed AFTER all valid routes)
 app.use((req, res) => {
