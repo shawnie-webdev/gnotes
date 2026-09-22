@@ -26,7 +26,7 @@
                 return;
             }
         } catch (_) { /* ignore */ }
-        document.documentElement.setAttribute('data-theme', 'dark');
+        document.documentElement.setAttribute('data-theme', 'light');
     })();
 
     function getClient() {

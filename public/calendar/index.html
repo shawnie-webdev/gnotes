@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,9 +19,9 @@
             max-width: 1000px;
             margin: 40px auto;
             padding: 24px;
-            background-color: #ffffff;
+            background-color: var(--bg-card);
             border-radius: 12px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--border-color);
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
@@ -33,51 +33,12 @@
         }
 
         .calendar-header-actions h2 {
-            color: #0f172a;
+            color: var(--main-text);
             margin: 0;
         }
 
         .error-msg {
-            display: none;10px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-
-        /* Event Details Card View */
-        #event-detail-view {
             display: none;
-            background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 24px;
-        }
-
-        .event-meta {
-            margin: 15px 0 25px 0;
-            display: flex;
-            gap: 20px;
-            font-size: 14px;
-            color: #64748b;
-        }
-
-        .event-meta strong {
-            color: #0f172a;
-        }
-
-        .event-description {
-            background-color: #ffffff;
-            border: 1px solid #cbd5e1;
-            padding: 16px;
-            border-radius: 6px;
-            color: #334155;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            min-height: 100px;
-        }
-            background-color: #fef2f2;
-            border: 1px solid #fca5a5;
-            color: #991b1b;
             padding: 10px;
             border-radius: 6px;
             margin-bottom: 15px;
@@ -87,8 +48,8 @@
         /* Event Details Card View */
         #event-detail-view {
             display: none;
-            background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
+            background-color: var(--secondary-navy);
+            border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 24px;
         }
@@ -98,19 +59,19 @@
             display: flex;
             gap: 20px;
             font-size: 14px;
-            color: #64748b;
+            color: var(--muted-text);
         }
 
         .event-meta strong {
-            color: #0f172a;
+            color: var(--main-text);
         }
 
         .event-description {
-            background-color: #ffffff;
-            border: 1px solid #cbd5e1;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
             padding: 16px;
             border-radius: 6px;
-            color: #334155;
+            color: var(--secondary-text);
             line-height: 1.6;
             white-space: pre-wrap;
             min-height: 100px;

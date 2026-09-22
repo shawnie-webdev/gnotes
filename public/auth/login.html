@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,13 +24,13 @@
         }
 
         .login-container {
-            background-color: #151f32;
+            background-color: var(--bg-card);
             padding: 40px;
             border-radius: 12px;
             box-shadow: 0 8px 32px rgba(11, 17, 30, 0.8), 0 0 15px rgba(0, 123, 255, 0.05);
             width: 100%;
             max-width: 400px;
-            border: 1px solid #1e2d4a;
+            border: 1px solid var(--border-color);
         }
 
         .login-header {
@@ -39,13 +39,13 @@
         }
 
         .login-header h2 {
-            color: #ffffff;
+            color: var(--main-text);
             font-size: 28px;
             margin-bottom: 8px;
         }
 
         .login-header p {
-            color: #8da2c0;
+            color: var(--muted-text);
             font-size: 14px;
         }
 
@@ -68,7 +68,7 @@
         .form-group label {
             display: block;
             margin-bottom: 8px;
-            color: #cbd5e1;
+            color: var(--secondary-text);
             font-size: 14px;
             font-weight: 600;
         }
@@ -76,11 +76,11 @@
         .form-group input {
             width: 100%;
             padding: 12px;
-            background-color: #0f172a;
-            border: 1px solid #334155;
+            background-color: var(--deepest-background);
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             font-size: 16px;
-            color: #ffffff;
+            color: var(--main-text);
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
@@ -101,7 +101,7 @@
             align-items: center;
             margin-bottom: 25px;
             font-size: 14px;
-            color: #8da2c0;
+            color: var(--muted-text);
         }
 
         .remember-me {

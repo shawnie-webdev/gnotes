@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,16 +13,17 @@
 
     <style>
         .floating-div {
-            position: absolute;
-            top: 55%;
+            position: fixed;
+            top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            z-index: 1000;
             width: 100%;
             max-width: 420px;
-            background: #ffffff;
+            background: var(--bg-card);
             padding: 30px;
             border-radius: 12px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--border-color);
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
             box-sizing: border-box;
         }
@@ -36,14 +37,14 @@
         #form label {
             font-size: 0.85rem;
             font-weight: 600;
-            color: #475569;
+            color: var(--muted-text);
             text-transform: uppercase;
         }
 
         .form-input, .form-textarea {
             width: 100%;
             padding: 10px 12px;
-            border: 1px solid #cbd5e1;
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             font-size: 0.95rem;
             box-sizing: border-box;
