@@ -51,25 +51,6 @@
             max-width: 1200px;
             margin: 0 auto;
             box-sizing: border-box;
-        }
-
-        .topic-card {
-            background-color: #4367a5;
-            border-radius: 12px;
-            border: 1px solid #1e293b;
-            text-align: center;
-            padding: 16px;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .topic-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
 
         .card-header {
             display: flex;
@@ -142,7 +123,7 @@
         </form>
     </div>
 
-    <div id="topics-container" class="topics-grid">
+    <div id="topics-container container" class="topics-grid">
         <h1 id="info">Loading topics...</h1>
     </div>
 
@@ -212,7 +193,7 @@
                     
                     // FIXED: Changed span element to block div element
                     const card = document.createElement('div');
-                    card.className = 'topic-card effect_button';
+                    card.className = 'card effect_button card';
 
                     card.innerHTML = `
                         <div class="card-header" data-id="${topic.id}">
