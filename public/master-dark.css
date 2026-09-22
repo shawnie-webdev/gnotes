@@ -421,3 +421,51 @@ a:hover {
     margin-top: auto;
     margin-bottom: auto;
 }
+
+.fc {
+    --fc-border-color: #30363d;
+    --fc-page-bg-color: #0d1117;
+    --fc-neutral-bg-color: #161b22;
+    --fc-list-event-hover-bg-color: #21262d;
+    color: #e6edf3;
+}
+
+.fc .fc-toolbar-title {
+    color: #e6edf3;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.fc .fc-button-primary {
+    background-color: #21262d;
+    border-color: #30363d;
+    color: #c9d1d9;
+    font-weight: 600;
+}
+
+.fc .fc-button-primary:hover {
+    background-color: #30363d;
+    border-color: #8b949e;
+    color: #ffffff;
+}
+
+.fc .fc-button-active {
+    background-color: #ff6600 !important;
+    border-color: #ff6600 !important;
+    color: #ffffff !important;
+}
+
+.fc-theme-standard td, .fc-theme-standard th {
+    border-color: #30363d;
+}
+
+.fc .fc-daygrid-day-number,
+.fc .fc-col-header-cell-cushion {
+    color: #8b949e;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+    background-color: rgba(255, 102, 0, 0.12); /* Subtle orange glow for today's cell */
+}

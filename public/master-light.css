@@ -23,7 +23,7 @@
 }
 
 ::selection {
-    background-color: var(--main-gold)
+    background-color: var(--main-gold);
     color: black
 }
 
@@ -237,4 +237,52 @@ h3 {
 
 .nav-actions img {
     width: 64px;
+}
+
+.fc {
+    --fc-border-color: #e2e8f0;
+    --fc-page-bg-color: #ffffff;
+    --fc-neutral-bg-color: #f8fafc;
+    --fc-list-event-hover-bg-color: #f1f5f9;
+    color: #0f172a;
+}
+
+.fc .fc-toolbar-title {
+    color: #0f172a;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.fc .fc-button-primary {
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.fc .fc-button-primary:hover {
+    background-color: #e2e8f0;
+    border-color: #94a3b8;
+    color: #0f172a;
+}
+
+.fc .fc-button-active {
+    background-color: #ff6600 !important;
+    border-color: #ff6600 !important;
+    color: #ffffff !important;
+}
+
+.fc-theme-standard td, .fc-theme-standard th {
+    border-color: #e2e8f0;
+}
+
+.fc .fc-daygrid-day-number,
+.fc .fc-col-header-cell-cushion {
+    color: #334155;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+    background-color: #fff7ed;
 }
