@@ -16,53 +16,6 @@
 
     <style>
         /* FullCalendar Light Theme Overrides */
-        .fc {
-            --fc-border-color: #e2e8f0;
-            --fc-page-bg-color: #ffffff;
-            --fc-neutral-bg-color: #f8fafc;
-            --fc-list-event-hover-bg-color: #f1f5f9;
-            color: #0f172a;
-        }
-
-        .fc .fc-toolbar-title {
-            color: #0f172a;
-            font-size: 20px;
-            font-weight: bold;
-        }
-
-        .fc .fc-button-primary {
-            background-color: #f1f5f9;
-            border-color: #cbd5e1;
-            color: #1e293b;
-            font-weight: 600;
-        }
-
-        .fc .fc-button-primary:hover {
-            background-color: #e2e8f0;
-            border-color: #94a3b8;
-            color: #0f172a;
-        }
-
-        .fc .fc-button-active {
-            background-color: #ff6600 !important;
-            border-color: #ff6600 !important;
-            color: #ffffff !important;
-        }
-
-        .fc-theme-standard td, .fc-theme-standard th {
-            border-color: #e2e8f0;
-        }
-
-        .fc .fc-daygrid-day-number,
-        .fc .fc-col-header-cell-cushion {
-            color: #334155;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .fc .fc-daygrid-day.fc-day-today {
-            background-color: #fff7ed;
-        }
 
         .calendar-container {
             max-width: 1000px;
@@ -87,7 +40,43 @@
         }
 
         .error-msg {
+            display: none;10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        /* Event Details Card View */
+        #event-detail-view {
             display: none;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 24px;
+        }
+
+        .event-meta {
+            margin: 15px 0 25px 0;
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .event-meta strong {
+            color: #0f172a;
+        }
+
+        .event-description {
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            padding: 16px;
+            border-radius: 6px;
+            color: #334155;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            min-height: 100px;
+        }
             background-color: #fef2f2;
             border: 1px solid #fca5a5;
             color: #991b1b;
