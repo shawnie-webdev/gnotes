@@ -22,40 +22,6 @@
             max-width: 800px;
         }
 
-        /* Position the parent container relative so the children line up properly */
-        .dropdown {
-            position: relative;
-            display: inline-block;
-        }
-
-        /* Hide the dropdown contents by default */
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            background-color: #f9f9f9;
-            min-width: 160px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1;
-        }
-
-        /* Style the links inside the dropdown */
-        .dropdown-content a {
-            color: black;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-        }
-
-        /* Change link color on hover */
-        .dropdown-content a:hover {
-            background-color: #f1f1f1;
-        }
-
-        /* 🌟 The magic part: Show the menu when hovering over the parent wrapper */
-        .dropdown:hover .dropdown-content {
-            display: block;
-        }
-
     </style>
 </head>
 <body>
@@ -67,14 +33,13 @@
         </div>
         <a href="/credits.html" class="btn btn-primary" id="credits">Credits</a>
         <a href="/" class="btn btn-secondary" id="dashboard">Homepage</a>
-
         <div class="dropdown generic_button">
             <button class="dropbtn">Study</button>
             <div class="dropdown-content">
-                <a href="/corkboard" class="btn btn-secondary" id="cb">Corkboard</a>
-                <a href="/study" class="btn btn-secondary" id="study">Study Guides</a>
-                <a href="/documents" class="btn btn-secondary" id="documents">Documents</a>
-                <a href="/calendar" class="btn btn-secondary" id="calendar">Calendar</a>
+                <a href="/corkboard" class="btn btn-primary" id="cb">Corkboard</a>
+                <a href="/study" class="btn btn-primary" id="study">Study Guides</a>
+                <a href="/documents" class="btn btn-primary" id="documents">Documents</a>
+                <a href="/calendar" class="btn btn-primary" id="calendar">Calendar</a>
             </div>
         </div>
 
