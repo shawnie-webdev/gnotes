@@ -132,6 +132,9 @@
         const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
 
+        const container = document.getElementById('topics-container');
+        const info = document.getElementById('info');
+
         if (!window.supabase) {
             console.error("Supabase CDN failed to load. Check script inclusion.");
         }
@@ -157,8 +160,6 @@
         });
 
         async function displayStudyTopics(search = '') {
-            const container = document.getElementById('topics-container');
-            const info = document.getElementById('info');
 
             const { data: topics, error } = await supabaseClient
                 .from('study')
