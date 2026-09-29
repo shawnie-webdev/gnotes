@@ -529,7 +529,7 @@ a:hover {
 
 .big-font {
     font-family: var(--display-font);
-    font-size: 3.5rem;
+    font-size: 4.5rem;
     font-weight: 800;
     margin-bottom: 10px;
     letter-spacing: -0.5px;
@@ -766,11 +766,6 @@ a:hover {
     h2 { font-size: 1.45rem; }
     h3 { font-size: 1.15rem; }
 
-    .big-font {
-        font-size: 2.25rem;
-        letter-spacing: -0.3px;
-    }
-
     .container,
     .settings-card,
     .dashboard-container,
@@ -841,10 +836,6 @@ a:hover {
     .nav-actions > .btn,
     .nav-actions > a.btn {
         flex: 1 1 100%;
-    }
-
-    .big-font {
-        font-size: 1.85rem;
     }
 
     #corkboard {
