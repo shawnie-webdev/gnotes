@@ -42,7 +42,7 @@
         }
 
         /* FIXED: Dynamic, responsive grid layout for topic cards */
-        #topics-container-advanced {
+        #topics-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 1.5rem;
@@ -97,7 +97,7 @@
             margin: 30px auto;
         }
 
-        #info-advanced {
+        #info {
             grid-column: 1 / -1;
             text-align: center;
             font-weight: normal;
@@ -129,6 +129,7 @@
         <form action="/study" method="get" style="display: inline;">
             <button type="submit" class="btn btn-secondary" id="study">Study Guides</button>
         </form>
+        <a href="/announcement" class="btn btn-secondary" id="announcements">Announcements</a>
         <form action="/documents" method="get" style="display: inline;">
             <button type="submit" class="btn btn-secondary">Documents</button>
         </form>
@@ -177,8 +178,8 @@
         });
     
         async function displayStudyTopics(search = '') {
-            const container = document.getElementById('topics-container-advanced');
-            const info = document.getElementById('info-advanced');
+            const container = document.getElementById('topics-container');
+            const info = document.getElementById('info');
 
             const { data: topics_advanced, error } = await supabaseClient
                 .from('study')
@@ -199,11 +200,12 @@
             info.innerHTML = '';
             let renderedCount = 0;
 
-            topics.forEach(topic => {
+            container.innerHTML = '';
+            topics_advanced.forEach(topic_advanced => {
                 const subjectName = topic_advanced.subject?.name || 'General';
                 const topicName = topic_advanced.name || '';
 
-                if (topic_advancedName.toLowerCase().includes(search.toLowerCase())) {
+                if (topicName.toLowerCase().includes(search.toLowerCase())) {
                     renderedCount++;
                     
                     // FIXED: Changed span element to block div element
@@ -212,10 +214,10 @@
 
                     card.innerHTML = `
                         <div class="card-header" data-id="${topic_advanced.id}">
-                            <span class="card-member badge-subject">${escapeHtml(subjectAdvancedName)}</span>
+                            <span class="card-member badge-subject">${escapeHtml(subjectName)}</span>
                             <span class="card-member badge-sg">${escapeHtml(topic_advanced.sg || 'SG N/A')}</span>
                         </div>
-                        <h3 class="card-member">${escapeHtml(topic_advancedName)}</h3>
+                        <h3 class="card-member">${escapeHtml(topicName)}</h3>
                         <div class="card-member card-footer">
                             <small>By: ${escapeHtml(topic_advanced.author || 'Anonymous')}</small>
                         </div>
@@ -249,9 +251,9 @@
         if (searchparams !== null) {
             searchparams = decodeURIComponent(searchparams).trim();
             document.getElementById('search-bar').value = searchparams;
-            displayAdvancedStudyTopics(searchparams);
+            displayStudyTopics(searchparams);
         } else {
-            document.addEventListener("DOMContentLoaded", () => displayAdvancedStudyTopics());
+            document.addEventListener("DOMContentLoaded", () => displayStudyTopics());
         }
     </script>
 </body>

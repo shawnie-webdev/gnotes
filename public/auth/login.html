@@ -8,7 +8,6 @@
 
     <!-- Supabase JS Client via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./config.js"></script>
     <script src="./theme.js"></script>
 
     <style>
@@ -33,15 +32,6 @@
             max-width: 400px;
             border: 1px solid var(--border-color);
             margin: 100px auto;
-        
-            position: static !important;
-            top: auto !important;
-            right: auto !important;
-            bottom: auto !important;
-            left: auto !important;
-            transform: none !important;
-            margin: 40px auto !important;
-            z-index: 1;
         }
 
         .login-header {
@@ -218,7 +208,11 @@
 </div>
 
 <script>
-    const supabaseClient = window.GoldenNotesConfig?.initClient();
+    // Replace with your actual Supabase credentials from Project Settings -> API
+    const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     document.addEventListener('DOMContentLoaded', () => {
         const loginForm = document.getElementById('login-form');

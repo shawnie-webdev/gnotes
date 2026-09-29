@@ -59,6 +59,17 @@
             color: var(--secondary-text);
             line-height: 1.6;
         }
+        .announcement-link {
+            display: inline-flex;
+            margin-top: 14px;
+        }
+        .empty-state {
+            padding: 30px;
+            text-align: center;
+            color: var(--muted-text);
+            border: 1px dashed var(--border-color);
+            border-radius: var(--radius-lg);
+        }
     </style>
 </head>
 <body>
@@ -77,6 +88,7 @@
             <div class="dropdown-content">
                 <a href="/corkboard/main.html">Corkboard</a>
                 <a href="/study/course-list.html">Study Guides</a>
+                <a href="/announcement/index.html">Announcements</a>
                 <a href="/documents/viewer.html">Documents</a>
                 <a href="/calendar/index.html">Calendar</a>
             </div>
@@ -114,7 +126,7 @@
         }
 
         if (!announcements || announcements.length === 0) {
-            listContainer.innerHTML = '<p>No announcements yet.</p>';
+            listContainer.innerHTML = '<div class="empty-state">No announcements yet.</div>';
             return;
         }
 
@@ -123,16 +135,42 @@
             const typeClass = ann['announcement-type'] === 'calendar' ? 'type-calendar' : 'type-posted';
             const typeLabel = ann['announcement-type'] === 'calendar' ? '📅 Calendar' : '📝 Posted';
 
-            const card = document.createElement('div');
+            const card = document.createElement('article');
             card.className = 'announcement-card';
+
+            const dateValue = ann['created-on'];
+            const parsedDate = dateValue ? new Date(dateValue) : null;
+            const dateLabel = parsedDate && !Number.isNaN(parsedDate.getTime())
+                ? parsedDate.toLocaleString()
+                : 'Date unavailable';
+
+            const title = document.createElement('div');
+            title.className = 'announcement-title';
+            title.textContent = ann.author || 'Anonymous';
+
+            const body = document.createElement('div');
+            body.className = 'announcement-body';
+            body.textContent = ann['announcement-type'] === 'calendar'
+                ? 'A new calendar event has been added.'
+                : 'A new announcement has been posted.';
+
             card.innerHTML = `
                 <div class="announcement-meta">
                     <span class="type-badge ${typeClass}">${typeLabel}</span>
-                    <span>${new Date(ann['created-on']).toLocaleDateString()}</span>
+                    <span>${dateLabel}</span>
                 </div>
-                <div class="announcement-title">${ann.author || 'Anonymous'}</div>
-                <div class="announcement-body">${ann.content || 'No content provided.'}</div>
             `;
+            card.appendChild(title);
+            card.appendChild(body);
+
+            if (ann['announcement-type'] === 'calendar') {
+                const link = document.createElement('a');
+                link.className = 'btn btn-secondary announcement-link';
+                link.href = '/calendar';
+                link.textContent = 'View Calendar →';
+                card.appendChild(link);
+            }
+
             listContainer.appendChild(card);
         });
     });

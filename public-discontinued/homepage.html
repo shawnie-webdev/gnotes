@@ -313,12 +313,25 @@
 
                     const card = document.createElement('div');
                     card.className = 'preview-card';
-                    card.innerHTML = `
-                        <span class="badge ${typeBadge}">${typeLabel}</span>
-                        <h3>${ann.author || 'Anonymous'}</h3>
-                        <p>${ann.content || 'No content provided.'}</p>
-                        <a href="${link}" class="technical-text">View Details →</a>
-                    `;
+
+                    const badge = document.createElement('span');
+                    badge.className = `badge ${typeBadge}`;
+                    badge.textContent = typeLabel;
+
+                    const title = document.createElement('h3');
+                    title.textContent = ann.author || 'Anonymous';
+
+                    const description = document.createElement('p');
+                    description.textContent = ann['announcement-type'] === 'calendar'
+                        ? 'A new calendar event has been added.'
+                        : 'A new announcement has been posted.';
+
+                    const details = document.createElement('a');
+                    details.href = link;
+                    details.className = 'technical-text';
+                    details.textContent = 'View Details →';
+
+                    card.append(badge, title, description, details);
                     whatsNewGrid.appendChild(card);
                 });
             }

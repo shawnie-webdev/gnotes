@@ -51,7 +51,6 @@
             max-width: 1200px;
             margin: 0 auto;
             box-sizing: border-box;
-        }
 
         .card-header {
             display: flex;
@@ -100,7 +99,6 @@
             <div class="dropdown-content">
                 <a href="/corkboard" class="btn btn-secondary" id="cb">Corkboard</a>
                 <a href="/study" class="btn btn-secondary" id="study">Study Guides</a>
-                <a href="/announcement" class="btn btn-secondary" id="announcements">Announcements</a>
                 <a href="/documents" class="btn btn-secondary" id="documents">Documents</a>
                 <a href="/calendar" class="btn btn-secondary" id="calendar">Calendar</a>
             </div>
@@ -120,7 +118,7 @@
         </form>
     </div>
 
-    <div id="topics-container" class="topics-grid">
+    <div id="topics-container container" class="topics-grid">
         <h1 id="info">Loading topics...</h1>
     </div>
 
@@ -178,9 +176,8 @@
                 return;
             }
 
-            // Clear previous cards while keeping the status element available.
-            container.querySelectorAll('.study-topic-card').forEach((card) => card.remove());
-            info.textContent = '';
+            // Clear loading/info message
+            info.innerHTML = '';
             let renderedCount = 0;
 
             topics.forEach(topic => {
@@ -192,7 +189,7 @@
                     
                     // FIXED: Changed span element to block div element
                     const card = document.createElement('div');
-                    card.className = 'card effect_button study-topic-card';
+                    card.className = 'card effect_button card';
 
                     card.innerHTML = `
                         <div class="card-header" data-id="${topic.id}">
@@ -209,6 +206,8 @@
                         window.location.href = `/study/view?id=${topic.id}`;
                     });
 
+                    console.log("appending child:")
+                    print(card)
                     container.appendChild(card);
                 }
             });
