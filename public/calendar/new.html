@@ -67,20 +67,25 @@
     </style>
 </head>
 <body>
-
 <header class="top-header">
     <div class="nav-actions">
         <div class="header-left">
-            <img src="./../favicon.jpeg" alt="logo" id="logo">
+            <img src="../favicon.jpeg" alt="logo" id="logo">
         </div>
-        <!-- Clean anchor tags instead of form wrappers -->
         <a href="/credits.html" class="btn btn-primary" id="credits">Credits</a>
         <a href="/" class="btn btn-secondary" id="dashboard">Homepage</a>
-        <a href="/corkboard" class="btn btn-secondary" id="corkboard">Corkboard</a>
-        <a href="/study" class="btn btn-secondary" id="study">Study Guides</a>
-        <a href="/documents" class="btn btn-secondary">Documents</a>
-        <a href="/calendar" class="btn btn-secondary">Calendar</a>
+        <div class="dropdown">
+            <button class="dropbtn btn btn-secondary">Study</button>
+            <div class="dropdown-content">
+                <a href="/corkboard" class="btn btn-secondary" id="cb">Corkboard</a>
+                <a href="/study" class="btn btn-secondary" id="study">Study Guides</a>
+                <a href="/documents" class="btn btn-secondary" id="documents">Documents</a>
+                <a href="/calendar" class="btn btn-secondary" id="calendar">Calendar</a>
+            </div>
+        </div>
+
         <a href="/dashboard/settings" class="btn btn-secondary" id="settings-nav">Settings</a>
+        <a href="/dashboard" class="btn btn-secondary" id="d-nav">Dashboard</a>
     </div>
 </header>
 
