@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoldenNotes - Join A Corkboard</title>
+    <link rel="stylesheet" href="../master-combined.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../auth/theme.js"></script>
+
+    <style>
+        #floating-join {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            width: 320px;
+            max-width: 90%;
+            padding: 30px 20px;
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-md);
+        }
+
+        #form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--deepest-background);
+            color: var(--main-text);
+            font-size: 0.95rem;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .form-input::placeholder {
+            color: var(--muted-text);
+        }
+
+        #floating-join a {
+            color: var(--muted-text);
+            font-size: 0.85rem;
+            text-decoration: underline;
+        }
+
+        #floating-join a:hover {
+            color: var(--main-text);
+        }
+
+        .create-room-wrap {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0 10px;
+        }
+    </style>
+</head>
+<body>
+
+<header class="top-header">
+    <div class="nav-actions">
+        <div class="header-left">
+            <img src="../favicon.jpeg" alt="logo" id="logo">
+        </div>
+        <a href="/credits.html" class="btn btn-primary" id="credits">Credits</a>
+        <a href="/" class="btn btn-secondary" id="dashboard">Homepage</a>
+        <div class="dropdown">
+            <button class="dropbtn btn btn-secondary">Study</button>
+            <div class="dropdown-content">
+                <a href="/corkboard" class="btn btn-secondary" id="cb">Corkboard</a>
+                <a href="/study" class="btn btn-secondary" id="study">Study Guides</a>
+                <a href="/documents" class="btn btn-secondary" id="documents">Documents</a>
+                <a href="/calendar" class="btn btn-secondary" id="calendar">Calendar</a>
+            </div>
+        </div>
+
+        <a href="/dashboard/settings" class="btn btn-secondary" id="settings-nav">Settings</a>
+        <a href="/dashboard" class="btn btn-secondary" id="d-nav">Dashboard</a>
+    </div>
+</header>
+
+
+<h1 class="center">Join a Corkboard Room</h1>
+<h3 class="center">Join a Corkboard Room and collaborate with others</h3>
+
+<div class="create-room-wrap">
+    <button type="button" class="btn btn-primary" id="create-room">Create a Room</button>
+</div>
+
+<div id="floating-join">
+    <form id="form">
+        <input
+                class="form-input"
+                type="text"
+                id="roomid"
+                name="roomid"
+                pattern="[A-Za-z0-9]{6}"
+                maxlength="6"
+                placeholder="Your 6-character room ID"
+                inputmode="text"
+                required
+        >
+        <input
+                class="form-input"
+                type="text"
+                id="subject"
+                name="subject"
+                inputmode="text"
+                placeholder="Enter your subject (use 'main' if no subject)"
+                required
+        >
+        <button id="submit" type="submit" class="btn btn-secondary">Attempt to join</button>
+    </form>
+    <a href="/corkboard/help">Don't know your room ID?</a>
+</div>
+
+<script>
+    function sanitizeSegment(value, fallback) {
+        return String(value || fallback)
+            .trim()
+            .replace(/[^A-Za-z0-9_-]/g, '')
+            .slice(0, 32) || fallback;
+    }
+
+    function goToRoom(roomId, subject) {
+        const id = sanitizeSegment(roomId, '').toUpperCase();
+        const subj = sanitizeSegment(subject, 'main');
+        if (!/^[A-Za-z0-9]{6}$/.test(id)) {
+            alert('Room ID must be exactly 6 letters or numbers.');
+            return;
+        }
+        window.location.href = `/corkboard/join?room=${encodeURIComponent(id + '-' + subj)}`;
+    }
+
+    document.getElementById('form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        goToRoom(
+            document.getElementById('roomid').value,
+            document.getElementById('subject').value
+        );
+    });
+
+    document.getElementById('create-room').addEventListener('click', () => {
+        const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let roomId = '';
+        for (let i = 0; i < 6; i++) {
+            roomId += alphabet[Math.floor(Math.random() * alphabet.length)];
+        }
+        const subject = prompt('Subject for the new room? (default: main)', 'main') || 'main';
+        goToRoom(roomId, subject);
+    });
+</script>
+</body>
+</html>
