@@ -149,14 +149,6 @@
         });
     }
 
-    // Safeguard check for optional advanced section element
-    const advancedBtn = document.getElementById('advanced-section');
-    if (advancedBtn) {
-        advancedBtn.addEventListener('click', () => {
-            window.location.href = "/study/advanced-topics";
-        });
-    }
-
     if (window.GoldenNotesPermissions && addTopicBtn) {
         window.GoldenNotesPermissions.initWriteControls(
             supabaseClient,
