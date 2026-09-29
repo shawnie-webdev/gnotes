@@ -4,167 +4,338 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GoldenNotes v1.1</title>
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 
     <!-- Supabase JS Client via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="auth/theme.js"></script>
-    <link rel="stylesheet" href="master-combined.css">
+    <script src="/auth/config.js"></script>
+    <script src="/auth/theme.js"></script>
+    <link rel="stylesheet" href="/master-combined.css">
     <style>
-        /* Hero Content */
-        .hero-container {
-            position: absolute;
-            top: 40%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+        /* Hero Section Specific Styles */
+        .hero-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             text-align: center;
-            width: 90%;
-            max-width: 800px;
+            padding: 80px 20px;
+            min-height: 60vh;
+            position: relative;
         }
 
+        .hero-branding {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .hero-logo {
+            width: 80px;
+            height: 80px;
+            border: 3px solid var(--main-gold);
+            padding: 5px;
+            background: var(--primary-navy);
+        }
+
+        .hero-title {
+            font-family: var(--display-font);
+            font-size: 5rem;
+            font-weight: 800;
+            color: var(--main-text);
+            margin: 0;
+            letter-spacing: -2px;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: var(--muted-text);
+            max-width: 600px;
+            margin: 0 auto 30px auto;
+        }
+
+        .hero-tagline {
+            font-family: var(--display-font);
+            font-size: 1.5rem;
+            color: var(--main-gold);
+            margin-bottom: 40px;
+            font-style: italic;
+        }
+
+        .hero-ctas {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 60px;
+        }
+
+        /* Decorative Elements */
+        .hero-decor {
+            position: absolute;
+            right: 5%;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .decor-item {
+            font-family: var(--mono-font);
+            font-size: 0.8rem;
+            color: var(--muted-text);
+            border-left: 2px solid var(--main-gold);
+            padding-left: 10px;
+        }
+
+        /* What's New Section */
+        .whats-new-section {
+            padding: 60px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .whats-new-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .preview-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .preview-card:hover {
+            border-color: var(--main-gold);
+            transform: translateY(-5px);
+        }
+
+        /* Mission Banner */
+        .mission-banner {
+            background: var(--primary-navy);
+            border: 2px solid var(--main-gold);
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            max-width: 1100px;
+            margin: 60px auto;
+            text-align: left;
+        }
+
+        .mission-icon {
+            font-size: 3rem;
+            flex-shrink: 0;
+        }
+
+        .mission-text h2 {
+            color: var(--main-gold);
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        /* Footer */
+        .site-footer {
+            border-top: 1px solid var(--subtle-line);
+            padding: 40px 20px;
+            margin-top: 80px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            color: var(--muted-text);
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .footer-links a {
+            color: var(--muted-text);
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: var(--main-gold);
+        }
+
+        @media (max-width: 900px) {
+            .hero-title { font-size: 3rem; }
+            .hero-ctas { flex-direction: column; width: 100%; max-width: 300px; }
+            .hero-decor { display: none; }
+            .mission-banner { flex-direction: column; text-align: center; }
+            .site-footer { flex-direction: column; gap: 20px; text-align: center; }
+        }
     </style>
 </head>
 <body>
 
 <header class="top-header">
+    <div class="header-left">
+        <img src="/favicon.jpeg" alt="logo" id="logo">
+        <span style="font-family: var(--display-font); font-weight: 700; color: var(--main-gold); font-size: 1.2rem;">GoldenNotes</span>
+    </div>
     <div class="nav-actions">
-        <div class="header-left">
-            <img src="../favicon.jpeg" alt="logo" id="logo">
-        </div>
-        <a href="/credits.html" class="btn btn-primary" id="credits">Credits</a>
-        <a href="/" class="btn btn-secondary" id="dashboard">Homepage</a>
+        <a href="/" class="btn btn-secondary">Homepage</a>
+        <a href="/study/course-list.html" class="btn btn-secondary">Library</a>
+        <a href="/corkboard/main.html" class="btn btn-secondary">Corkboard</a>
+        <a href="/auth/dashboard.html" class="btn btn-secondary">Dashboard</a>
+
         <div class="dropdown">
-            <button class="dropbtn btn btn-secondary">Study</button>
+            <button class="dropbtn btn btn-secondary">Resources</button>
             <div class="dropdown-content">
-                <a href="/corkboard" class="btn btn-secondary" id="cb">Corkboard</a>
-                <a href="/study" class="btn btn-secondary" id="study">Study Guides</a>
-                <a href="/documents" class="btn btn-secondary" id="documents">Documents</a>
-                <a href="/calendar" class="btn btn-secondary" id="calendar">Calendar</a>
+                <a href="/corkboard/main.html">Corkboard</a>
+                <a href="/study/course-list.html">Study Guides</a>
+                <a href="/documents/viewer.html">Documents</a>
+                <a href="/calendar/index.html">Calendar</a>
             </div>
         </div>
 
-        <a href="/dashboard/settings" class="btn btn-secondary" id="settings-nav">Settings</a>
-        <a href="/dashboard" class="btn btn-secondary" id="d-nav">Dashboard</a>
-
-        <a href="/login" class="btn btn-secondary righty" id="login">Login</a>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="#" class="btn btn-secondary" title="Search"><span style="font-size: 1.2rem;">🔍</span></a>
+            <a href="/auth/login.html" class="btn btn-secondary" id="login">Login</a>
+            <a href="/auth/signup.html" class="btn btn-primary">Sign Up</a>
+        </div>
     </div>
 </header>
 
-<!-- This area is the center page -->
+<main>
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-branding">
+            <img src="/favicon.jpeg" alt="G Logo" class="hero-logo">
+            <h1 class="hero-title">GOLDENNOTES</h1>
+        </div>
 
-<p id="splashtext">splashtext paragraph</p>
-<div class="hero-container">
-    <h1 id="header" class="big-font">orange|Golden|Notes</h1>
-    <h3>Built by Batch 2032, for Batch 2032.</h3>
-    <br>
-    <h5>A student led academic resource platform for sharing,</h5>
-    <h5>discovering, and using helpful learning resources</h5>
-</div>
+        <div class="hero-subtitle">
+            <p><strong>Built by Batch 2032, for Batch 2032.</strong></p>
+            <p>A student-led academic resource platform for sharing, discovering, and using helpful learning resources.</p>
+        </div>
 
-<div class="solid-divider-strong" style="width: 100%;">strong divider</div>
-<div style="width: 100%; text-align: left; display: flex; flex-direction: row" class="centerx">
+        <div class="hero-tagline">— A place where you can save notes. —</div>
 
-    <h2 class="centerx">What's New</h2>
-    <div class="solid-divider-strong centerx" style="width: 80%;">strong divider</div>
+        <div class="hero-ctas">
+            <a href="/study/course-list.html" class="btn btn-primary btn-lg">
+                <span>📖</span> Explore Library
+            </a>
+            <a href="/corkboard/main.html" class="btn btn-secondary btn-lg" style="border: 1px solid var(--main-gold);">
+                <span>💬</span> Go to Corkboard
+            </a>
+        </div>
 
-</div>
+        <div class="hero-decor">
+            <div class="decor-item">PROJECT GOLDENNOTES</div>
+            <div class="decor-item">ALPHA 1.2 // BUILD_2032</div>
+            <div class="decor-item">STATUS: ACTIVE</div>
+        </div>
+    </section>
 
-<!-- End of This area is the center page -->
+    <!-- What's New Section -->
+    <section class="whats-new-section">
+        <div class="section-header">
+            <span style="font-size: 1.5rem;">✨</span>
+            <h2>What's New</h2>
+            <div class="solid-divider-strong" style="flex-grow: 1; margin: 0 0 0 20px;"></div>
+        </div>
+
+        <div class="whats-new-grid">
+            <div class="preview-card">
+                <span class="badge badge-orange">Updated</span>
+                <h3>Advanced Biology</h3>
+                <p>New lecture notes for Week 8 added to the library.</p>
+                <a href="/study/courses/advanced-topics.html" class="technical-text">View Resource →</a>
+            </div>
+            <div class="preview-card">
+                <span class="badge badge-blue">New</span>
+                <h3>Exam Schedule</h3>
+                <p>The Finals calendar has been updated for the winter term.</p>
+                <a href="/calendar/index.html" class="technical-text">Open Calendar →</a>
+            </div>
+            <div class="preview-card">
+                <span class="badge badge-blue">New</span>
+                <h3>Study Group Finder</h3>
+                <p>Connect with other Batch 2032 students on the corkboard.</p>
+                <a href="/corkboard/main.html" class="technical-text">Join Now →</a>
+            </div>
+            <div class="preview-card">
+                <span class="badge badge-orange">Updated</span>
+                <h3>Resource Guidelines</h3>
+                <p>Updated rules for uploading student-led resources.</p>
+                <a href="/credits.html" class="technical-text">Read More →</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mission Banner -->
+    <section class="mission-banner">
+        <div class="mission-icon">🎓</div>
+        <div class="mission-text">
+            <h2>SAME RIGOR. BETTER SUPPORT.</h2>
+            <p>GoldenNotes helps students help one another without replacing official school resources. We believe in collaborative success through shared knowledge.</p>
+        </div>
+    </section>
+</main>
+
+<footer class="site-footer">
+    <div>Project GoldenNotes &middot; Batch 2032</div>
+    <div class="footer-links">
+        <a href="/about.html">About</a>
+        <a href="/credits.html">Credits</a>
+        <a href="/guidelines.html">Guidelines</a>
+        <a href="/report.html">Report a Problem</a>
+    </div>
+</footer>
 
 <script>
-    // Supabase Credentials
-    const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
-
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // Check Auth State on DOM Content Loaded
     document.addEventListener('DOMContentLoaded', async () => {
         const loginBtn = document.getElementById("login");
+        const supabaseClient = window.supabaseClient;
 
-        // Fetch session from Supabase client
+        if (!supabaseClient) {
+            console.error('Supabase client not initialized');
+            return;
+        }
+
         const { data: { session } } = await supabaseClient.auth.getSession();
 
         if (session) {
-            const user = session.user;
-
-            // Access the username from user_metadata
-            const username = user.user_metadata?.username || "User";
-
-            const loginBtn = document.getElementById("login");
+            const username = session.user.user_metadata?.username || "User";
             loginBtn.innerText = `Hi, ${username}!`;
         } else {
-            // User is not signed in
             loginBtn.innerText = "Login";
             loginBtn.addEventListener("click", () => {
-                window.location.href = "./login.html";
+                window.location.href = "/auth/login.html";
             });
         }
 
-        // Listen for Auth changes in real-time
         supabaseClient.auth.onAuthStateChange((event, session) => {
             if (session) {
-                loginBtn.innerText = `Hi `;
+                const username = session.user.user_metadata?.username || "User";
+                loginBtn.innerText = `Hi, ${username}!`;
             } else {
                 loginBtn.innerText = "Login";
             }
         });
     });
-
-    /* Lower Text randomizer */
-    const splashtxt = [
-        "Welcome to Project GoldenNotes!",
-        "A place where you can save notes.",
-        "Hi!",
-        "This sounds like it's from Minecraft.",
-        "'That one.'",
-        "Is anyone even reading these things?",
-        "Insert splash text here.",
-        "Version v1.1?",
-        "Try reading something on the Study section.",
-        "Pi equals around 3.141592653589...",
-        "Do you have an alpilar?",
-        "Please do NOT cram your assesments",
-        "Python is an interpreter, Kinne"
-    ];
-
-    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-    const splash = document.getElementById("splashtext");
-
-    async function typewriter(next) {
-        let text = splash.innerText;
-
-        // 1. Smoothly delete current text from end to start
-        while (text.length > 0) {
-            text = text.slice(0, -1);
-            splash.innerText = '"'+text + '"|';
-            await sleep(25);
-        }
-
-        await sleep(200);
-
-        // 2. Type out the new text character by character
-        for (let i = 0; i < next.length; i++) {
-            text += next[i];
-            splash.innerText = text + '|';
-            await sleep(75);
-        }
-    }
-
-    async function main() {
-        while (true) {
-            const ran = Math.floor(Math.random() * splashtxt.length);
-            const nxt = splashtxt[ran];
-
-            await typewriter(nxt);
-            await sleep(2500);
-        }
-    }
-    function documents() {
-        window.location.href = "./documents.html";
-    };
-
-    main();
 </script>
 </body>
 </html>
