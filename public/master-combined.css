@@ -948,3 +948,8 @@ a:hover {
 .dropdown:hover .dropdown-content {
     display: block;
 }
+
+.righty {
+    margin-left: auto;
+    margin-right: 0;
+}
