@@ -257,31 +257,9 @@
             <div class="solid-divider-strong" style="flex-grow: 1; margin: 0 0 0 20px;"></div>
         </div>
 
-        <div class="whats-new-grid">
-            <div class="preview-card">
-                <span class="badge badge-orange">Updated</span>
-                <h3>Advanced Biology</h3>
-                <p>New lecture notes for Week 8 added to the library.</p>
-                <a href="/study/courses/advanced-topics.html" class="technical-text">View Resource →</a>
-            </div>
-            <div class="preview-card">
-                <span class="badge badge-blue">New</span>
-                <h3>Exam Schedule</h3>
-                <p>The Finals calendar has been updated for the winter term.</p>
-                <a href="/calendar/index.html" class="technical-text">Open Calendar →</a>
-            </div>
-            <div class="preview-card">
-                <span class="badge badge-blue">New</span>
-                <h3>Study Group Finder</h3>
-                <p>Connect with other Batch 2032 students on the corkboard.</p>
-                <a href="/corkboard/main.html" class="technical-text">Join Now →</a>
-            </div>
-            <div class="preview-card">
-                <span class="badge badge-orange">Updated</span>
-                <h3>Resource Guidelines</h3>
-                <p>Updated rules for uploading student-led resources.</p>
-                <a href="/credits.html" class="technical-text">Read More →</a>
-            </div>
+        <div class="whats-new-grid" id="whats-new-grid">
+            <!-- Announcements will be loaded here dynamically -->
+            <div class="preview-card">Loading latest updates...</div>
         </div>
     </section>
 
@@ -308,6 +286,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
         const loginBtn = document.getElementById("login");
+        const whatsNewGrid = document.getElementById("whats-new-grid");
         const supabaseClient = window.supabaseClient;
 
         if (!supabaseClient) {
@@ -315,6 +294,39 @@
             return;
         }
 
+        // 1. Load Announcements for "What's New"
+        try {
+            const { data: announcements, error } = await supabaseClient
+                .from('announcement')
+                .select('*')
+                .order('created-on', { ascending: false })
+                .limit(4);
+
+            if (error) throw error;
+
+            if (announcements && announcements.length > 0) {
+                whatsNewGrid.innerHTML = '';
+                announcements.forEach(ann => {
+                    const typeBadge = ann['announcement-type'] === 'calendar' ? 'badge-blue' : 'badge-orange';
+                    const typeLabel = ann['announcement-type'] === 'calendar' ? 'New Event' : 'Updated';
+                    const link = ann['announcement-type'] === 'calendar' ? '/calendar/index.html' : '/announcement/index.html';
+
+                    const card = document.createElement('div');
+                    card.className = 'preview-card';
+                    card.innerHTML = `
+                        <span class="badge ${typeBadge}">${typeLabel}</span>
+                        <h3>${ann.author || 'Anonymous'}</h3>
+                        <p>${ann.content || 'No content provided.'}</p>
+                        <a href="${link}" class="technical-text">View Details →</a>
+                    `;
+                    whatsNewGrid.appendChild(card);
+                });
+            }
+        } catch (e) {
+            console.error('Error loading announcements:', e);
+        }
+
+        // 2. Auth logic
         const { data: { session } } = await supabaseClient.auth.getSession();
 
         if (session) {

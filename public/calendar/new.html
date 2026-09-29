@@ -180,6 +180,13 @@
                 });
 
                 if (result) {
+                    // Also create an announcement for this event
+                    const { data: { user } } = await supabase.auth.getUser();
+                    await newCol("announcement", {
+                        'announcement-type': 'calendar',
+                        'author': user.user_metadata?.username || 'Admin',
+                        'content': `New Calendar Event: ${name} on ${date}. ${desc}`
+                    });
                     window.location.replace("/calendar");
                 } else {
                     alert("Failed to create event. Check console for details.");
