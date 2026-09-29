@@ -42,7 +42,7 @@
             color: #fff;
         }
 
-        /* FIXED: Added missing closing bracket for #topics-container */
+        /* Dynamic, responsive grid layout for topic cards */
         #topics-container {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -118,7 +118,6 @@
     </form>
 </div>
 
-<!-- FIXED: Updated id attribute from "topics-container container" to single id "topics-container" -->
 <div id="topics-container" class="topics-grid">
     <h1 id="info">Loading topics...</h1>
 </div>
@@ -150,7 +149,7 @@
         });
     }
 
-    // FIXED: Added check for null so script doesn't crash if element doesn't exist
+    // Safeguard check for optional advanced section element
     const advancedBtn = document.getElementById('advanced-section');
     if (advancedBtn) {
         advancedBtn.addEventListener('click', () => {
@@ -158,7 +157,7 @@
         });
     }
 
-    if (window.GoldenNotesPermissions) {
+    if (window.GoldenNotesPermissions && addTopicBtn) {
         window.GoldenNotesPermissions.initWriteControls(
             supabaseClient,
             addTopicBtn
@@ -213,7 +212,6 @@
                     window.location.href = `/study/view?id=${topic.id}`;
                 });
 
-                // FIXED: Replaced print(card) with console.log(card)
                 console.log("appending child:", card);
                 container.appendChild(card);
             }
@@ -228,7 +226,7 @@
         return String(str)
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
+            .replace(/$/g, "&gt;")
             .replace(/"/g, "&quot;");
     }
 
@@ -238,7 +236,8 @@
 
     if (searchparams !== null) {
         searchparams = decodeURIComponent(searchparams).trim();
-        document.getElementById('search-bar').value = searchparams;
+        const searchBar = document.getElementById('search-bar');
+        if (searchBar) searchBar.value = searchparams;
         displayStudyTopics(searchparams);
     } else {
         document.addEventListener("DOMContentLoaded", () => displayStudyTopics());
