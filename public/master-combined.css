@@ -754,8 +754,9 @@ a:hover {
         gap: 10px;
     }
 
-    /* 1. Force ONLY the first 4 direct links to be full-width */
-    .nav-actions > a.btn {
+    /* 1. Force ONLY the first 4 direct links and dropdown to be full-width */
+    .nav-actions > a.btn
+    .nav-actions > .dropdown{
         width: 100%;
         flex: 1 1 100%;
         justify-content: center;
