@@ -746,6 +746,8 @@ a:hover {
         flex-direction: column;
         align-items: stretch;
         gap: 12px;
+
+        flex-wrap: wrap;
     }
 
     .header-left {
