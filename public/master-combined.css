@@ -737,6 +737,10 @@ a:hover {
         padding: 12px;
     }
 
+    .nav-actions {
+        flex-wrap: wrap;
+    }
+
     .top-header {
         padding: 12px 14px;
         flex-direction: column;
