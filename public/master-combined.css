@@ -747,25 +747,50 @@ a:hover {
         justify-content: center;
     }
 
+    /* Container adjustments to center the nested buttons */
     .nav-actions {
         width: 100%;
-        justify-content: stretch;
-        gap: 8px;
-    }
-
-    .nav-actions form {
-        display: inline-flex;
-        flex: 1 1 calc(50% - 8px);
-        margin: 0;
-    }
-
-    .nav-actions .btn,
-    .nav-actions a.btn,
-    .nav-actions button {
-        width: 100%;
         justify-content: center;
+        gap: 10px;
+    }
+
+    /* 1. Force ONLY the first 4 direct links to be full-width */
+    .nav-actions > a.btn {
+        width: 100%;
+        flex: 1 1 100%;
+        justify-content: center;
+        font-size: 14px;
+        padding: 12px;
+    }
+
+    /* 2. Keep the last 4 items (Resources, Search, Login, Sign Up) small */
+    .nav-actions .dropdown .btn,
+    .nav-actions > div[style] .btn {
+        width: auto !important;
+        flex: 0 1 auto;
+        padding: 10px 14px;
         font-size: 13px;
-        padding: 10px 12px;
+    }
+
+    /* Make sure the inline flex div can wrap if screen is very narrow */
+    .nav-actions > div[style] {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    /* 3. Fix Dropdown positioning to have space and stay centered */
+    .dropdown {
+        display: inline-block;
+    }
+
+    .dropdown-content {
+        left: 50%;
+        transform: translateX(-50%);
+        margin-top: 8px; /* Makes space below the button */
+        background-color: var(--primary-navy);
+        border: 1px solid var(--strong-line);
+        border-radius: var(--radius-md);
+        min-width: max-content; /* Prevents dropdown text from squishing */
     }
 
     h1 { font-size: 1.85rem; }
@@ -838,11 +863,7 @@ a:hover {
         font-size: 15px;
     }
 
-    .nav-actions form,
-    .nav-actions > .btn,
-    .nav-actions > a.btn {
-        flex: 1 1 100%;
-    }
+    /* Redundant rule removed to prevent conflict with the custom sizing above */
 
     #corkboard {
         height: 60vh !important;
