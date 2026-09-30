@@ -944,6 +944,8 @@ a:hover {
 .dropdown {
     position: relative;
     display: inline-block;
+
+    width: 100%;
 }
 
 /* Hide the dropdown contents by default */
