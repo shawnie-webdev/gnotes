@@ -149,7 +149,7 @@ app.use((req, res, next) => {
 
 /* ===---===---=== ENDPOINTS ===---===---=== */
 
-app.get("/", (req, res) => sendFileOrError(res, '/', 'homepage.html'));
+app.get("/", (req, res) => sendFileOrError(res, '/', 'homepage/index.html'));
 app.get("/credits", (req, res) => sendFileOrError(res, '/credits', 'credits.html'));
 
 app.get("/login.html", (req, res) => sendFileOrError(res, '/login.html', 'auth/login.html'));

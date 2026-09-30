@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
         loginBtn.innerText = "Login";
         loginBtn.addEventListener("click", () => {
-            window.location.href = "/auth/login.html";
+            window.location.href = "../auth/login.html";
         });
     }
 
