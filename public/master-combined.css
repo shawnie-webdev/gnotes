@@ -946,6 +946,7 @@ a:hover {
     display: inline-block;
 
     width: 100%;
+    max-width: 100%;
 }
 
 /* Hide the dropdown contents by default */
