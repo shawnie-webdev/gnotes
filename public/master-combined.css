@@ -322,12 +322,16 @@ a:hover {
     border-bottom: 1px solid var(--subtle-line);
     width: 100%;
     padding: 15px 40px;
+
     display: flex;
     align-items: center;
-    justify-content: space-between;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     border-radius: var(--radius-md);
     margin-bottom: 16px;
+
+    justify-content: center; /* Centers the whole group horizontally */
+    gap: 24px;               /* Creates safe space between each item */
+    flex-wrap: wrap;         /* Allows items to drop to the next line on small screens */
 }
 
 .header-left {
@@ -347,6 +351,8 @@ a:hover {
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
+
+    justify-content: center; /* Centers the whole group horizontally */
 }
 
 .nav-actions img {
