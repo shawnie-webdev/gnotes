@@ -219,133 +219,17 @@
 </header>
 
 <main>
-    <!-- Hero Section -->
-    <section class="hero-section">
-        <div class="hero-branding">
-            <img src="/favicon.jpeg" alt="G Logo" class="hero-logo">
-            <h1 class="hero-title">GOLDENNOTES</h1>
-        </div>
-
-        <div class="hero-subtitle">
-            <p><strong>Built by Batch 2032, for Batch 2032.</strong></p>
-            <p>A student-led academic resource platform for sharing, discovering, and using helpful learning resources.</p>
-        </div>
-
-        <div class="hero-tagline">— A place where you can save notes. —</div>
-
-        <div class="hero-ctas">
-            <a href="/study/course-list.html" class="btn btn-primary btn-lg">
-                <span>📖</span> Explore Library
-            </a>
-            <a href="/corkboard/main.html" class="btn btn-secondary btn-lg" style="border: 1px solid var(--main-gold);">
-                <span>💬</span> Go to Corkboard
-            </a>
-        </div>
-
-        <div class="hero-decor">
-            <div class="decor-item">PROJECT GOLDENNOTES</div>
-            <div class="decor-item">ALPHA 1.2 // BUILD_2032</div>
-            <div class="decor-item">STATUS: ACTIVE</div>
-        </div>
-    </section>
-
-    <!-- What's New Section -->
-    <section class="whats-new-section">
-        <div class="section-header">
-            <span style="font-size: 1.5rem;">✨</span>
-            <h2>What's New</h2>
-            <div class="solid-divider-strong" style="flex-grow: 1; margin: 0 0 0 20px;"></div>
-        </div>
-
-        <div class="whats-new-grid" id="whats-new-grid">
-            <!-- Announcements will be loaded here dynamically -->
-            <div class="preview-card">Loading latest updates...</div>
-        </div>
-    </section>
-
-    <!-- Mission Banner -->
-    <section class="mission-banner">
-        <div class="mission-icon">🎓</div>
-        <div class="mission-text">
-            <h2>SAME RIGOR. BETTER SUPPORT.</h2>
-            <p>GoldenNotes helps students help one another without replacing official school resources. We believe in collaborative success through shared knowledge.</p>
-        </div>
-    </section>
+    <div style="width: 100%;">
+        <h1>Found a problem? Report it to me!</h1>
+        <h3>roshaunmatteo.angelia@smc.pshs.edu.ph</h3>
+        <p>Also include a screenshot pls, very helpful</p>
+        <br>
+        <p>Note: I also live a very pisay life like you guys, so please</p>
+        <p>be patient =D</p>
+        <br>
+        <p>I'll respond to you later, if not then tomorrow, if not next week!</p>
+    </div>
 </main>
 
-<footer class="site-footer">
-    <div>Project GoldenNotes &middot; Batch 2032</div>
-    <div class="footer-links">
-        <a href="/credits.html">Credits</a>
-        <a href="/report.html">Report a Problem</a>
-    </div>
-</footer>
-
-<script>
-    document.addEventListener('DOMContentLoaded', async () => {
-        const loginBtn = document.getElementById("login");
-        const whatsNewGrid = document.getElementById("whats-new-grid");
-        const supabaseClient = window.supabaseClient;
-
-        if (!supabaseClient) {
-            console.error('Supabase client not initialized');
-            return;
-        }
-
-        // 1. Load Announcements for "What's New"
-        try {
-            const { data: announcements, error } = await supabaseClient
-                .from('announcement')
-                .select('*')
-                .order('created-on', { ascending: false })
-                .limit(4);
-
-            if (error) throw error;
-
-            if (announcements && announcements.length > 0) {
-                whatsNewGrid.innerHTML = '';
-                announcements.forEach(ann => {
-                    const typeBadge = ann['announcement-type'] === 'calendar' ? 'badge-blue' : 'badge-orange';
-                    const typeLabel = ann['announcement-type'] === 'calendar' ? 'New Event' : 'Updated';
-                    const link = ann['announcement-type'] === 'calendar' ? '/calendar/index.html' : '/announcement/index.html';
-
-                    const card = document.createElement('div');
-                    card.className = 'preview-card';
-                    card.innerHTML = `
-                        <span class="badge ${typeBadge}">${typeLabel}</span>
-                        <h3>${ann.author || 'Anonymous'}</h3>
-                        <p>${ann.content || 'No content provided.'}</p>
-                        <a href="${link}" class="technical-text">View Details →</a>
-                    `;
-                    whatsNewGrid.appendChild(card);
-                });
-            }
-        } catch (e) {
-            console.error('Error loading announcements:', e);
-        }
-
-        // 2. Auth logic
-        const { data: { session } } = await supabaseClient.auth.getSession();
-
-        if (session) {
-            const username = session.user.user_metadata?.username || "User";
-            loginBtn.innerText = `Hi, ${username}!`;
-        } else {
-            loginBtn.innerText = "Login";
-            loginBtn.addEventListener("click", () => {
-                window.location.href = "/auth/login.html";
-            });
-        }
-
-        supabaseClient.auth.onAuthStateChange((event, session) => {
-            if (session) {
-                const username = session.user.user_metadata?.username || "User";
-                loginBtn.innerText = `Hi, ${username}!`;
-            } else {
-                loginBtn.innerText = "Login";
-            }
-        });
-    });
-</script>
 </body>
 </html>

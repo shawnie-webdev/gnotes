@@ -322,16 +322,26 @@ a:hover {
     border-bottom: 1px solid var(--subtle-line);
     width: 100%;
     padding: 15px 40px;
-
-    display: flex;
-    align-items: center;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     border-radius: var(--radius-md);
     margin-bottom: 16px;
 
-    justify-content: center; /* Centers the whole group horizontally */
-    gap: 24px;               /* Creates safe space between each item */
-    flex-wrap: wrap;         /* Allows items to drop to the next line on small screens */
+    /* LAYOUT FIXES FOR DESKTOP */
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Pushes Logo left, Nav right */
+    gap: 24px;
+    flex-wrap: nowrap; /* Forces everything to stay on one single layer */
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    /* LAYOUT FIXES FOR DESKTOP */
+    flex-wrap: nowrap; /* Prevents the buttons from stacking */
+    justify-content: flex-end; /* Aligns the navigation to the right side */
 }
 
 .header-left {
@@ -344,15 +354,6 @@ a:hover {
     width: 42px;
     height: 42px;
     object-fit: contain;
-}
-
-.nav-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-
-    justify-content: center; /* Centers the whole group horizontally */
 }
 
 .nav-actions img {
