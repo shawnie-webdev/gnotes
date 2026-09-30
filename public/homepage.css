@@ -1,0 +1,173 @@
+        /* Hero Section Specific Styles */
+        .hero-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 80px 20px;
+            min-height: 60vh;
+            position: relative;
+        }
+
+        .hero-branding {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .hero-logo {
+            width: 80px;
+            height: 80px;
+            border: 3px solid var(--main-gold);
+            padding: 5px;
+            background: var(--primary-navy);
+        }
+
+        .hero-title {
+            font-family: var(--display-font);
+            font-size: 5rem;
+            font-weight: 800;
+            color: var(--main-text);
+            margin: 0;
+            letter-spacing: -2px;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: var(--muted-text);
+            max-width: 600px;
+            margin: 0 auto 30px auto;
+        }
+
+        .hero-tagline {
+            font-family: var(--display-font);
+            font-size: 1.5rem;
+            color: var(--main-gold);
+            margin-bottom: 40px;
+            font-style: italic;
+        }
+
+        .hero-ctas {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 60px;
+        }
+
+        /* Decorative Elements */
+        .hero-decor {
+            position: absolute;
+            right: 5%;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .decor-item {
+            font-family: var(--mono-font);
+            font-size: 0.8rem;
+            color: var(--muted-text);
+            border-left: 2px solid var(--main-gold);
+            padding-left: 10px;
+        }
+
+        /* What's New Section */
+        .whats-new-section {
+            padding: 60px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .whats-new-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .preview-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .preview-card:hover {
+            border-color: var(--main-gold);
+            transform: translateY(-5px);
+        }
+
+        /* Mission Banner */
+        .mission-banner {
+            background: var(--primary-navy);
+            border: 2px solid var(--main-gold);
+            border-radius: var(--radius-lg);
+            padding: 40px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            max-width: 1100px;
+            margin: 60px auto;
+            text-align: left;
+        }
+
+        .mission-icon {
+            font-size: 3rem;
+            flex-shrink: 0;
+        }
+
+        .mission-text h2 {
+            color: var(--main-gold);
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        /* Footer */
+        .site-footer {
+            border-top: 1px solid var(--subtle-line);
+            padding: 40px 20px;
+            margin-top: 80px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            color: var(--muted-text);
+            font-size: 0.9rem;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .footer-links a {
+            color: var(--muted-text);
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: var(--main-gold);
+        }
+
+        @media (max-width: 900px) {
+            .hero-title { font-size: 3rem; }
+            .hero-ctas { flex-direction: column; width: 100%; max-width: 300px; }
+            .hero-decor { display: none; }
+            .mission-banner { flex-direction: column; text-align: center; }
+            .site-footer { flex-direction: column; gap: 20px; text-align: center; }
+        }
