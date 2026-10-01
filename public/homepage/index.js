@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 1. Load Announcements for "What's New"
     try {
         const { data: announcements, error } = await supabaseClient
-            .from('announcement')
+            .from('announcements')
             .select('*')
             .order('created-on', { ascending: false })
             .limit(4);
