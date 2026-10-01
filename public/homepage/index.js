@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             .select('*')
             .order('created_at', { ascending: false }) // Fixed: changed 'created-on' to 'created_at'
             .limit(4);
+        console.log("fetched announcements table")
 
         if (error) {
             console.log("error!")
