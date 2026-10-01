@@ -15,31 +15,24 @@
 <body>
 
 <header class="top-header">
-  <div class="header-left">
-    <img src="/favicon.jpeg" alt="logo" id="logo">
-    <span style="font-family: var(--display-font); font-weight: 700; color: var(--main-gold); font-size: 1.2rem;">GoldenNotes</span>
-  </div>
   <div class="nav-actions">
-    <a href="/" class="btn btn-secondary">Homepage</a>
-    <a href="/study/course-list.html" class="btn btn-secondary">Library</a>
-    <a href="/corkboard/main.html" class="btn btn-secondary">Corkboard</a>
-    <a href="/auth/dashboard.html" class="btn btn-secondary">Dashboard</a>
-
+    <div class="header-left">
+      <img src="../favicon.jpeg" alt="logo" id="logo">
+    </div>
+    <a href="/credits.html" class="btn btn-primary" id="credits">Credits</a>
+    <a href="/" class="btn btn-secondary" id="dashboard">Homepage</a>
     <div class="dropdown">
-      <button class="dropbtn btn btn-secondary">Resources</button>
+      <button class="dropbtn btn btn-secondary">Study</button>
       <div class="dropdown-content">
-        <a href="/corkboard/main.html">Corkboard</a>
-        <a href="/study/course-list.html">Study Guides</a>
-        <a href="/documents/viewer.html">Documents</a>
-        <a href="/calendar/index.html">Calendar</a>
+        <a href="/corkboard" class="btn btn-secondary" id="cb">Corkboard</a>
+        <a href="/study" class="btn btn-secondary" id="study">Study Guides</a>
+        <a href="/documents" class="btn btn-secondary" id="documents">Documents</a>
+        <a href="/calendar" class="btn btn-secondary" id="calendar">Calendar</a>
       </div>
     </div>
 
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <a href="#" class="btn btn-secondary" title="Search"><span style="font-size: 1.2rem;">🔍</span></a>
-      <a href="/auth/login.html" class="btn btn-secondary" id="login">Login</a>
-      <a href="/auth/signup.html" class="btn btn-primary">Sign Up</a>
-    </div>
+    <a href="/dashboard/settings" class="btn btn-secondary" id="settings-nav">Settings</a>
+    <a href="/dashboard" class="btn btn-secondary" id="d-nav">Dashboard</a>
   </div>
 </header>
 

@@ -26,12 +26,8 @@
             gap: 20px;
             width: 100%;
             padding: 30px;
-            background-color: rgba(59, 77, 110, 0.85);
             border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(10px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-            color: #ffffff;
             box-sizing: border-box;
         }
 
@@ -45,7 +41,6 @@
         .form-group label {
             font-size: 0.85rem;
             font-weight: 600;
-            color: #cbd5e1;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -54,9 +49,6 @@
             width: 100%;
             padding: 10px 14px;
             border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            background: rgba(255, 255, 255, 0.1);
-            color: #ffffff;
             font-size: 0.95rem;
             box-sizing: border-box;
             transition: border-color 0.2s, background 0.2s;
@@ -64,12 +56,9 @@
 
         .form-input:focus, .form-textarea:focus {
             outline: none;
-            border-color: #60a5fa;
-            background: rgba(255, 255, 255, 0.15);
         }
 
         .form-input::placeholder, .form-textarea::placeholder {
-            color: rgba(255, 255, 255, 0.5);
         }
 
         .form-textarea {
@@ -94,17 +83,9 @@
             gap: 6px;
             padding: 8px 12px;
             border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            background: rgba(255, 255, 255, 0.1);
-            color: #e2e8f0;
             font-size: 0.85rem;
             cursor: pointer;
             transition: background 0.2s;
-        }
-
-        .btn-tool:hover {
-            background: rgba(255, 255, 255, 0.25);
-            color: #ffffff;
         }
 
         .submit-btn {
@@ -113,27 +94,19 @@
             margin-top: 10px;
             border: none;
             border-radius: 8px;
-            background-color: #2563eb;
-            color: #ffffff;
             font-weight: 600;
             font-size: 1rem;
             cursor: pointer;
             transition: background-color 0.2s;
         }
 
-        .submit-btn:hover {
-            background-color: #1d4ed8;
-        }
-
         .submit-btn:disabled {
-            background-color: #64748b;
             cursor: not-allowed;
         }
 
         h1.center-title {
             text-align: center;
             margin-top: 20px;
-            color: #ffffff;
         }
     </style>
 
@@ -182,7 +155,7 @@
 <h1 class="center-title">Create a New Topic</h1>
 
 <div id="float">
-    <div class="form-container">
+    <div class="form-container card">
         <form id="studyForm">
             <!-- Author -->
             <div class="form-group">
@@ -198,7 +171,7 @@
                 </div>
 
                 <div class="form-group" style="flex: 1;">
-                    <label for="khubNumber">kHub Guide # (Know that this is optional.)</label>
+                    <label for="khubNumber">kHub Guide #</label>
                     <input class="form-input" id="khubNumber" name="khubNumber" placeholder="e.g. SG. 1.0" required>
                 </div>
             </div>
@@ -213,16 +186,6 @@
             <div class="form-group" style="margin-top: 15px;">
                 <label for="topicData">Topic Content / Notes</label>
                 <textarea id="topicData" name="topicData" placeholder="Type here your Studyguide or Course Info, if your text seems to have a big horizontal spacing, use 'Shift+Enter' to preform a clean newline."></textarea>
-            </div>
-
-            <!-- Toolbar Buttons -->
-            <div class="toolbar-buttons" style="margin-top: 10px;">
-                <button type="button" class="btn-tool" id="addImageBtn">
-                    📷 Add Image URL
-                </button>
-                <button type="button" class="btn-tool" id="addLinkBtn">
-                    🔗 Add Link
-                </button>
             </div>
 
             <!-- Submit Button -->
@@ -247,26 +210,6 @@
         canWrite = result.canWrite;
         if (!canWrite) {
             submitBtn.textContent = "Editor access required";
-        }
-    });
-
-    // Insert image tag directly into TinyMCE
-    document.getElementById("addImageBtn").addEventListener("click", () => {
-        if (!canWrite) return;
-        const url = prompt("Enter Image URL:");
-        if (url) {
-            const altText = prompt("Enter image description (optional):") || "Image";
-            tinymce.activeEditor.insertContent(`<p><img src="${url}" alt="${altText}"></p>`);
-        }
-    });
-
-    // Insert link tag directly into TinyMCE
-    document.getElementById("addLinkBtn").addEventListener("click", () => {
-        if (!canWrite) return;
-        const url = prompt("Enter Web Link URL:");
-        if (url) {
-            const linkText = prompt("Enter Link Text:") || url;
-            tinymce.activeEditor.insertContent(`<a href="${url}">${linkText}</a>`);
         }
     });
 

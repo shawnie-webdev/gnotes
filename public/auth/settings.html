@@ -31,7 +31,6 @@
     </div>
 </header>
 
-
 <main class="settings-card">
     <h1>Settings</h1>
     <p>Manage your GoldenNotes preferences. Theme choice is saved to your account.</p>
@@ -46,7 +45,9 @@
             <span class="slider"></span>
         </label>
     </div>
+
     <p id="settings-status" class="settings-status">Loading preference…</p>
+
     <p style="margin-top: 20px;">
         <a href="/dashboard" class="btn btn-secondary">Back to Dashboard</a>
     </p>
@@ -55,7 +56,6 @@
 <script>
     document.addEventListener('DOMContentLoaded', async () => {
         const toggle = document.getElementById('prefer-light-mode');
-        const select = document.getElementById('theme-select');
         const status = document.getElementById('settings-status');
 
         const client = window.GoldenNotesTheme.getClient();
@@ -71,34 +71,36 @@
             return;
         }
 
+        // Initialize the theme state
         await window.GoldenNotesTheme.initThemeFromUser();
         const isLight = window.GoldenNotesTheme.isLightThemeActive();
+
+        // Update the toggle UI and status text
         toggle.checked = isLight;
-        select.value = isLight ? 'light' : 'dark';
         status.textContent = isLight ? 'Light mode is on.' : 'Dark mode is on.';
 
         let saving = false;
 
-        async function setTheme(isLightMode, source) {
+        async function setTheme(isLightMode) {
             if (saving) return;
             saving = true;
             status.textContent = 'Saving…';
 
             toggle.checked = isLightMode;
-            select.value = isLightMode ? 'light' : 'dark';
 
+            // Attempt to update preference in Supabase via your theme.js method
             const { error } = await window.GoldenNotesTheme.updateThemePreference(isLightMode);
+
             if (error) {
                 status.textContent = 'Could not save preference: ' + (error.message || error);
             } else {
-                status.textContent = (isLightMode ? 'Light mode' : 'Dark mode') +
-                    ' saved' + (source ? ' (' + source + ')' : '') + '.';
+                status.textContent = (isLightMode ? 'Light mode' : 'Dark mode') + ' saved.';
             }
             saving = false;
         }
 
-        toggle.addEventListener('change', () => setTheme(toggle.checked, 'toggle'));
-        select.addEventListener('change', () => setTheme(select.value === 'light', 'dropdown'));
+        // Listen for changes on the slider toggle
+        toggle.addEventListener('change', () => setTheme(toggle.checked));
     });
 </script>
 </body>
