@@ -1,10 +1,11 @@
-// REMOVED the import line. We now grab it from the window object loaded by the CDN in Step 1.
+// Grab createClient from the window object loaded by the CDN script
 const { createClient } = window.supabase;
 
 const supabaseUrl = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5lozcdffxfIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
 
-const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+// Reuse existing instance if theme.js initialized it first to prevent GoTrueClient warning
+const supabaseClient = window.supabaseClient || createClient(supabaseUrl, supabaseAnonKey, {
     global: {
         headers: {
             'apikey': supabaseAnonKey,
@@ -13,6 +14,7 @@ const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
         }
     }
 });
+window.supabaseClient = supabaseClient;
 
 document.addEventListener('DOMContentLoaded', async () => {
     const loginBtn = document.getElementById("login");
@@ -28,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const { data: announcements, error } = await supabaseClient
             .from('announcements')
             .select('*')
-            .order('created-on', { ascending: false })
+            .order('created_at', { ascending: false }) // Fixed: changed 'created-on' to 'created_at'
             .limit(4);
 
         if (error) throw error;
