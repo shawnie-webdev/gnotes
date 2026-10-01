@@ -106,7 +106,7 @@
         const { data: announcements, error } = await supabaseClient
             .from('announcements')
             .select('*')
-            .order('created-on', { ascending: false });
+            .order('created-at', { ascending: false });
 
         if (error) {
             listContainer.innerHTML = `<p style="color: var(--danger);">Error loading announcements: ${error.message}</p>`;
@@ -139,4 +139,3 @@
 </script>
 </body>
 </html>
-2
