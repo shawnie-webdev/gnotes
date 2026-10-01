@@ -104,7 +104,7 @@
         if (!supabaseClient) return;
 
         const { data: announcements, error } = await supabaseClient
-            .from('announcement')
+            .from('announcements')
             .select('*')
             .order('created-on', { ascending: false });
 
