@@ -99,7 +99,8 @@ body {
     margin: 0 auto;
     padding: 0 32px 70px;
 
-    color: var(--text-muted);
+    background: var(--gold);
+    color: var(--navy);
 
     font-family: var(--mono-font);
     font-size: 0.78rem;
