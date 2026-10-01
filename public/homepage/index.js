@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 `;
 
                 card.addEventListener('click', () => {
-                    window.location.href = "/announcement?view=" + ann.id;
+                    window.location.href = `/announcement?view${ann.id}`;
                 })
                 whatsNewGrid.appendChild(card);
             });
