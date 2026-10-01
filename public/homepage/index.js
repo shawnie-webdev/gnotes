@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 `;
 
                 card.addEventListener('click', () => {
-                    window.location.href = `/announcement?view${ann.id}`;
+                    window.location.href = `/announcement/view?event=${ann.id}`;
                 })
                 whatsNewGrid.appendChild(card);
             });
@@ -89,4 +89,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             loginBtn.innerText = "Login";
         }
     });
+
+    document.getElementById("make-ann").addEventListener("click", (e) => {
+        window.location.href = "/announcement"
+    })
 });

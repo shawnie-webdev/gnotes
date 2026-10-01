@@ -24,13 +24,6 @@
             margin-bottom: 20px;
             text-align: center;
         }
-        .form-container {
-            background: #1e1e1e;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            border: 1px solid #333;
-        }
         .form-group {
             margin-bottom: 20px;
         }
@@ -38,7 +31,6 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: #ddd;
         }
         .form-group input,
         .form-group select,
@@ -46,9 +38,6 @@
             width: 100%;
             padding: 12px;
             border-radius: 6px;
-            border: 1px solid #444;
-            background: #2a2a2a;
-            color: #fff;
             font-family: inherit;
             box-sizing: border-box;
         }
@@ -123,7 +112,7 @@
 
 <main class="container">
     <h1 class="page-title">Create Announcement</h1>
-    <form id="announcement-form" class="form-container">
+    <form id="announcement-form" class="container card">
         <div class="form-group">
             <label for="name">Announcement Name</label>
             <input type="text" id="name" name="name" required placeholder="Enter announcement name">
@@ -134,8 +123,6 @@
             <select id="announcement-type" name="announcement-type">
                 <option value="calendar">Calendar</option>
                 <option value="general">General</option>
-                <option value="urgent">Urgent</option>
-                <option value="update">System Update</option>
             </select>
         </div>
 
@@ -184,6 +171,7 @@
             const authorInput = document.getElementById("author");
             if (authorInput) {
                 authorInput.value = session.user.user_metadata?.username || session.user.email || '';
+                authorInput.disabled = true;
             }
         }
     })();

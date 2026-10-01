@@ -176,6 +176,8 @@ app.get("/documents/add", (req, res) => sendFileOrError(res, '/documents/add', '
 app.get("/calendar", (req, res) => sendFileOrError(res, '/calendar', 'calendar/index.html'));
 app.get("/calendar/new", (req, res) => sendFileOrError(res, '/calendar/new', 'calendar/new.html'));
 
+app.get("/announcement/view", (req, res) => sendFileOrError(res, '/announcement/view', '/announcement/view.html'));
+
 app.get("/public", (req, res) => res.redirect("/"));
 
 /* DEBBUGER ENDPOINT -- DO NOT EDIT SECTION - roshaun */
