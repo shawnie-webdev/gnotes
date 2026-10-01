@@ -220,20 +220,35 @@
 
 <main>
     <div class="hero-section">
-        <h1 class="hero-branding">Found a problem? Report it to me!</h1>
-        <div class="hero-subtitle">
-            <h3>roshaunmatteo.angelia@smc.pshs.edu.ph</h3>
-            <p>Also include a screenshot pls, very helpful</p>
-        </div>
-        <br>
-        <div class="hero-subtitle">
-            <p>Note: I also live a very pisay life like you guys, so please</p>
-            <p>be patient =D</p>
+        <div class="card">
+            <h1 class="hero-branding">Found a problem? Report it to me!</h1>
+            <div class="solid-divider-subtle"></div>
+            <div class="hero-subtitle">
+                <h3>
+                    <strong>
+                        roshaunmatteo.angelia@smc.pshs.edu.ph
+                    </strong>
+                </h3>
+                <p>Also include a screenshot pls, very helpful</p>
+            </div>
             <br>
-            <p>I'll respond to you later, if not then tomorrow, if not next week!</p>
+            <div class="hero-subtitle">
+                <p>Note: I also live a very pisay life like you guys, so please be patient!</p>
+                <br>
+                <p>I'll respond to you later, if not then tomorrow, if not next week!</p>
+            </div>
         </div>
+
+        <button class="generic_button" id="return">Go Back</button>
     </div>
 </main>
 
 </body>
+<script>
+    const b = document.getElementById("return")
+
+    b.addEventListener("click", () => {
+        history.back()
+    })
+</script>
 </html>
