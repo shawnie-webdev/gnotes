@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GoldenNotes - Viewing Other</title>
+
+    <!-- Supabase JS Client via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/auth/theme.js"></script>
+
+    <link rel="stylesheet" href="/master-combined.css">
+    <style>
+        .dashboard-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: var(--bg-card);
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+        }
+
+        .dashboard-container > .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--subtle-line);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .user-info {
+            background-color: var(--secondary-navy);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 25px;
+        }
+
+        .user-info p {
+            margin-bottom: 10px;
+            color: var(--secondary-text);
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .user-info span {
+            color: var(--main-text);
+            font-weight: bold;
+        }
+
+        #display-id {
+            font-size: 12px;
+            color: var(--muted-text) !important;
+            word-break: break-all;
+        }
+
+        .logout-btn {
+            background-color: var(--danger) !important;
+            color: #fff !important;
+            border-color: var(--danger) !important;
+        }
+
+        .logout-btn:hover {
+            filter: brightness(0.92);
+        }
+
+        .dashboard-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* Styling for search result cards */
+        .user-card-item {
+            cursor: pointer;
+            margin-top: 15px;
+            padding: 15px 20px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            text-align: left;
+        }
+
+        .user-card-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.15));
+        }
+
+        .user-card-item h3 {
+            margin: 0 0 5px 0;
+            color: var(--main-text);
+            font-size: 16px;
+        }
+
+        .user-card-item p {
+            margin: 0;
+            color: var(--muted-text);
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+
+<header class="top-header">
+    <div class="nav-actions">
+        <div class="header-left">
+            <img src="/favicon.jpeg" alt="logo" id="logo">
+        </div>
+        <a href="/credits.html" class="btn btn-primary" id="credits">Credits</a>
+        <a href="/" class="btn btn-secondary" id="dashboard">Homepage</a>
+        <div class="dropdown">
+            <button class="dropbtn btn btn-secondary">Study</button>
+            <div class="dropdown-content">
+                <a href="/corkboard" class="btn btn-secondary" id="cb">Corkboard</a>
+                <a href="/study" class="btn btn-secondary" id="study">Study Guides</a>
+                <a href="/documents" class="btn btn-secondary" id="documents">Documents</a>
+                <a href="/calendar" class="btn btn-secondary" id="calendar">Calendar</a>
+            </div>
+        </div>
+
+        <a href="/dashboard/settings" class="btn btn-secondary" id="settings-nav">Settings</a>
+        <a href="/dashboard" class="btn btn-secondary" id="d-nav">Dashboard</a>
+    </div>
+</header>
+
+<div style="min-height: 50px;"><br></div>
+<!-- spacer -->
+
+<div class="dashboard-container">
+    <div class="header">
+        <h2>This person's Profile:</h2>
+        <button id="logout-btn" class="btn btn-secondary logout-btn">Return</button>
+    </div>
+
+    <div class="user-info">
+        <p>Username: <span id="display-username">Loading...</span></p>
+        <p>Email: <span id="display-email">Loading...</span></p>
+        <p>User ID (UUID): <span id="display-id" style="font-size: 12px; color: #64748b;">Loading...</span></p>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        document.getElementById("logout-btn").addEventListener('click', (e) => {
+            history.back()
+        })
+
+
+        // Get UUID from URL query string (/dashboard/view/user?id=...)
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('id');
+
+        if (!userId) {
+            console.error('No user ID provided');
+            return;
+        }
+
+        try {
+            const response = await fetch('/auth/getuser', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: userId })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Failed to load user profile');
+            }
+
+            const user = result.user;
+
+            // Populate UI elements
+            document.getElementById('display-username').textContent = user.username;
+            document.getElementById('display-email').textContent = user.email;
+            document.getElementById('display-id').textContent = user.id;
+
+        } catch (err) {
+            console.error('Error:', err);
+        }
+    });
+</script>
+
+</body>
+</html>

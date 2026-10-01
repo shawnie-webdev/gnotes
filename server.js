@@ -156,6 +156,7 @@ app.get("/login.html", (req, res) => sendFileOrError(res, '/login.html', 'auth/l
 app.get("/login", (req, res) => sendFileOrError(res, '/login', 'auth/login.html'));
 app.get("/signup", (req, res) => sendFileOrError(res, '/signup', 'auth/signup.html'));
 app.get("/dashboard", (req, res) => sendFileOrError(res, '/dashboard', 'auth/dashboard.html'));
+app.get("/dashboard/view/user", (req, res) => sendFileOrError(res, '/dashboard/view/user', 'auth/view-other.html'));
 app.get("/dashboard/settings", (req, res) => sendFileOrError(res, '/dashboard/settings', 'auth/settings.html'));
 app.get("/settings", (req, res) => res.redirect(301, "/dashboard/settings"));
 
@@ -190,6 +191,98 @@ const ALLOWED_UUIDS = [
     "c6e6cfb2-d5fe-4272-ba38-6ad47dd830b9",
     "cf1da5cf-073c-475c-a5f1-d92ff991b2d4"
 ];
+
+// Initialize Supabase Admin Client using the SERVICE ROLE KEY
+const supabaseAdmin = createClient(
+    "https://cqxlnmvmfkylozcdffxf.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODc0Nzg5MywiZXhwIjoyMTA0MzIzODkzfQ.6YlboHOlFZtDHb433W4HDpAMn_1TMjmgnqyX1ODiGs0"
+)
+
+/**
+ * POST /auth/searchusers?query=pattern
+ * Alternatively supports passing { "query": "pattern" } in the JSON body
+ */
+app.post('/auth/searchusers', async (req, res) => {
+    console.log("searchusers request detected");
+    try {
+        // 1. Extract query from URL query string or request body
+        const searchQuery = req.query.query || req.body?.query;
+
+        if (!searchQuery) {
+            console.log("searchusers request fail, bad body");
+            return res.status(400).json({ error: 'Search query parameter is required.' });
+        }
+
+        // 2. Query Supabase Auth Admin API
+        const { data, error } = await supabaseAdmin.auth.admin.listUsers({
+            page: 1,
+            perPage: 50,
+            query: String(searchQuery)
+        });
+
+        if (error) {
+            console.error('Supabase Admin Error:', error.message);
+            return res.status(500).json({ error: error.message });
+        }
+
+        const q = String(searchQuery).toLowerCase();
+
+        // 3. Safely filter and sanitize returned fields
+        const sanitizedUsers = data.users
+            .filter(user => {
+                const emailMatch = user.email?.toLowerCase().includes(q);
+                const usernameMatch = user.user_metadata?.username?.toLowerCase().includes(q);
+                return emailMatch || usernameMatch;
+            })
+            .map(user => ({
+                id: user.id,
+                email: user.email,
+                user_metadata: user.user_metadata,
+                created_at: user.created_at
+            }));
+
+        return res.status(200).json({
+            count: sanitizedUsers.length,
+            users: sanitizedUsers
+        });
+
+    } catch (err) {
+        console.error('Server Error:', err);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+app.post('/auth/getuser', async (req, res) => {
+    try {
+        const userId = req.body?.id || req.query?.id
+
+        if (!userId) {
+            return res.status(400).json({ error: 'User ID is required.' })
+        }
+
+        // Retrieve user directly from Supabase Auth via Admin API
+        const { data: { user }, error } = await supabaseAdmin.auth.admin.getUserById(userId)
+
+        if (error || !user) {
+            return res.status(404).json({ error: 'User not found.' })
+        }
+
+        // Return safe user information (avoid leaking sensitive metadata)
+        return res.status(200).json({
+            user: {
+                id: user.id,
+                email: user.email,
+                username: user.user_metadata?.username || user.email.split('@')[0],
+                user_metadata: user.user_metadata,
+                created_at: user.created_at
+            }
+        })
+    } catch (err) {
+        console.error('Error getting user by ID:', err)
+        return res.status(500).json({ error: 'Internal server error.' })
+    }
+})
+
 app.post("/developers/post", async (req, res) => {
     try {
         // 1. Verify Authorization Header

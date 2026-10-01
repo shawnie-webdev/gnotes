@@ -11,131 +11,42 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../../auth/theme.js"></script>
 
-    <style>
-        /* Header Layout Fixes */
-        .top-header {
-            background-color: #151f32;
-            padding: 12px 24px;
-            border-bottom: 1px solid #1e2d4a;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .nav-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            margin-right: auto; /* Pushes navigation buttons to the right or keeps logo left */
-        }
-
-        #logo {
-            height: 36px;
-            width: auto;
-            border-radius: 6px;
-            display: block;
-        }
-
-        .nav-actions form {
-            display: inline-block;
-            margin: 0;
-        }
-
-        /* Main Container Styling */
-        #main-container {
-            display: flex;
-            width: 80%;
-            max-width: 1000px;
-            min-height: 70vh;
-            background-color: #05274a;
-            border-radius: 12px;
-            align-content: center;
-            justify-content: center;
-            margin: 30px auto;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        #text-container {
-            width: 100%;
-            background-color: mintcream;
-            border-radius: 8px;
-            padding: 24px;
-            color: #000000;
-            font-size: 1rem;
-            line-height: 1.6;
-            word-break: break-word;
-            white-space: pre-wrap;
-            box-sizing: border-box;
-        }
-
-        #text-container a {
-            color: #0284c7;
-            text-decoration: underline;
-        }
-
-        #text-container img {
-            max-width: 25%;
-            height: auto;
-            border-radius: 8px;
-            margin: 15px 0;
-            display: block;
-        }
-
-        h1#topic-head {
-            text-align: center;
-            margin-top: 30px;
-            color: #000000;
-        }
-
-        #content-container p {
-            margin-top: 0;
-            margin-bottom: 0.5em;
-        }
-    </style>
 </head>
 <body>
-
 
 <header class="top-header">
     <div class="nav-actions">
         <div class="header-left">
-            <img src="./../favicon.jpeg" alt="logo" id="logo">
+            <img src="../favicon.jpeg" alt="logo" id="logo">
         </div>
-        <form action="/credits.html" method="get" style="display: inline;">
-            <button type="submit" class="btn btn-primary" id="credits">Credits</button>
-        </form>
-        <form action="/" method="get" style="display: inline;">
-            <button type="submit" class="btn btn-secondary" id="dashboard">Homepage</button>
-        </form>
-        <form action="/corkboard" method="get" style="display: inline;">
-            <button type="submit" class="btn btn-secondary" id="corkboard">Corkboard</button>
-        </form>
-        <form action="/study" method="get" style="display: inline;">
-            <button type="submit" class="btn btn-secondary" id="study">Study Guides</button>
-        </form>
-        <form action="/documents" method="get" style="display: inline;">
-            <button type="submit" class="btn btn-secondary">Documents</button>
-        </form>
-        <form action="/calendar" method="get" style="display: inline;">
-            <button type="submit" class="btn btn-secondary">Calendar</button>
-        </form>
+        <a href="/credits.html" class="btn btn-primary" id="credits">Credits</a>
+        <a href="/" class="btn btn-secondary" id="dashboard">Homepage</a>
+        <div class="dropdown">
+            <button class="dropbtn btn btn-secondary">Study</button>
+            <div class="dropdown-content">
+                <a href="/corkboard" class="btn btn-secondary" id="cb">Corkboard</a>
+                <a href="/study" class="btn btn-secondary" id="study">Study Guides</a>
+                <a href="/documents" class="btn btn-secondary" id="documents">Documents</a>
+                <a href="/calendar" class="btn btn-secondary" id="calendar">Calendar</a>
+            </div>
+        </div>
+
         <a href="/dashboard/settings" class="btn btn-secondary" id="settings-nav">Settings</a>
+        <a href="/dashboard" class="btn btn-secondary" id="d-nav">Dashboard</a>
     </div>
 </header>
 
 
-<h1 id="topic-head">Loading topic name...</h1>
+<div class="hero-container">
+    <div class="card">
+        <h1 id="topic-head">Loading topic name...</h1>
+        <strong>Loading author...</strong>
 
-<div id="main-container">
-    <div id="text-container">
-        Loading content...
+        <div id="main-container" class="hero-container">
+            <div id="text-container" class="card">
+                Loading content...
+            </div>
+        </div>
     </div>
 </div>
 

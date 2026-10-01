@@ -7,7 +7,7 @@
 
     <!-- Supabase JS Client via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="./theme.js"></script>
+    <script src="/auth/theme.js"></script>
 
     <link rel="stylesheet" href="../master-combined.css">
     <style>
@@ -74,6 +74,32 @@
             gap: 10px;
             margin-top: 20px;
         }
+
+        /* Styling for search result cards */
+        .user-card-item {
+            cursor: pointer;
+            margin-top: 15px;
+            padding: 15px 20px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            text-align: left;
+        }
+
+        .user-card-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md, 0 4px 12px rgba(0,0,0,0.15));
+        }
+
+        .user-card-item h3 {
+            margin: 0 0 5px 0;
+            color: var(--main-text);
+            font-size: 16px;
+        }
+
+        .user-card-item p {
+            margin: 0;
+            color: var(--muted-text);
+            font-size: 13px;
+        }
     </style>
 </head>
 <body>
@@ -100,10 +126,8 @@
     </div>
 </header>
 
-<div>
-    <h1>‎ </h1>
-    <h1>‎ </h1>
-</div>
+<div style="min-height: 50px;"><br></div>
+<!-- spacer -->
 
 <div class="dashboard-container">
     <div class="header">
@@ -117,20 +141,83 @@
         <p>User ID (UUID): <span id="display-id" style="font-size: 12px; color: #64748b;">Loading...</span></p>
     </div>
 
-    <h3>Your Notes</h3>
-    <p style="color: var(--muted-text); margin-top: 10px;">Your private note-taking area goes here.</p>
-
     <div class="dashboard-actions">
         <a href="/dashboard/settings" class="btn btn-primary">Open Settings</a>
+    </div>
+
+    <h1><br></h1>
+    <div class="card">
+        <h2>Search for users (SMC Email)</h2>
+        <button class="btn btn-secondary" id="redirect">View all users</button>
+        <div class="solid-divider-subtle"></div>
+        <form action="/dashboard" method="GET">
+            <input name="search" placeholder="firstname.familyname@smc.pshs.edu.ph or name keyword" type="text" id="search-input" class="form-input">
+        </form>
+
+        <div id="usersec" class="centerx" style="width: 80%; margin: 20px auto 0 auto;">
+            <!-- User cards render here -->
+        </div>
     </div>
 </div>
 
 <script>
-    // Ensure these match your login page credentials exactly
     const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function search(query) {
+        const searchbar = document.getElementById('search-input');
+        const usersec = document.getElementById('usersec');
+        if (searchbar) searchbar.value = query;
+
+        usersec.innerHTML = '<p style="margin-top:15px; color: var(--muted-text);">Searching...</p>';
+
+        try {
+            // Fetch users from Express backend
+            const response = await fetch(`/auth/searchusers?query=${encodeURIComponent(query)}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Failed to search users');
+            }
+
+            usersec.innerHTML = '';
+
+            if (!result.users || result.users.length === 0) {
+                usersec.innerHTML = '<p style="margin-top:15px; color: var(--muted-text);">No users found matching query.</p>';
+                return;
+            }
+
+            // Render each matching user inside a .card container
+            result.users.forEach(user => {
+                const userCard = document.createElement('div');
+                userCard.className = 'card user-card-item';
+
+                const username = user.user_metadata?.username || user.email.split('@')[0];
+
+                userCard.innerHTML = `
+                    <h3>${username}</h3>
+                    <p>${user.email}</p>
+                `;
+
+                // Redirect on click to /dashboard/view/user?id=UUID
+                userCard.addEventListener('click', () => {
+                    window.location.href = `/dashboard/view/user?id=${encodeURIComponent(user.id)}`;
+                });
+
+                usersec.appendChild(userCard);
+            });
+
+        } catch (err) {
+            console.error('Search error:', err);
+            usersec.innerHTML = `<p style="margin-top:15px; color: var(--danger);">Error: ${err.message}</p>`;
+        }
+    }
 
     document.addEventListener('DOMContentLoaded', async () => {
         const usernameEl = document.getElementById('display-username');
@@ -138,13 +225,15 @@
         const idEl = document.getElementById('display-id');
         const logoutBtn = document.getElementById('logout-btn');
 
-        // Function to verify and display user session
+        document.getElementById("redirect").addEventListener('click', () => {
+            window.location.href = "/dashboard?search=.%40smc.pshs.edu.ph";
+        })
+
         async function loadUserProfile() {
             const { data: { session }, error } = await supabaseClient.auth.getSession();
 
             if (error || !session) {
                 console.warn('No active session found.');
-                // Update path to match where your login.html file lives relative to dashboard
                 window.location.href = '/login';
                 return;
             }
@@ -156,22 +245,26 @@
             if (usernameEl) usernameEl.textContent = user.user_metadata?.username || 'No username set';
         }
 
-        // Run initial auth check
         await loadUserProfile();
 
-        // Listen for Auth state changes (handles logouts across tabs)
         supabaseClient.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_OUT' || !session) {
                 window.location.href = '/login';
             }
         });
 
-        // Handle Logout
         if (logoutBtn) {
             logoutBtn.addEventListener('click', async () => {
                 await supabaseClient.auth.signOut();
                 window.location.href = '/login';
             });
+        }
+
+        // Trigger search if "search" query parameter exists in URL
+        const urlp = new URLSearchParams(window.location.search);
+        const searchQuery = urlp.get('search');
+        if (searchQuery && searchQuery.trim() !== '') {
+            search(searchQuery.trim());
         }
     });
 </script>
