@@ -17,6 +17,7 @@ const supabaseClient = window.supabaseClient || createClient(supabaseUrl, supaba
 window.supabaseClient = supabaseClient;
 
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log("page loaded")
     const loginBtn = document.getElementById("login");
     const whatsNewGrid = document.getElementById("whats-new-grid");
 
@@ -26,18 +27,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // 1. Load Announcements for "What's New"
+    console.log("loading annoucement page");
     try {
         const { data: announcements, error } = await supabaseClient
             .from('announcements')
             .select('*')
             .order('created_at', { ascending: false }) // Fixed: changed 'created-on' to 'created_at'
             .limit(4);
+        console.log("fetched announcements table")
 
-        if (error) throw error;
+        if (error) {
+            console.log("error!")
+            throw error;
+        }
 
         if (announcements && announcements.length > 0) {
             whatsNewGrid.innerHTML = '';
             announcements.forEach(ann => {
+                console.log("inserting new annoucement")
                 const typeBadge = ann['announcement-type'] === 'calendar' ? 'badge-blue' : 'badge-orange';
                 const typeLabel = ann['announcement-type'] === 'calendar' ? 'New Event' : 'Updated';
                 const link = ann['announcement-type'] === 'calendar' ? '/calendar/index.html' : '/announcement/index.html';
