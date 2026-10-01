@@ -3,65 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GoldenNotes - Announcements</title>
+    <title>Create Announcement - GoldenNotes v1.1</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+
+    <!-- Supabase JS Client via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/auth/config.js"></script>
     <script src="/auth/theme.js"></script>
     <link rel="stylesheet" href="/master-combined.css">
+
     <style>
-        .announcements-container {
-            max-width: 900px;
+        .container {
+            max-width: 800px;
             margin: 40px auto;
-            padding: 0 20px;
-        }
-        .section-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-        .announcement-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
             padding: 20px;
+        }
+        .page-title {
+            font-family: var(--display-font, sans-serif);
+            color: var(--main-gold, #ffd700);
             margin-bottom: 20px;
-            transition: var(--transition);
-            position: relative;
+            text-align: center;
         }
-        .announcement-card:hover {
-            border-color: var(--main-gold);
-            box-shadow: var(--shadow-md);
+        .form-container {
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid #333;
         }
-        .announcement-meta {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            color: var(--muted-text);
-            margin-bottom: 10px;
-            font-family: var(--mono-font);
+        .form-group {
+            margin-bottom: 20px;
         }
-        .type-badge {
-            padding: 2px 8px;
-            border-radius: 4px;
-            text-transform: uppercase;
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #ddd;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #2a2a2a;
+            color: #fff;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--main-gold, #ffd700);
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            background: var(--main-gold, #ffd700);
+            color: #111;
+            border: none;
+            border-radius: 6px;
             font-weight: bold;
+            transition: background 0.3s;
         }
-        .type-calendar { background: rgba(122, 176, 255, 0.2); color: var(--accent-blue); }
-        .type-posted { background: rgba(217, 164, 65, 0.2); color: var(--main-gold); }
-        .announcement-title {
-            font-family: var(--display-font);
-            font-size: 1.4rem;
-            color: var(--main-text);
-            margin-bottom: 10px;
+        .submit-btn:hover {
+            opacity: 0.9;
         }
-        .announcement-body {
-            color: var(--secondary-text);
-            line-height: 1.6;
+        .submit-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            color: #888;
         }
+        #status-message {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        .success { background: rgba(76, 175, 80, 0.2); color: #4caf50; display: block !important; }
+        .error { background: rgba(244, 67, 54, 0.2); color: #f44336; display: block !important; }
     </style>
 </head>
 <body>
+
 <header class="top-header">
     <div class="header-left">
         <img src="/favicon.jpeg" alt="logo" id="logo">
@@ -72,6 +102,7 @@
         <a href="/study/course-list.html" class="btn btn-secondary">Library</a>
         <a href="/corkboard/main.html" class="btn btn-secondary">Corkboard</a>
         <a href="/auth/dashboard.html" class="btn btn-secondary">Dashboard</a>
+
         <div class="dropdown">
             <button class="dropbtn btn btn-secondary">Resources</button>
             <div class="dropdown-content">
@@ -81,60 +112,169 @@
                 <a href="/calendar/index.html">Calendar</a>
             </div>
         </div>
-        <a href="/auth/login.html" class="btn btn-secondary" id="login">Login</a>
-        <a href="/auth/signup.html" class="btn btn-primary">Sign Up</a>
+
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <a href="#" class="btn btn-secondary" title="Search"><span style="font-size: 1.2rem;">🔍</span></a>
+            <a href="/auth/login.html" class="btn btn-secondary" id="login">Login</a>
+            <a href="/auth/signup.html" class="btn btn-primary">Sign Up</a>
+        </div>
     </div>
 </header>
 
-<div class="announcements-container">
-    <div class="section-header">
-        <span style="font-size: 2rem;">📢</span>
-        <h1>Announcements</h1>
-    </div>
-    <div id="announcements-list">
-        <p>Loading announcements...</p>
-    </div>
-</div>
+<main class="container">
+    <h1 class="page-title">Create Announcement</h1>
+    <form id="announcement-form" class="form-container">
+        <div class="form-group">
+            <label for="name">Announcement Name</label>
+            <input type="text" id="name" name="name" required placeholder="Enter announcement name">
+        </div>
+
+        <div class="form-group">
+            <label for="announcement-type">Announcement Type</label>
+            <select id="announcement-type" name="announcement-type">
+                <option value="calendar">Calendar</option>
+                <option value="general">General</option>
+                <option value="urgent">Urgent</option>
+                <option value="update">System Update</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="author">Author</label>
+            <input type="text" id="author" name="author" placeholder="Author name (auto-filled if logged in)">
+        </div>
+
+        <div class="form-group">
+            <label for="content">Announcement Content</label>
+            <textarea id="content" name="content" rows="6" required placeholder="Write details here..."></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submit-btn">Publish Announcement</button>
+        <div id="status-message"></div>
+    </form>
+</main>
 
 <script>
-    document.addEventListener('DOMContentLoaded', async () => {
-        const listContainer = document.getElementById('announcements-list');
-        const supabaseClient = window.supabaseClient;
+    // Initialize Supabase Client
+    const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
 
-        if (!supabaseClient) return;
+    const { createClient } = window.supabase;
 
-        const { data: announcements, error } = await supabaseClient
-            .from('announcements')
-            .select('*')
-            .order('created-at', { ascending: false });
+    const supabaseClient = window.supabaseClient || createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        global: {
+            headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'X-App-Version': '1.0.0'
+            }
+        }
+    });
+    window.supabaseClient = supabaseClient;
 
-        if (error) {
-            listContainer.innerHTML = `<p style="color: var(--danger);">Error loading announcements: ${error.message}</p>`;
-            return;
+    // Async wrapper for session check and pre-filling author
+    (async () => {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session) {
+            const loginBtn = document.getElementById("login");
+            if (loginBtn) {
+                loginBtn.innerText = `Hi, ${session.user.user_metadata?.username || 'User'}!`;
+            }
+
+            const authorInput = document.getElementById("author");
+            if (authorInput) {
+                authorInput.value = session.user.user_metadata?.username || session.user.email || '';
+            }
+        }
+    })();
+
+    /**
+     * Fetches data from a Supabase table.
+     */
+    async function fetchTable(tableName, searchFor = undefined) {
+        try {
+            let query = supabaseClient.from(tableName).select('*');
+
+            if (searchFor && typeof searchFor === 'object') {
+                Object.keys(searchFor).forEach(key => {
+                    query = query.eq(key, searchFor[key]);
+                });
+
+                const { data, error } = await query.maybeSingle();
+                if (error) throw error;
+                return data;
+            }
+
+            const { data, error } = await query;
+            if (error) throw error;
+            return data;
+
+        } catch (error) {
+            console.error(`Error fetching from table "${tableName}":`, error.message);
+            return null;
+        }
+    }
+
+    /**
+     * Inserts a new record into a table or updates columns on existing record(s).
+     */
+    async function newCol(table, data, matchCriteria = undefined) {
+        try {
+            let query;
+
+            if (matchCriteria && typeof matchCriteria === 'object') {
+                query = supabaseClient.from(table).update(data);
+                Object.keys(matchCriteria).forEach(key => {
+                    query = query.eq(key, matchCriteria[key]);
+                });
+            } else {
+                query = supabaseClient.from(table).insert([data]);
+            }
+
+            const { data: result, error } = await query.select();
+            if (error) throw error;
+            return result;
+
+        } catch (error) {
+            console.error(`Error executing newCol on table "${table}":`, error.message);
+            return null;
+        }
+    }
+
+    // Handle form submission
+    document.getElementById('announcement-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const submitBtn = document.getElementById('submit-btn');
+        const statusMsg = document.getElementById('status-message');
+
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Publishing...';
+        statusMsg.className = '';
+        statusMsg.innerText = '';
+
+        // Prepare data matching exact DB column names:
+        // 'name', 'announcement-type', 'author', 'content'
+        const announcementData = {
+            'name': document.getElementById('name').value || 'NullNameFallback',
+            'announcement-type': document.getElementById('announcement-type').value,
+            'author': document.getElementById('author').value.trim() || 'EmptyAuthorFieldFallback',
+            'content': document.getElementById('content').value
+        };
+
+        const result = await newCol('announcements', announcementData);
+
+        if (result) {
+            statusMsg.innerText = 'Announcement published successfully!';
+            statusMsg.className = 'success';
+            document.getElementById('announcement-form').reset();
+        } else {
+            statusMsg.innerText = 'Error publishing announcement. Check console for details.';
+            statusMsg.className = 'error';
         }
 
-        if (!announcements || announcements.length === 0) {
-            listContainer.innerHTML = '<p>No announcements yet.</p>';
-            return;
-        }
-
-        listContainer.innerHTML = '';
-        announcements.forEach(ann => {
-            const typeClass = ann['announcement-type'] === 'calendar' ? 'type-calendar' : 'type-posted';
-            const typeLabel = ann['announcement-type'] === 'calendar' ? '📅 Calendar' : '📝 Posted';
-
-            const card = document.createElement('div');
-            card.className = 'announcement-card';
-            card.innerHTML = `
-                <div class="announcement-meta">
-                    <span class="type-badge ${typeClass}">${typeLabel}</span>
-                    <span>${new Date(ann['created-on']).toLocaleDateString()}</span>
-                </div>
-                <div class="announcement-title">${ann.author || 'Anonymous'}</div>
-                <div class="announcement-body">${ann.content || 'No content provided.'}</div>
-            `;
-            listContainer.appendChild(card);
-        });
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Publish Announcement';
     });
 </script>
 </body>

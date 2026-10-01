@@ -11,181 +11,6 @@
   <script src="/auth/config.js"></script>
   <script src="/auth/theme.js"></script>
   <link rel="stylesheet" href="/master-combined.css">
-  <style>
-    /* Hero Section Specific Styles */
-    .hero-section {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 80px 20px;
-      min-height: 60vh;
-      position: relative;
-    }
-
-    .hero-branding {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      margin-bottom: 20px;
-    }
-
-    .hero-logo {
-      width: 80px;
-      height: 80px;
-      border: 3px solid var(--main-gold);
-      padding: 5px;
-      background: var(--primary-navy);
-    }
-
-    .hero-title {
-      font-family: var(--display-font);
-      font-size: 5rem;
-      font-weight: 800;
-      color: var(--main-text);
-      margin: 0;
-      letter-spacing: -2px;
-    }
-
-    .hero-subtitle {
-      font-size: 1.2rem;
-      color: var(--muted-text);
-      max-width: 600px;
-      margin: 0 auto 30px auto;
-    }
-
-    .hero-tagline {
-      font-family: var(--display-font);
-      font-size: 1.5rem;
-      color: var(--main-gold);
-      margin-bottom: 40px;
-      font-style: italic;
-    }
-
-    .hero-ctas {
-      display: flex;
-      gap: 20px;
-      margin-bottom: 60px;
-    }
-
-    /* Decorative Elements */
-    .hero-decor {
-      position: absolute;
-      right: 5%;
-      top: 50%;
-      transform: translateY(-50%);
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      pointer-events: none;
-      opacity: 0.6;
-    }
-
-    .decor-item {
-      font-family: var(--mono-font);
-      font-size: 0.8rem;
-      color: var(--muted-text);
-      border-left: 2px solid var(--main-gold);
-      padding-left: 10px;
-    }
-
-    /* What's New Section */
-    .whats-new-section {
-      padding: 60px 20px;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .section-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 30px;
-    }
-
-    .whats-new-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
-    }
-
-    .preview-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      padding: 20px;
-      transition: var(--transition);
-      cursor: pointer;
-    }
-
-    .preview-card:hover {
-      border-color: var(--main-gold);
-      transform: translateY(-5px);
-    }
-
-    /* Mission Banner */
-    .mission-banner {
-      background: var(--primary-navy);
-      border: 2px solid var(--main-gold);
-      border-radius: var(--radius-lg);
-      padding: 40px;
-      display: flex;
-      align-items: center;
-      gap: 30px;
-      max-width: 1100px;
-      margin: 60px auto;
-      text-align: left;
-    }
-
-    .mission-icon {
-      font-size: 3rem;
-      flex-shrink: 0;
-    }
-
-    .mission-text h2 {
-      color: var(--main-gold);
-      margin-bottom: 10px;
-      font-size: 2rem;
-    }
-
-    /* Footer */
-    .site-footer {
-      border-top: 1px solid var(--subtle-line);
-      padding: 40px 20px;
-      margin-top: 80px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      max-width: 1200px;
-      margin-left: auto;
-      margin-right: auto;
-      color: var(--muted-text);
-      font-size: 0.9rem;
-    }
-
-    .footer-links {
-      display: flex;
-      gap: 20px;
-    }
-
-    .footer-links a {
-      color: var(--muted-text);
-      transition: var(--transition);
-    }
-
-    .footer-links a:hover {
-      color: var(--main-gold);
-    }
-
-    @media (max-width: 900px) {
-      .hero-title { font-size: 3rem; }
-      .hero-ctas { flex-direction: column; width: 100%; max-width: 300px; }
-      .hero-decor { display: none; }
-      .mission-banner { flex-direction: column; text-align: center; }
-      .site-footer { flex-direction: column; gap: 20px; text-align: center; }
-    }
-  </style>
 </head>
 <body>
 
@@ -219,45 +44,55 @@
 </header>
 
 <main>
-
-</body>
+  <!-- Content goes here -->
+</main>
 
 <script>
-  // This small script here gets data from supabase! you can delete this if you dont
-  // need it --Roshaun
-
-  import { createClient } from '@supabase/supabase-js';
-
-  // Initialize Supabase Client with your project credentials
+  // Initialize Supabase Client
   const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const { createClient } = window.supabase;
+
+  const supabaseClient = window.supabaseClient || createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: {
+      headers: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'X-App-Version': '1.0.0'
+      }
+    }
+  });
+  window.supabaseClient = supabaseClient;
+
+  // Async wrapper for session check
+  (async () => {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session) {
+      const loginBtn = document.getElementById("login");
+      if (loginBtn) {
+        loginBtn.innerText = `Hi, ${session.user.user_metadata?.username || 'User'}!`;
+      }
+    }
+  })();
 
   /**
    * Fetches data from a Supabase table.
-   *
-   * @param {string} tableName - Name of the table to query.
-   * @param {Object|undefined} searchFor - Optional filter criteria (e.g., { id: '123' } or { name: 'John' }).
-   * @returns {Promise<Array|Object|null>} Array of rows if no search filter, single object if filtered, or null on error.
    */
   async function fetchTable(tableName, searchFor = undefined) {
     try {
-      let query = supabase.from(tableName).select('*');
+      let query = supabaseClient.from(tableName).select('*');
 
-      // If search criteria is provided, apply filters
       if (searchFor && typeof searchFor === 'object') {
         Object.keys(searchFor).forEach(key => {
           query = query.eq(key, searchFor[key]);
         });
 
-        // Get single record matching criteria
         const { data, error } = await query.maybeSingle();
         if (error) throw error;
         return data;
       }
 
-      // Return all records if no search filter is specified
       const { data, error } = await query;
       if (error) throw error;
       return data;
@@ -270,30 +105,21 @@
 
   /**
    * Inserts a new record into a table or updates columns on existing record(s).
-   *
-   * @param {string} table - Name of the Supabase table.
-   * @param {Object} data - Key-value pairs representing column names and their values.
-   * @param {Object|undefined} matchCriteria - Optional criteria to target specific row(s) for an UPDATE.
-   * @returns {Promise<Array|Object|null>} Inserted or updated record(s), or null on error.
    */
   async function newCol(table, data, matchCriteria = undefined) {
     try {
       let query;
 
       if (matchCriteria && typeof matchCriteria === 'object') {
-        // MODE A: Update specific columns for an existing record
-        query = supabase.from(table).update(data);
-
+        query = supabaseClient.from(table).update(data);
         Object.keys(matchCriteria).forEach(key => {
           query = query.eq(key, matchCriteria[key]);
         });
       } else {
-        // MODE B: Insert a new row/record with column values
-        query = supabase.from(table).insert([data]);
+        query = supabaseClient.from(table).insert([data]);
       }
 
       const { data: result, error } = await query.select();
-
       if (error) throw error;
       return result;
 
@@ -301,5 +127,7 @@
       console.error(`Error executing newCol on table "${table}":`, error.message);
       return null;
     }
+  }
 </script>
+</body>
 </html>
