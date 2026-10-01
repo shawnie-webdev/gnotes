@@ -40,7 +40,7 @@
 <div class="hero-container">
     <div class="card">
         <h1 id="topic-head">Loading topic name...</h1>
-        <strong>Loading author...</strong>
+        <strong id="author">Loading author...</strong>
 
         <div id="main-container" class="hero-container">
             <div id="text-container" class="card">
@@ -48,6 +48,7 @@
             </div>
         </div>
     </div>
+    <button class="generic_button" id="return">Return</button>
 </div>
 
 <script>
@@ -56,8 +57,13 @@
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     async function loadTopicDetails() {
+        document.getElementById("return").addEventListener("click", async () => {
+            history.back()
+        })
+
         const topichead = document.getElementById('topic-head');
         const textcontainer = document.getElementById('text-container');
+        const authorcontainer = document.getElementById("author")
 
         const urlParams = new URLSearchParams(window.location.search);
         const topicId = urlParams.get('id');
@@ -79,6 +85,7 @@
 
             topichead.textContent = topic.name;
             textcontainer.innerHTML = "<div>" + topic.data + "</div>";
+            authorcontainer.textContent = "By " + topic.author;
         } catch (err) {
             console.error("Error fetching record:", err);
             topichead.textContent = "Error Loading Topic";

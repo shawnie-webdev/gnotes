@@ -36,13 +36,12 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
         }
 
-        .btn-add:hover:not(:disabled):not(.write-disabled) {
+        .btn-add:hover:not(:disabled) {
             background-color: var(--light-gold);
             transform: translateY(-2px);
         }
 
-        .btn-add:disabled,
-        .btn-add.write-disabled {
+        .btn-add:disabled {
             background-color: var(--subtle-line);
             color: var(--muted-text);
             border-color: var(--strong-line);
@@ -124,15 +123,6 @@
             box-shadow: 0 14px 25px rgba(0, 0, 0, 0.4);
         }
 
-        .sticky-note.read-only .btn-delete,
-        .sticky-note.read-only .note-header {
-            display: none;
-        }
-
-        .sticky-note.read-only .note-body {
-            pointer-events: none;
-        }
-
         .sticky-note::before {
             content: '';
             position: absolute;
@@ -192,7 +182,6 @@
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../auth/theme.js"></script>
-    <script src="../auth/permissions.js"></script>
 </head>
 <body>
 
@@ -218,9 +207,8 @@
     </div>
 </header>
 
-
 <div class="controls">
-    <button id="add-note-btn" class="btn btn-primary" disabled>+ Add Sticky Note</button>
+    <button id="add-note-btn" class="btn btn-primary">+ Add Sticky Note</button>
     <button id="back" class="btn btn-secondary">Go back</button>
     <div id="room-display" class="room-tag">Room: main-room</div>
 </div>
@@ -242,8 +230,6 @@
     const statusMsg = document.getElementById('status-msg');
     const noteColors = ['#feff9c', '#ff7eb9', '#7afcff', '#69ff94', '#fff740'];
     let zIndexCounter = 10;
-    let canWrite = false;
-    let currentUser = null;
     const pendingLocalIds = new Set();
 
     function showStatus(message, type) {
@@ -281,10 +267,6 @@
         return true;
     }
 
-    function canEditNote() {
-        return !!canWrite;
-    }
-
     async function fetchNotesJSON() {
         const { data, error } = await supabaseClient
             .from('notes')
@@ -304,7 +286,6 @@
         if (!noteData || !noteData.id) return;
 
         let note = document.getElementById(`note-${noteData.id}`);
-        const editable = canEditNote();
 
         if (!note) {
             note = document.createElement('div');
@@ -317,7 +298,7 @@
             note.innerHTML = `
                 <div class="note-header"></div>
                 <button type="button" class="btn-delete" title="Delete note">&times;</button>
-                <div class="note-body" contenteditable="false"></div>
+                <div class="note-body" contenteditable="true"></div>
             `;
 
             corkboard.appendChild(note);
@@ -325,11 +306,6 @@
 
             const deleteBtn = note.querySelector('.btn-delete');
             deleteBtn.addEventListener('click', async () => {
-                if (!canEditNote()) {
-                    showStatus('Editor access required to delete this note.', 'error');
-                    return;
-                }
-
                 const { error } = await supabaseClient
                     .from('notes')
                     .delete()
@@ -346,8 +322,6 @@
 
             const body = note.querySelector('.note-body');
             body.addEventListener('input', debounce(async () => {
-                if (!canEditNote()) return;
-
                 const { error } = await supabaseClient
                     .from('notes')
                     .update({ text: body.innerText })
@@ -358,7 +332,6 @@
                     showStatus('Failed to save note text: ' + error.message, 'error');
                     return;
                 }
-
             }, 400));
         }
 
@@ -367,20 +340,12 @@
         note.style.backgroundColor = noteData.color || '#feff9c';
 
         const body = note.querySelector('.note-body');
-        body.contentEditable = editable ? 'true' : 'false';
-        note.classList.toggle('read-only', !editable);
-
         if (document.activeElement !== body) {
             body.innerText = noteData.text || '';
         }
     }
 
     async function createStickyNote() {
-        if (!canWrite || !currentUser) {
-            showStatus('Editor access required to create notes.', 'error');
-            return;
-        }
-
         const randomColor = noteColors[Math.floor(Math.random() * noteColors.length)];
         const initialX = Math.floor(Math.random() * Math.max(corkboard.clientWidth - 200, 20)) + 20;
         const initialY = Math.floor(Math.random() * Math.max(corkboard.clientHeight - 200, 20)) + 20;
@@ -416,7 +381,7 @@
 
             showStatus('');
         } finally {
-            if (canWrite) addNoteBtn.disabled = false;
+            addNoteBtn.disabled = false;
         }
     }
 
@@ -432,8 +397,6 @@
         });
 
         header.addEventListener('mousedown', (e) => {
-            if (!canEditNote()) return;
-
             isDragging = true;
             startX = e.clientX;
             startY = e.clientY;
@@ -469,8 +432,6 @@
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('mouseup', onMouseUp);
 
-            if (!canEditNote()) return;
-
             const { error } = await supabaseClient
                 .from('notes')
                 .update({ x: element.offsetLeft, y: element.offsetTop })
@@ -481,7 +442,6 @@
                 showStatus('Failed to save note position: ' + error.message, 'error');
                 return;
             }
-
         }
     }
 
@@ -514,19 +474,6 @@
     document.addEventListener('DOMContentLoaded', async () => {
         const tableOK = await checkTableExists();
         if (!tableOK) return;
-
-        const permResult = await window.GoldenNotesPermissions.initWriteControls(
-            supabaseClient,
-            addNoteBtn
-        );
-        currentUser = permResult.user;
-        canWrite = permResult.canWrite;
-
-        if (!currentUser) {
-            showStatus('Viewing as guest. Log in with an editors-table account to create or edit notes.', 'info');
-        } else if (!canWrite) {
-            showStatus('Signed in, but your UUID is not listed in the editors table.', 'info');
-        }
 
         const existingNotes = await fetchNotesJSON();
         existingNotes.forEach((note) => renderNoteUI(note));

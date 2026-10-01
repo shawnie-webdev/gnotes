@@ -9,26 +9,6 @@
     <script src="../auth/theme.js"></script>
 
     <style>
-        #floating-join {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            width: 320px;
-            max-width: 90%;
-            padding: 30px 20px;
-            position: absolute;
-            top: 55%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: var(--bg-card);
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
-            backdrop-filter: blur(10px);
-            box-shadow: var(--shadow-md);
-        }
-
         #form {
             display: flex;
             flex-direction: column;
@@ -98,35 +78,73 @@
 <h1 class="center">Join a Corkboard Room</h1>
 <h3 class="center">Join a Corkboard Room and collaborate with others</h3>
 
-<div class="create-room-wrap">
-    <button type="button" class="btn btn-primary" id="create-room">Create a Room</button>
-</div>
+<h1><br></h1>
+<div class="hero-container" style="display: flex; justify-content: center; align-content: center; gap: 20px;">
+    <div id="floating-join" class="card" style="max-width: 340px">
+        <h1>Manual Join</h1>
 
-<div id="floating-join">
-    <form id="form">
-        <input
-                class="form-input"
-                type="text"
-                id="roomid"
-                name="roomid"
-                pattern="[A-Za-z0-9]{6}"
-                maxlength="6"
-                placeholder="Your 6-character room ID"
-                inputmode="text"
-                required
-        >
-        <input
-                class="form-input"
-                type="text"
-                id="subject"
-                name="subject"
-                inputmode="text"
-                placeholder="Enter your subject (use 'main' if no subject)"
-                required
-        >
-        <button id="submit" type="submit" class="btn btn-secondary">Attempt to join</button>
-    </form>
-    <a href="/corkboard/help">Don't know your room ID?</a>
+        <form id="form">
+            <input
+                    class="form-input"
+                    type="text"
+                    id="roomid"
+                    name="roomid"
+                    pattern="[A-Za-z0-9]{6}"
+                    maxlength="6"
+                    placeholder="Your 6-character room ID"
+                    inputmode="text"
+                    required
+            >
+            <input
+                    class="form-input"
+                    type="text"
+                    id="subject"
+                    name="subject"
+                    inputmode="text"
+                    placeholder="Enter your subject (use 'main' if no subject)"
+                    required
+            >
+            <button id="submit" type="submit" class="btn btn-secondary">Attempt to join</button>
+        </form>
+        <a href="/corkboard/help">Don't know your room ID?</a>
+    </div>
+
+    <h3>or</h3>
+
+
+    <div class="card" style="max-width: 400px">
+        <h1>Autoselect Your Room</h1>
+
+        <label for="section">Section: </label>
+
+        <select name="section" id="section" class="form-control">
+            <option value="GOLD32">Gold (Grade 7)</option>
+            <option value="PEAR32">Pearl (Grade 7)</option>
+            <option value="DIAM32">Diamond (Grade 7)</option>
+            <option value="EMER32">Emerald (Grade 7)</option>
+        </select>
+
+        <label for="auto-subject">Subject: </label>
+
+        <select name="subject" id="auto-subject" class="form-control">
+            <option value="main">Main room (generic messages)</option>
+            <option value="adtc">ADTech</option>
+            <option value="vled">Values Education</option>
+            <option value="isci">Integreated Science</option>
+            <option value="ssci">Social Science</option>
+            <option value="csci">Computer Science</option>
+            <option value="esci">Earth Science</option>
+            <option value="engl">English</option>
+            <option value="fili">Filipino</option>
+            <option value="phed">PE</option>
+            <option value="hlth">Health</option>
+            <option value="musc">Music</option>
+        </select>
+
+        <h1><br></h1>
+
+        <button class="generic_button" id="autoselect-join">Join</button>
+    </div>
 </div>
 
 <script>
@@ -155,15 +173,13 @@
         );
     });
 
-    document.getElementById('create-room').addEventListener('click', () => {
-        const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-        let roomId = '';
-        for (let i = 0; i < 6; i++) {
-            roomId += alphabet[Math.floor(Math.random() * alphabet.length)];
-        }
-        const subject = prompt('Subject for the new room? (default: main)', 'main') || 'main';
-        goToRoom(roomId, subject);
-    });
+    document.getElementById("autoselect-join").addEventListener('click', () => {
+        const sec = document.getElementById('section').value
+        const sbj = document.getElementById('auto-subject').value
+
+        console.log(sec, sbj);
+        goToRoom(sec, sbj)
+    })
 </script>
 </body>
 </html>
