@@ -197,6 +197,101 @@ const supabaseAdmin = createClient(
     "https://cqxlnmvmfkylozcdffxf.supabase.co",
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODc0Nzg5MywiZXhwIjoyMTA0MzIzODkzfQ.6YlboHOlFZtDHb433W4HDpAMn_1TMjmgnqyX1ODiGs0"
 )
+/**
+ * Helper function to query the APILayer Bad Words API
+ */
+async function checkProfanity(text) {
+    const myHeaders = new Headers();
+    myHeaders.append("apikey", process.env.APILAYER_API_KEY || "vE9Y2Q6zIaHsrgOBesx4LPjizE2V0ZRt");
+    myHeaders.append("Content-Type", "text/plain");
+
+    const requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: text
+    };
+
+    const response = await fetch("https://api.apilayer.com/bad_words?censor_character=*", requestOptions);
+
+    if (!response.ok) {
+        throw new Error(`APILayer service returned status ${response.status}`);
+    }
+
+    return await response.json();
+}
+
+/**
+ * POST /api/profanity
+ * Expects JSON body: { user: "USER-UUID-HERE", check: "text to scan" }
+ */
+app.post('/api/profanity', async (req, res) => {
+    try {
+        const { user, check } = req.body;
+
+        // 1. Validate incoming parameters
+        if (!user || !check || check.trim().length === 0) {
+            return res.status(400).json({
+                error: 'Missing required fields: "user" (UUID) and "check" (text).'
+            });
+        }
+
+        // 2. Scan text using APILayer
+        const profanityResult = await checkProfanity(check);
+        const badWordsTotal = profanityResult.bad_words_total || 0;
+
+        // 3. If no bad words are found, return clean status immediately
+        if (badWordsTotal === 0) {
+            return res.status(200).json({
+                flagged: false,
+                bad_words_total: 0,
+                censored_content: profanityResult.censored_content || check,
+                original_content: check
+            });
+        }
+
+        // 4. Bad words found -> Fetch current user record from Supabase
+        const { data: record, error: fetchError } = await supabaseAdmin
+            .from('user-background')
+            .select('profanity-count')
+            .eq('uuid', user)
+            .single();
+
+        if (fetchError) {
+            console.error('Supabase fetch error:', fetchError);
+            return res.status(500).json({ error: 'Failed to fetch user background record.' });
+        }
+
+        const currentCount = record ? (record['profanity-count'] || 0) : 0;
+        const newTotal = currentCount + badWordsTotal;
+
+        // 5. Update user's profanity count using supabaseAdmin
+        const { data: updatedData, error: updateError } = await supabaseAdmin
+            .from('user-background')
+            .update({ 'profanity-count': newTotal })
+            .eq('uuid', user)
+            .select();
+
+        if (updateError) {
+            console.error('Supabase update error:', updateError);
+            return res.status(500).json({ error: 'Failed to update user profanity report.' });
+        }
+
+        // 6. Return response with profanity details and updated report metrics
+        return res.status(200).json({
+            flagged: true,
+            bad_words_total: badWordsTotal,
+            bad_words_list: profanityResult.bad_words_list || [],
+            censored_content: profanityResult.censored_content,
+            new_profanity_count: newTotal,
+            user_updated: updatedData[0]
+        });
+
+    } catch (err) {
+        console.error('Error in /api/profanity:', err);
+        return res.status(500).json({ error: 'Internal server error while evaluating profanity.' });
+    }
+});
+
 
 /**
  * POST /auth/searchusers?query=pattern

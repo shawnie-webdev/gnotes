@@ -77,10 +77,9 @@
 
 <h1 class="center">Join a Corkboard Room</h1>
 <h3 class="center">Join a Corkboard Room and collaborate with others</h3>
+<div class="hero-container" style="display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; min-height: 100vh; padding: 20px 0;">
 
-<h1><br></h1>
-<div class="hero-container" style="display: flex; justify-content: center; align-content: center; gap: 20px;">
-    <div id="floating-join" class="card" style="max-width: 340px">
+    <div id="floating-join" class="card" style="width: 100%; max-width: 400px; text-align: center;">
         <h1>Manual Join</h1>
 
         <form id="form">
@@ -111,12 +110,10 @@
 
     <h3>or</h3>
 
-
-    <div class="card" style="max-width: 400px">
+    <div class="card" style="width: 100%; max-width: 400px; text-align: center; display: flex; flex-direction: column; gap: 10px;">
         <h1>Autoselect Your Room</h1>
 
-        <label for="section">Section: </label>
-
+        <label for="section">Section:</label>
         <select name="section" id="section" class="form-control">
             <option value="GOLD32">Gold (Grade 7)</option>
             <option value="PEAR32">Pearl (Grade 7)</option>
@@ -124,13 +121,12 @@
             <option value="EMER32">Emerald (Grade 7)</option>
         </select>
 
-        <label for="auto-subject">Subject: </label>
-
+        <label for="auto-subject">Subject:</label>
         <select name="subject" id="auto-subject" class="form-control">
             <option value="main">Main room (generic messages)</option>
             <option value="adtc">ADTech</option>
             <option value="vled">Values Education</option>
-            <option value="isci">Integreated Science</option>
+            <option value="isci">Integrated Science</option>
             <option value="ssci">Social Science</option>
             <option value="csci">Computer Science</option>
             <option value="esci">Earth Science</option>
@@ -141,9 +137,7 @@
             <option value="musc">Music</option>
         </select>
 
-        <h1><br></h1>
-
-        <button class="generic_button" id="autoselect-join">Join</button>
+        <button class="generic_button" id="autoselect-join" style="margin-top: 10px;">Join</button>
     </div>
 </div>
 
