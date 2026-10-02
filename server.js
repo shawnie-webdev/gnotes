@@ -220,78 +220,48 @@ async function checkProfanity(text) {
     return await response.json();
 }
 
-/**
- * POST /api/profanity
- * Expects JSON body: { user: "USER-UUID-HERE", check: "text to scan" }
- */
-app.post('/api/profanity', async (req, res) => {
+app.post('/api/profanity-webhook', async (req, res) => {
     try {
-        const { user, check } = req.body;
+        // Supabase webhook payload format
+        const { type, record } = req.body; // 'record' contains the newly inserted/updated row
 
-        // 1. Validate incoming parameters
-        if (!user || !check || check.trim().length === 0) {
-            return res.status(400).json({
-                error: 'Missing required fields: "user" (UUID) and "check" (text).'
-            });
+        if (!record || !record.content || !record.user_id) {
+            return res.status(200).send('No content to check');
         }
 
-        // 2. Scan text using APILayer
-        const profanityResult = await checkProfanity(check);
+        // 1. Scan the note content
+        const profanityResult = await checkProfanity(record.content);
         const badWordsTotal = profanityResult.bad_words_total || 0;
 
-        // 3. If no bad words are found, return clean status immediately
-        if (badWordsTotal === 0) {
-            return res.status(200).json({
-                flagged: false,
-                bad_words_total: 0,
-                censored_content: profanityResult.censored_content || check,
-                original_content: check
-            });
+        if (badWordsTotal > 0) {
+            // 2. Fetch current profanity count
+            const { data: userBg } = await supabaseAdmin
+                .from('user-background')
+                .select('profanity-count')
+                .eq('uuid', record.user_id)
+                .single();
+
+            const currentCount = userBg ? (userBg['profanity-count'] || 0) : 0;
+
+            // 3. Increment profanity count
+            await supabaseAdmin
+                .from('user-background')
+                .update({ 'profanity-count': currentCount + badWordsTotal })
+                .eq('uuid', record.user_id);
+
+            // 4. Overwrite bad content in the notes table with censored version
+            await supabaseAdmin
+                .from('notes')
+                .update({ content: profanityResult.censored_content })
+                .eq('id', record.id);
         }
 
-        // 4. Bad words found -> Fetch current user record from Supabase
-        const { data: record, error: fetchError } = await supabaseAdmin
-            .from('user-background')
-            .select('profanity-count')
-            .eq('uuid', user)
-            .single();
-
-        if (fetchError) {
-            console.error('Supabase fetch error:', fetchError);
-            return res.status(500).json({ error: 'Failed to fetch user background record.' });
-        }
-
-        const currentCount = record ? (record['profanity-count'] || 0) : 0;
-        const newTotal = currentCount + badWordsTotal;
-
-        // 5. Update user's profanity count using supabaseAdmin
-        const { data: updatedData, error: updateError } = await supabaseAdmin
-            .from('user-background')
-            .update({ 'profanity-count': newTotal })
-            .eq('uuid', user)
-            .select();
-
-        if (updateError) {
-            console.error('Supabase update error:', updateError);
-            return res.status(500).json({ error: 'Failed to update user profanity report.' });
-        }
-
-        // 6. Return response with profanity details and updated report metrics
-        return res.status(200).json({
-            flagged: true,
-            bad_words_total: badWordsTotal,
-            bad_words_list: profanityResult.bad_words_list || [],
-            censored_content: profanityResult.censored_content,
-            new_profanity_count: newTotal,
-            user_updated: updatedData[0]
-        });
-
+        return res.status(200).json({ success: true });
     } catch (err) {
-        console.error('Error in /api/profanity:', err);
-        return res.status(500).json({ error: 'Internal server error while evaluating profanity.' });
+        console.error('Webhook error:', err);
+        return res.status(500).send('Webhook handler error');
     }
 });
-
 
 /**
  * POST /auth/searchusers?query=pattern

@@ -56,7 +56,6 @@
 
     function setWriteEnabled(elements, enabled, reason) {
         normalizeElements(elements).forEach((el) => {
-            el.disabled = !enabled;
             el.setAttribute('aria-disabled', enabled ? 'false' : 'true');
 
             if (!enabled) {
