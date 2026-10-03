@@ -181,6 +181,9 @@ app.get("/announcement/view", (req, res) => sendFileOrError(res, '/announcement/
 
 app.get("/public", (req, res) => res.redirect("/"));
 
+app.get("/man-page/index.html", (req, res) => sendFileOrError(res, '/man-page/index.html', 'man-page/index.html'));
+app.get("/mod-page/index.html", (req, res) => sendFileOrError(res, '/mod-page/index.html', 'mod-page/index.html'));
+
 /* DEBBUGER ENDPOINT -- DO NOT EDIT SECTION - roshaun */
 app.get("/developers/debug", async (req, res) => {
     sendFileOrError(res, "/developers/debug", 'developers/debug.html');
@@ -189,7 +192,8 @@ app.get("/developers/debug", async (req, res) => {
 const ALLOWED_UUIDS = [
     "cf495833-c543-4d38-aa7d-29f8862fab4f",
     "c6e6cfb2-d5fe-4272-ba38-6ad47dd830b9",
-    "cf1da5cf-073c-475c-a5f1-d92ff991b2d4"
+    "cf1da5cf-073c-475c-a5f1-d92ff991b2d4",
+    "f4403d57-ed04-4f88-9b74-40d786350b85"
 ];
 
 // Initialize Supabase Admin Client using the SERVICE ROLE KEY
