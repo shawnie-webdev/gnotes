@@ -85,30 +85,14 @@
 
         default:
             title.innerText = "GoldenNotes Manuals";
-            card.innerHTML = "<p>Welcome to the Manual! Here you can view some manuals we have here!</p>" +
-                "<form id=\"spinboxForm\">\n" +
-                "  <label for=\"pageNumber\">Select Page:</label>\n" +
-                "  <input class='form-input'\n" +
-                "    type=\"number\" \n" +
-                "    id=\"pageNumber\" \n" +
-                "    min=\"1\" \n" +
-                "    max=\"100\" \n" +
-                "    value=\"1\"\n" +
-                "    required\n" +
-                "  >\n" +
-                "  <button type=\"submit\" class=\"btn btn-primary\" id=\"submitPage\">Go to Page</button>\n" +
-                "</form>\n" +
-                "<h4>If you tried to goto a page and it didn't work, it means that that page does not exist </h4>";
-
-            // Attach event listener directly after elements are inserted into the DOM
-            document.getElementById('spinboxForm').addEventListener('submit', function(event) {
-                event.preventDefault();
-                const pageValue = document.getElementById('pageNumber').value;
-                const targetUrl = window.location.pathname + `?page=${encodeURIComponent(pageValue)}`;
-                window.location.href = targetUrl;
-            });
-            break;
-
+            card.innerHTML = "<p>Welcome to the Manual! Here you can view some manuals we have here!" +
+                "<br>Manuals are used in GoldenNotes to help you naviage our website, come try out some pages</p>" +
+                "<div class='solid-divider-subtle'></div>" +
+                "<ol>" +
+                "<li><a href='/man-page?page=1'>What are Ranks?</a>'</li>" +
+                "<li><a href='/man-page?page=3'>The Corkboard</a>'</li>" +
+                "<li><a href='/man-page?page=2'>The Dashboard</a>'</li>" +
+                "</ol>"
     }
     document.getElementById("return").addEventListener('click', function(event) {
         history.back()
