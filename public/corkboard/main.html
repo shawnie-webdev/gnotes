@@ -255,6 +255,17 @@
         };
     }
 
+    async function getUserUuid() {
+        const { data: { user }, error } = await supabaseClient.auth.getUser();
+
+        if (error || !user) {
+            console.error('User not logged in:', error);
+            return null;
+        }
+
+        return user.id;
+    }
+
     async function checkTableExists() {
         const { error } = await supabaseClient
             .from('notes')
@@ -326,9 +337,16 @@
 
             const body = note.querySelector('.note-body');
             body.addEventListener('input', debounce(async () => {
+                const userId = await getUserUuid();
+
+                const updatePayload = { text: body.innerText };
+                if (userId) {
+                    updatePayload.userid = userId;
+                }
+
                 const { error } = await supabaseClient
                     .from('notes')
-                    .update({ text: body.innerText })
+                    .update(updatePayload)
                     .eq('id', noteData.id);
 
                 if (error) {
@@ -350,6 +368,12 @@
     }
 
     async function createStickyNote() {
+        const userId = await getUserUuid();
+        if (!userId) {
+            showStatus('You must be logged in to create notes.', 'error');
+            return;
+        }
+
         const randomColor = noteColors[Math.floor(Math.random() * noteColors.length)];
         const initialX = Math.floor(Math.random() * Math.max(corkboard.clientWidth - 200, 20)) + 20;
         const initialY = Math.floor(Math.random() * Math.max(corkboard.clientHeight - 200, 20)) + 20;
@@ -364,7 +388,8 @@
                     x: initialX,
                     y: initialY,
                     text: '',
-                    color: randomColor
+                    color: randomColor,
+                    userid: userId
                 }])
                 .select()
                 .single();
@@ -384,6 +409,7 @@
             }
 
             showStatus('');
+            return data.id
         } finally {
             addNoteBtn.disabled = false;
         }
@@ -436,9 +462,20 @@
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('mouseup', onMouseUp);
 
+            const userId = await getUserUuid();
+
+            const updatePayload = {
+                x: element.offsetLeft,
+                y: element.offsetTop
+            };
+
+            if (userId) {
+                updatePayload.userid = userId;
+            }
+
             const { error } = await supabaseClient
                 .from('notes')
-                .update({ x: element.offsetLeft, y: element.offsetTop })
+                .update(updatePayload)
                 .eq('id', noteId);
 
             if (error) {
@@ -449,7 +486,7 @@
         }
     }
 
-    function subscribeToRoomChanges() {
+    async function subscribeToRoomChanges() {
         supabaseClient
             .channel(`room:${CURRENT_ROOM}`)
             .on('postgres_changes', {

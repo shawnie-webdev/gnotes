@@ -81,36 +81,7 @@
 <h3 class="center">Join a Corkboard Room and collaborate with others</h3>
 <div class="hero-container" style="display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; min-height: 100vh; padding: 20px 0;">
 
-    <div id="floating-join" class="card" style="width: 100%; max-width: 400px; text-align: center;">
-        <h1>Manual Join</h1>
-
-        <form id="form">
-            <input
-                    class="form-input"
-                    type="text"
-                    id="roomid"
-                    name="roomid"
-                    pattern="[A-Za-z0-9]{6}"
-                    maxlength="6"
-                    placeholder="Your 6-character room ID"
-                    inputmode="text"
-                    required
-            >
-            <input
-                    class="form-input"
-                    type="text"
-                    id="subject"
-                    name="subject"
-                    inputmode="text"
-                    placeholder="Enter your subject (use 'main' if no subject)"
-                    required
-            >
-            <button id="submit" type="submit" class="btn btn-secondary">Attempt to join</button>
-        </form>
-        <a href="/corkboard/help">Don't know your room ID?</a>
-    </div>
-
-    <h3>or</h3>
+    <button class="btn btn-secondary" id="new-room">Create a Room</button>
 
     <div class="card" style="width: 100%; max-width: 400px; text-align: center; display: flex; flex-direction: column; gap: 10px;">
         <h1>Autoselect Your Room</h1>
@@ -158,12 +129,58 @@
             <option value="hlth">Health</option>
             <option value="musc">Music</option>
         </select>
-
         <button class="generic_button" id="autoselect-join" style="margin-top: 10px;">Join</button>
+    </div>
+
+    <h3>or</h3>
+
+    <div id="floating-join" class="card" style="width: 100%; max-width: 400px; text-align: center;">
+        <h1>Manual Join</h1>
+
+        <form id="form">
+            <input
+                    class="form-input"
+                    type="text"
+                    id="roomid"
+                    name="roomid"
+                    pattern="[A-Za-z0-9]{6}"
+                    maxlength="6"
+                    placeholder="Your 6-character room ID"
+                    inputmode="text"
+                    required
+            >
+            <input
+                    class="form-input"
+                    type="text"
+                    id="subject"
+                    name="subject"
+                    inputmode="text"
+                    placeholder="Enter your subject (use 'main' if no subject)"
+                    required
+            >
+            <button id="submit" type="submit" class="btn btn-secondary">Attempt to join</button>
+        </form>
+    </div>
+
     </div>
 </div>
 
 <script>
+    function getkey() {
+        // 1. Get the current Unix timestamp in seconds
+        const unix_time = Math.floor(Date.now() / 1000);
+
+        // 2. Calculate X using *4 so that it changes every 1/4 second
+        const x = Math.ceil((unix_time - 1791019852) * 4);
+
+        // 3. Boundary check to ensure it stays within the Base36 6-character limit (0 to 2,176,782,335)
+        if (x < 0 || x > 2176782335) {
+            throw new RangeError(`Calculated index X (${x}) is out of bounds. Must be between 0 and 2,176,782,335.`);
+        }
+
+        // 4. Convert X to Base36, force uppercase, and pad to 6 characters
+        return x.toString(36).toUpperCase().padStart(6, '0');
+    }
     function sanitizeSegment(value, fallback) {
         return String(value || fallback)
             .trim()
@@ -195,6 +212,11 @@
 
         console.log(sec, sbj);
         goToRoom(sec, sbj)
+    })
+
+    document.getElementById("new-room").addEventListener('click', (e) => {
+        const key = getkey();
+        window.location.href = `/corkboard/join?room=${encodeURIComponent(key)}-main`;
     })
 </script>
 </body>
