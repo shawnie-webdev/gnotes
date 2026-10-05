@@ -21,6 +21,7 @@
         </div>
         <a href="/credits.html" class="btn btn-primary" id="credits">Credits</a>
         <a href="/" class="btn btn-secondary" id="dashboard">Homepage</a>
+        <a href="/mod-page/index.html" class="btn btn-secondary">Mods</a>
         <div class="dropdown">
             <button class="dropbtn btn btn-secondary">Study</button>
             <div class="dropdown-content">
@@ -28,8 +29,6 @@
                 <a href="/study" class="btn btn-secondary" id="study">Study Guides</a>
                 <a href="/documents" class="btn btn-secondary" id="documents">Documents</a>
                 <a href="/calendar" class="btn btn-secondary" id="calendar">Calendar</a>
-                <a href="/man-page/index.html" class="btn btn-secondary">Manual</a>
-                <a href="/mod-page/index.html" class="btn btn-secondary">Mods</a>
             </div>
         </div>
 
@@ -56,61 +55,67 @@
 
     switch (page) {
         case "1":
-            title.innerText = "GoldenNotes Manuals: Ranks";
+            title.innerText = "Ranks";
             card.innerHTML = "<h3>What are Ranks?</h3>" +
                 "<br><p>" +
                 "Ranks are used to control the formality in GoldenNotes, the first rank, is 'Viewer', a Viewer has FULL access to view all study guides<br>" +
                 "and documents, you can post notes in corkboards, announcements and search up people in the <a href='/man-page?page=1'>dashboard</a>. An Editor has full access<br>" +
-                "to study guides and dcouments, mostly they have the same permissions as a Viewer, but they can post study guides, documents. An Moderator has access to<br>" +
+                "to study guides and documents, mostly they have the same permissions as a Viewer, but they can post study guides, documents. A Moderator has access to<br>" +
                 "like a Viewer, but they cannot post study guides and documents (for the time being). They have access to the <a href='/mod-page'>Moderator Page</a>. And finally, an Admin<br>" +
-                "Has viewer access as well (for the time being). They have FULL access to the developer's console (the page is disclosed), which gives the Admin FULL BASH TERMINAL ACCESS<br>" +
-                "of the WHOLE WEBSITE, The people with Admin roles also has debugger tools, and are also considered a Developer, and a Developer has access to the GitHub source code</p>" +
+                "has viewer access as well (for the time being). They have FULL access to the developer's console (the page is disclosed), which gives the Admin FULL BASH TERMINAL ACCESS<br>" +
+                "of the WHOLE WEBSITE. The people with Admin roles also have debugger tools, and are also considered a Developer, and a Developer has access to the GitHub source code.</p>" +
                 "<br>" +
                 "<h2>Want to apply? EMail:</h2>" +
                 "<h3>insert-recruiter-name@smc.pshs.edu.ph</h3>" +
                 "<p>NOTE: You don't need to apply to get the Viewer rank =P</p>";
             break;
         case "2":
-            title.innerText = "GoldenNotes Manuals: Dashboard";
+            title.innerText = "Dashboard";
             card.innerHTML = "<h3>The Dashboard</h3>" +
                 "<br><p>" +
                 "The Dashboard is where you can access your account's information, and also other accounts. This is to view their emails for other ways to communicate. " +
-                "You can view your username, your UUID, and your email. You can also see those on other accounts. "
-                "</p>"
+                "You can view your username, your UUID, and your email. You can also see those on other accounts. " +
+                "</p>";
             break;
         case "3":
-            title.innerText = "GoldenNotes Manuals: Corkboard";
+            title.innerText = "Corkboard";
             card.innerHTML = "<h3>The Corkboard</h3>" +
                 "<br><p>" +
-                "The Corkboard is a place to add announcements or simply just a way to communicate. This, of course, has some cons, because anyone can type anything. "  +
+                "The Corkboard is a place to add announcements or simply just a way to communicate. This, of course, has some cons, because anyone can type anything. " +
                 "Now, the Corkboard has rooms. This can be in codes such as GOLD32-Main or others. You can probably also make your own room such as THIS32-main, but... This is not recommended. " +
-                "The Corkboard is simply very vast. All sections have been added and there is also a way to connect to other rooms, there are options to do so. "
-                "</p>"
+                "The Corkboard is simply very vast. All sections have been added and there is also a way to connect to other rooms, there are options to do so. " +
+                "</p>";
             break;
         case "4":
-            title.innerText = "GoldenNotes Manuals: Study Guides";
-            card.innerHTML = "<p>The Study Guides</p>"
+            title.innerText = "How to make study guides?";
+            card.innerHTML = "<h3>How to make study guides?</h3>" +
+                "<br><p>Open the Study Guides section, create a new guide, add a title, write your notes, and save your work when ready.</p>";
+            break;
         case "5":
-            title.innerText = "GoldenNotes Manuals: How to make study guides?"
-        case "6":
-            title.innerText = "GoldenNotes Manuals: The moderator page"
-            /* wip */
-        case ""
-
+            title.innerText = "The Moderator Page";
+            card.innerHTML = "<h3>The Moderator Page</h3>" +
+                "<br><p>Moderators can manage and review content, keep the community organized, and handle reports when needed.</p>";
+            break;
+        case "":
+        case null:
         default:
             title.innerText = "GoldenNotes Manuals";
             card.innerHTML = "<p>Welcome to the Manual! Here you can view some manuals we have here!" +
-                "<br>Manuals are used in GoldenNotes to help you naviage our website, come try out some pages</p>" +
+                "<br>Manuals are used in GoldenNotes to help you navigate our website, come try out some pages</p>" +
                 "<div class='solid-divider-subtle'></div>" +
                 "<ol>" +
-                "<li><a href='/man-page?page=1'>What are Ranks?</a>'</li>" +
-                "<li><a href='/man-page?page=3'>The Corkboard</a>'</li>" +
-                "<li><a href='/man-page?page=2'>The Dashboard</a>'</li>" +
-                "</ol>"
+                "<li><a href='/man-page?page=1'>What are Ranks?</a></li>" +
+                "<li><a href='/man-page?page=3'>The Corkboard</a></li>" +
+                "<li><a href='/man-page?page=2'>The Dashboard</a></li>" +
+                "<li><a href='/man-page?page=4'>How to make study guides?</a></li>" +
+                "<li><a href='/man-page?page=5'>The Moderator Page</a></li>" +
+                "</ol>";
+            break;
     }
+
     document.getElementById("return").addEventListener('click', function(event) {
-        history.back()
-    })
+        history.back();
+    });
 </script>
 </body>
 </html>

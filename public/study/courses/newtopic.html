@@ -58,9 +58,6 @@
             outline: none;
         }
 
-        .form-input::placeholder, .form-textarea::placeholder {
-        }
-
         .form-textarea {
             min-height: 120px;
             resize: vertical;
@@ -101,7 +98,7 @@
         }
 
         .submit-btn:disabled {
-            cursor: not-allowed;
+            cursor: allowed;
         }
 
         h1.center-title {
@@ -204,7 +201,7 @@
     const submitBtn = document.getElementById("submitBtn");
     let canWrite = false;
 
-    submitBtn.disabled = true;
+    submitBtn.disabled = false;
 
     window.GoldenNotesPermissions.initWriteControls(supabaseClient, submitBtn).then((result) => {
         canWrite = result.canWrite;
@@ -221,7 +218,7 @@
             return;
         }
 
-        submitBtn.disabled = true;
+        submitBtn.disabled = false;
         submitBtn.textContent = "Saving...";
 
         const subjectTitle = document.getElementById("subject").value;

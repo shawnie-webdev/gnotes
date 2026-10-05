@@ -97,6 +97,8 @@
         </div>
         <a href="/credits.html" class="btn btn-primary" id="credits">Credits</a>
         <a href="/" class="btn btn-secondary" id="dashboard">Homepage</a>
+        <a href="/man-page/index.html" class="btn btn-secondary">Manual</a>
+        <a href="/mod-page/index.html" class="btn btn-secondary">Mods</a>
         <div class="dropdown">
             <button class="dropbtn btn btn-secondary">Study</button>
             <div class="dropdown-content">
@@ -104,8 +106,6 @@
                 <a href="/study" class="btn btn-secondary" id="study">Study Guides</a>
                 <a href="/documents" class="btn btn-secondary" id="documents">Documents</a>
                 <a href="/calendar" class="btn btn-secondary">Calendar</a>
-                <a href="/man-page/index.html" class="btn btn-secondary">Manual</a>
-                <a href="/mod-page/index.html" class="btn btn-secondary">Mods</a>
             </div>
         </div>
 
@@ -122,7 +122,7 @@
         <h2 id="page-title">Calendar</h2>
         <div id="header-buttons">
             <form action="/calendar/new" method="get" style="display: inline;">
-                <button type="submit" class="btn btn-primary" id="add-event" disabled>+ Add Event</button>
+                <button type="submit" class="btn btn-primary" id="add-event">+ Add Event</button>
             </form>
         </div>
     </div>
@@ -164,7 +164,7 @@
         const headerButtonsEl = document.getElementById('header-buttons');
         const addEventBtn = document.getElementById('add-event');
 
-        let canWrite = false;
+        let canWrite = true;
         if (addEventBtn && window.GoldenNotesPermissions) {
             const perm = await window.GoldenNotesPermissions.initWriteControls(
                 supabaseClient,

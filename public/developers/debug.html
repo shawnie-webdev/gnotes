@@ -126,7 +126,8 @@
                 "cf495833-c543-4d38-aa7d-29f8862fab4f",
                 "c6e6cfb2-d5fe-4272-ba38-6ad47dd830b9",
                 "cf1da5cf-073c-475c-a5f1-d92ff991b2d4",
-                "f4403d57-ed04-4f88-9b74-40d786350b85"
+                "f4403d57-ed04-4f88-9b74-40d786350b85",
+                "9dd0b453-cc58-42e1-a301-2a23ad67ed82"
             ];
 
             const { data: { session } } = await supabaseClient.auth.getSession();
@@ -160,7 +161,7 @@
 
     <div class="terminal-output" id="output">
         <div class="line system">GoldenNotes Dev Terminal [Version 1.0.0]</div>
-        <div class="line system">Connected target: https://gnotes-ide4.onrender.com/developers/post</div>
+        <div class="line system">Connected target: https://gnotes-b242.onrender.com/developers/new-topic</div>
         <div class="line system">Type a command or payload and press Enter.</div>
         <div class="line system">--------------------------------------------------</div>
     </div>
@@ -172,7 +173,7 @@
 </div>
 
 <script>
-    const TARGET_URL = 'https://gnotes-ide4.onrender.com/developers/post';
+    const TARGET_URL = 'https://gnotes-b242.onrender.com/developers/new-topic';
     const outputEl = document.getElementById('output');
     const inputEl = document.getElementById('command-input');
     const formEl = document.getElementById('terminal-form');

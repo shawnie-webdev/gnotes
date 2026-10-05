@@ -1021,7 +1021,8 @@ a:hover {
 }
 
 .form-input::placeholder, .form-textarea::placeholder {
-}
+    outline: none;
+};
 
 .form-textarea {
     min-height: 120px;

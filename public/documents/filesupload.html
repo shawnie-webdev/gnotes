@@ -129,6 +129,8 @@
         </div>
         <a href="/credits.html" class="btn btn-primary" id="credits">Credits</a>
         <a href="/" class="btn btn-secondary" id="dashboard">Homepage</a>
+        <a href="/man-page/index.html" class="btn btn-secondary">Manual</a>
+        <a href="/mod-page/index.html" class="btn btn-secondary">Mods</a>
         <div class="dropdown">
             <button class="dropbtn btn btn-secondary">Study</button>
             <div class="dropdown-content">
@@ -136,8 +138,6 @@
                 <a href="/study" class="btn btn-secondary" id="study">Study Guides</a>
                 <a href="/documents" class="btn btn-secondary" id="documents">Documents</a>
                 <a href="/calendar" class="btn btn-secondary" id="calendar">Calendar</a>
-                <a href="/man-page/index.html" class="btn btn-secondary">Manual</a>
-                <a href="/mod-page/index.html" class="btn btn-secondary">Mods</a>
             </div>
         </div>
 
@@ -161,7 +161,7 @@
             <input type="file" id="filePicker" accept="application/pdf" required>
         </div>
 
-        <button type="submit" id="uploadBtn" class="btn btn-primary" disabled>Upload Document</button>
+        <button type="submit" id="uploadBtn" class="btn btn-primary">Upload Document</button>
     </form>
 
     <hr style="margin: 30px 0; border-color: rgba(255, 255, 255, 0.2);">
@@ -207,7 +207,7 @@
             return;
         }
 
-        uploadBtn.disabled = true;
+        uploadBtn.disabled = false;
         uploadBtn.textContent = "Uploading...";
 
         try {
