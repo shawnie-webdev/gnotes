@@ -201,7 +201,7 @@
     const submitBtn = document.getElementById("submitBtn");
     let canWrite = false;
 
-    submitBtn.disabled = true;
+    submitBtn.disabled = false;
 
     window.GoldenNotesPermissions.initWriteControls(supabaseClient, submitBtn).then((result) => {
         canWrite = result.canWrite;
