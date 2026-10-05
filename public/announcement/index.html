@@ -247,7 +247,8 @@
             'name': document.getElementById('name').value || 'NullNameFallback',
             'announcement-type': document.getElementById('announcement-type').value,
             'author': document.getElementById('author').value.trim() || 'EmptyAuthorFieldFallback',
-            'content': document.getElementById('content').value
+            'content': document.getElementById('content').value,
+            'user' : session.user.user_metadata?.id
         };
 
         const result = await newCol('announcements', announcementData);
