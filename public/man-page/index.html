@@ -55,7 +55,7 @@
 
     switch (page) {
         case "1":
-            title.innerText = "GoldenNotes Manuals: Ranks";
+            title.innerText = "Ranks";
             card.innerHTML = "<h3>What are Ranks?</h3>" +
                 "<br><p>" +
                 "Ranks are used to control the formality in GoldenNotes, the first rank, is 'Viewer', a Viewer has FULL access to view all study guides<br>" +
@@ -70,7 +70,7 @@
                 "<p>NOTE: You don't need to apply to get the Viewer rank =P</p>";
             break;
         case "2":
-            title.innerText = "GoldenNotes Manuals: Dashboard";
+            title.innerText = "Dashboard";
             card.innerHTML = "<h3>The Dashboard</h3>" +
                 "<br><p>" +
                 "The Dashboard is where you can access your account's information, and also other accounts. This is to view their emails for other ways to communicate. " +
@@ -78,7 +78,7 @@
                 "</p>";
             break;
         case "3":
-            title.innerText = "GoldenNotes Manuals: Corkboard";
+            title.innerText = "Corkboard";
             card.innerHTML = "<h3>The Corkboard</h3>" +
                 "<br><p>" +
                 "The Corkboard is a place to add announcements or simply just a way to communicate. This, of course, has some cons, because anyone can type anything. " +
@@ -87,18 +87,13 @@
                 "</p>";
             break;
         case "4":
-            title.innerText = "GoldenNotes Manuals: Study Guides";
-            card.innerHTML = "<h3>The Study Guides</h3>" +
-                "<br><p>Study Guides are where you can organize and share key lessons, notes, and references with your class or peers.</p>";
-            break;
-        case "5":
-            title.innerText = "GoldenNotes Manuals: How to make study guides?";
+            title.innerText = "How to make study guides?";
             card.innerHTML = "<h3>How to make study guides?</h3>" +
                 "<br><p>Open the Study Guides section, create a new guide, add a title, write your notes, and save your work when ready.</p>";
             break;
-        case "6":
-            title.innerText = "GoldenNotes Manuals: The moderator page";
-            card.innerHTML = "<h3>The moderator page</h3>" +
+        case "5":
+            title.innerText = "The Moderator Page";
+            card.innerHTML = "<h3>The Moderator Page</h3>" +
                 "<br><p>Moderators can manage and review content, keep the community organized, and handle reports when needed.</p>";
             break;
         case "":
@@ -112,6 +107,8 @@
                 "<li><a href='/man-page?page=1'>What are Ranks?</a></li>" +
                 "<li><a href='/man-page?page=3'>The Corkboard</a></li>" +
                 "<li><a href='/man-page?page=2'>The Dashboard</a></li>" +
+                "<li><a href='/man-page?page=4'>How to make study guides?</a></li>" +
+                "<li><a href='/man-page?page=5'>The Moderator Page</a></li>" +
                 "</ol>";
             break;
     }
