@@ -224,7 +224,7 @@
             const { data: result, error } = await query.select();
             if (error) throw error;
             return result;
-
+            
         } catch (error) {
             console.error(`Error executing newCol on table "${table}":`, error.message);
             return null;
