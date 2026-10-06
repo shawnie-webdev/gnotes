@@ -140,7 +140,7 @@ app.use((req, res, next) => {
                     statusCode : statusCode,
                     request_type : 'get'
                 },
-                "get request on endpoint, view info to knoww more"
+                "get request on endpoint, view info to know more"
             )
         });
     }
@@ -190,10 +190,7 @@ app.get("/developers/debug", async (req, res) => {
 });
 
 const ALLOWED_UUIDS = [
-    "cf495833-c543-4d38-aa7d-29f8862fab4f",
-    "c6e6cfb2-d5fe-4272-ba38-6ad47dd830b9",
-    "cf1da5cf-073c-475c-a5f1-d92ff991b2d4",
-    "f4403d57-ed04-4f88-9b74-40d786350b85"
+    "b7b67983-9547-4290-ba95-65e7e7794ed1"
 ];
 
 // Initialize Supabase Admin Client using the SERVICE ROLE KEY
