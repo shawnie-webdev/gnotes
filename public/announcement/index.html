@@ -245,6 +245,7 @@
 
         // Prepare data matching exact DB column names:
         // 'name', 'announcement-type', 'author', 'content'
+        const { data: { session } } = await supabaseClient.auth.getSession();
         const announcementData = {
             'name': document.getElementById('name').value || 'NullNameFallback',
             'announcement-type': document.getElementById('announcement-type').value,
