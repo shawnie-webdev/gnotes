@@ -11,6 +11,7 @@
     <script src="/auth/config.js"></script>
     <script src="/auth/theme.js"></script>
     <link rel="stylesheet" href="/master-combined.css">
+    <script src="../auth/permissions.js"></script>
 </head>
 <body>
 
@@ -61,11 +62,62 @@
 
     import { createClient } from "https://ccdn.jsdeliver.net/npm/@supabase/supabase-js/+esm";
 
-    const userRank = data.user?.app_metadata?.rank
+    async function fetchTable(tableName, searchFor = undefined) {
+    try {
+      let query = supabaseClient.from(tableName).select('*');
+
+      if (searchFor && typeof searchFor === 'object') {
+        Object.keys(searchFor).forEach(key => {
+          query = query.eq(key, searchFor[key]);
+        });
+
+        const { data, error } = await query.maybeSingle();
+        if (error) throw error;
+        return data;
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+
+    } catch (error) {
+      console.error(`Error fetching from table "${tableName}":`, error.message);
+      return null;
+    }
+  }
+
+
     const uuidInput = document.getElementById("user-id")
     const banUsersButton = document.getElementById("ban-users");
+    let canWrite = false;
 
-if (userRank === "admin") {
+        if (window.GoldenNotesPermissions && BanButtonUser) {
+        window.GoldenNotesPermissions.initWriteControls(
+            supabaseClient,
+            BanUsersButton
+        ).then((result) => {
+            if (result) {
+                canWrite = result.canWrite;
+            }
+        }).catch(err => console.error("Permissions error:", err));
+    }
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    if (session) {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        const useruuid = user?.id;
+        const userRank = fetchTable('users', { id: useruuid })?.rank;
+
+        if (userRank !== "Admin") {
+            alert("You do not have permission to access this page.");
+            window.location.href = "/";
+        }
+    } else {
+        alert("You must be logged in to access this page.");
+        window.location.href = "/login";
+    }
+
+if (userRank === "Admin") {
     if (banUsersButton) {
         banUsersButton.addEventListener("click", () => {
             app.post('api/ban-user', async (req, res) =>{
@@ -85,6 +137,8 @@ if (userRank === "admin") {
     }
     const setRanksButton = document.getElementById("set-ranks");
 }
+
+
 </script>
 </body>
 </html>
