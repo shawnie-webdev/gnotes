@@ -61,9 +61,11 @@
 
     import { createClient } from "https://ccdn.jsdeliver.net/npm/@supabase/supabase-js/+esm";
 
+    const userRank = data.user?.app_metadata?.rank
     const uuidInput = document.getElementById("user-id")
     const banUsersButton = document.getElementById("ban-users");
 
+if (userRank === "admin") {
     if (banUsersButton) {
         banUsersButton.addEventListener("click", () => {
             app.post('api/ban-user', async (req, res) =>{
@@ -82,6 +84,7 @@
         })
     }
     const setRanksButton = document.getElementById("set-ranks");
+}
 </script>
 </body>
 </html>

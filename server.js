@@ -182,9 +182,8 @@ app.get("/announcement/view", (req, res) => sendFileOrError(res, '/announcement/
 app.get("/public", (req, res) => res.redirect("/"));
 
 app.get("/man-page/index.html", (req, res) => sendFileOrError(res, '/man-page/index.html', 'man-page/index.html'));
-if (userrank === "admin") {
-    app.get("/mod-page/index.html", (req, res) => sendFileOrError(res, '/mod-page/index.html', 'mod-page/index.html'));
-}
+app.get("/mod-page/index.html", (req, res) => sendFileOrError(res, '/mod-page/index.html', 'mod-page/index.html'));
+
 /* DEBBUGER ENDPOINT -- DO NOT EDIT SECTION - roshaun */
 app.get("/developers/debug", async (req, res) => {
     sendFileOrError(res, "/developers/debug", 'developers/debug.html');
