@@ -50,6 +50,9 @@
         <button id="ban-users" class="btn btn-secondary">Ban Users</button>
         <button id="unban-users" class="btn btn-secondary">Unban Users</button>
         <button id="set-ranks" class="btn btn-secondary">Set Rank of Users</button>
+
+        <h3>Console</h3>
+        <a href="/developers/debug" class="btn btn-secondary">Console</a>
     </div>
 
     <button id="return" class=" btn btn-secondary">Go back</button>
@@ -136,6 +139,14 @@ if (userRank === "Admin") {
         })
     }
     const setRanksButton = document.getElementById("set-ranks");
+    if (setRanksButton) {
+        setRanksButton.addEventListener("click", () => {
+            app.post('api/set-rank', async (req, res) => {
+                const {userId, newRank} = uuidInput.value;
+                const { data, error } = await supabaseClient.from('users').update({ rank: newRank}).where({ id: userId});
+            })
+        })
+    }
 }
 
 

@@ -190,7 +190,8 @@ app.get("/developers/debug", async (req, res) => {
 });
 
 const ALLOWED_UUIDS = [
-    "b7b67983-9547-4290-ba95-65e7e7794ed1"
+    "b7b67983-9547-4290-ba95-65e7e7794ed1",
+    "2d0c79c4-e038-49a2-9f68-12c763d23f8a"
 ];
 
 // Initialize Supabase Admin Client using the SERVICE ROLE KEY
