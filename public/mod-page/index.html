@@ -44,17 +44,7 @@
     <h1 id="title">GoldenNotes Moderator Page</h1>
     <div class="card">
         <h3>Actions:</h3>
-        <form id="user-id">
-            UUID here <input type="text" id="user-id" placeholder="User UUID" required>
-        </form>
-        <form id="set-rank">
-            UUID here <input type="text" id="user-id-rank" placeholder="User UUID" required>
-            New Rank <input type="text" id="new-rank" placeholder="New Rank" required>
-        </form>
-        <button id="ban-users" class="btn btn-secondary">Ban Users</button>
-        <button id="unban-users" class="btn btn-secondary">Unban Users</button>
-        <button id="set-ranks" class="btn btn-secondary">Set Rank of Users</button>
-
+ 
         <h3>Console</h3>
         <a href="/developers/debug" class="btn btn-secondary">Console</a>
         <h3>Test Area</h3>
@@ -63,104 +53,5 @@
 
     <button id="return" class=" btn btn-secondary">Go back</button>
 </main>
-
-<script>
-    const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const userIdInputRank = document.getElementById("user-id-rank");
-    const newRankInput = document.getElementById("new-rank");
-
-    async function fetchTable(tableName, searchFor = undefined) {
-    try {
-      let query = supabaseClient.from(tableName).select('*');
-
-      if (searchFor && typeof searchFor === 'object') {
-        Object.keys(searchFor).forEach(key => {
-          query = query.eq(key, searchFor[key]);
-        });
-
-        const { data, error } = await query.maybeSingle();
-        if (error) throw error;
-        return data;
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
-
-    } catch (error) {
-      console.error(`Error fetching from table "${tableName}":`, error.message);
-      return null;
-    }
-  }
-
-
-    const uuidInput = document.getElementById("user-id")
-    const banUsersButton = document.getElementById("ban-users");
-    let canWrite = false;
-
-        if (window.GoldenNotesPermissions && BanButtonUser) {
-        window.GoldenNotesPermissions.initWriteControls(
-            supabaseClient,
-            BanUsersButton
-        ).then((result) => {
-            if (result) {
-                canWrite = result.canWrite;
-            }
-        }).catch(err => console.error("Permissions error:", err));
-    }
-    const { data: { session } } = await supabaseClient.auth.getSession();
-
-    if (session) {
-        const { data: { user } } = await supabaseClient.auth.getUser();
-        const useruuid = user?.id;
-        const userRank = fetchTable('users', { id: useruuid })?.rank;
-
-        if (userRank !== "Admin") {
-            alert("You do not have permission to access this page.");
-            window.location.href = "/";
-        }
-    } else {
-        alert("You must be logged in to access this page.");
-        window.location.href = "/login";
-    }
-
-if (userRank === "Admin") {
-    if (banUsersButton) {
-        banUsersButton.addEventListener("click", () => {
-            app.post('api/ban-user', async (req, res) =>{
-                const {userId} = uuidInput.value;
-                const { data, error } = await supabaseClient.auth.admin.banUser(userId);
-                alert(`Banned user ${userId}`);
-            })
-        })
-    }
-    const unbanUsersButton = document.getElementById("unban-users");
-    if (unbanUsersButton) {
-        unbanUsersButton.addEventListener("click", () => {
-            app.post('api/unban-user', async (req, res) => {
-                const {userId} = uuidInput.value;
-                const { data, error } = await supabaseClient.auth.admin.unbanUser(userId);
-                alert(`Unbanned user ${userId}`);
-            })
-        })
-    }
-    const setRanksButton = document.getElementById("set-ranks");
-    if (setRanksButton) {
-        setRanksButton.addEventListener("click", () => {
-            app.post('api/set-rank', async (req, res) => {
-                const {userId} = userIdInputRank.value;
-                const {newRank} = newRankInput.value;
-                const { data, error } = await supabaseClient.from('users').update({ rank: newRank}).where({ id: userId});
-                alert(`Set rank of user ${userId} to ${newRank}`);
-            })
-        })
-    }
-}
-
-
-</script>
 </body>
 </html>

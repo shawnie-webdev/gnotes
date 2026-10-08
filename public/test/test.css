@@ -58,6 +58,17 @@ input {
     flex-direction: column;
     align-items: center;
     gap: 10px; 
-    background: linear-gradient(to bottom, #f9f9f9, #e0e0e0);
-    border: 1px solid #ccc;
+    background: linear-gradient(to bottom, #ffc30d, #ff8400);
+    border: none;
+    border-radius: 5px;
+    transition: transform 0.3s ease;
+}
+.input-container:hover {
+    transform: translateY(-3px);
+}
+ah1 {
+    color: #ffffff;
+    font-family: 'Montserrat';
+    font-weight: bold;
+    font-size: large;
 }
