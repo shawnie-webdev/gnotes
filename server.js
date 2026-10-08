@@ -350,6 +350,128 @@ app.post('/auth/getuser', async (req, res) => {
     }
 })
 
+async function authorizeAdminAction(req, res) {
+    const authHeader = req.headers.authorization;
+    const token = authHeader?.match(/^Bearer\s+(.+)$/i)?.[1];
+
+    if (!token) {
+        res.status(401).json({ error: "Sign in to use this action." });
+        return false;
+    }
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+        res.status(401).json({ error: "Your session is invalid or expired. Please sign in again." });
+        return false;
+    }
+
+    const { data: profile, error: profileError } = await supabaseAdmin
+        .from("users")
+        .select("rank")
+        .eq("id", user.id)
+        .maybeSingle();
+
+    if (profileError) {
+        console.error("Admin authorization query failed:", profileError.message);
+        res.status(500).json({ error: "Could not verify Admin permissions." });
+        return false;
+    }
+
+    if (profile?.rank !== "Admin") {
+        res.status(403).json({ error: "Only Admin accounts can manage users." });
+        return false;
+    }
+
+    return true;
+}
+
+function isValidUserId(userId) {
+    return typeof userId === "string"
+        && /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(userId);
+}
+
+app.post("/api/admin/ban-user", async (req, res) => {
+    try {
+        if (!await authorizeAdminAction(req, res)) return;
+
+        const { userId } = req.body || {};
+        if (!isValidUserId(userId)) {
+            return res.status(400).json({ error: "A valid user UUID is required." });
+        }
+
+        const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+            ban_duration: "876000h"
+        });
+        if (error) {
+            console.error("Supabase ban failed:", error.message);
+            return res.status(400).json({ error: "Could not ban that user." });
+        }
+
+        return res.status(200).json({ success: true });
+    } catch (err) {
+        console.error("Ban user request failed:", err);
+        return res.status(500).json({ error: "The ban request could not be completed." });
+    }
+});
+
+app.post("/api/admin/unban-user", async (req, res) => {
+    try {
+        if (!await authorizeAdminAction(req, res)) return;
+
+        const { userId } = req.body || {};
+        if (!isValidUserId(userId)) {
+            return res.status(400).json({ error: "A valid user UUID is required." });
+        }
+
+        const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+            ban_duration: "none"
+        });
+        if (error) {
+            console.error("Supabase unban failed:", error.message);
+            return res.status(400).json({ error: "Could not unban that user." });
+        }
+
+        return res.status(200).json({ success: true });
+    } catch (err) {
+        console.error("Unban user request failed:", err);
+        return res.status(500).json({ error: "The unban request could not be completed." });
+    }
+});
+
+app.post("/api/admin/set-rank", async (req, res) => {
+    try {
+        if (!await authorizeAdminAction(req, res)) return;
+
+        const { userId, rank } = req.body || {};
+        if (!isValidUserId(userId)) {
+            return res.status(400).json({ error: "A valid user UUID is required." });
+        }
+        if (typeof rank !== "string" || !rank.trim() || rank.trim().length > 40) {
+            return res.status(400).json({ error: "A rank between 1 and 40 characters is required." });
+        }
+
+        const { data, error } = await supabaseAdmin
+            .from("users")
+            .update({ rank: rank.trim() })
+            .eq("id", userId)
+            .select("id")
+            .maybeSingle();
+
+        if (error) {
+            console.error("Supabase rank change failed:", error.message);
+            return res.status(400).json({ error: "Could not change that user's rank." });
+        }
+        if (!data) {
+            return res.status(404).json({ error: "User profile not found." });
+        }
+
+        return res.status(200).json({ success: true });
+    } catch (err) {
+        console.error("Set rank request failed:", err);
+        return res.status(500).json({ error: "The rank change could not be completed." });
+    }
+});
+
 app.post("/developers/post", async (req, res) => {
     try {
         // 1. Verify Authorization Header

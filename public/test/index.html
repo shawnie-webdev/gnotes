@@ -29,8 +29,32 @@
 
     <div class="panel-controller">
       <button class="button-primary-panel" id="ban-user">Ban User</button>
+      <div class="input-container">
+        <p>Change Ranks</p>
+      <input placeholder="UUID Here" id="user-uuid-input-ban">
+      </div>
       <button class="button-primary-panel" id="unban-user">Unban User</button>
+      <div class="input-container">
+        <p>Change Ranks</p>
+      <input placeholder="UUID Here" id="user-uuid-input-unban">
+      </div>
       <button class="button-primary-panel" id="change-user-rank">Change User Rank</button>
+      <div class="input-container">
+        <p>Change Ranks</p>
+      <input placeholder="UUID Here" id="user-uuid-input-rank">
+      <input placeholder="Rank" id="user-rank-input">
+      </div>
     </div>
+    <script>
+      const uuidRankInput = document.getElementById("user-uuid-input-rank");
+      const uuidBanInput = document.getElementById("user-uuid-input-ban");
+      const uuidUnbanInput = document.getElementById("user-uuid-input-unban");
+    
+      if(uuidRankInput) {
+        uuidRankInput.addEventListener("click", () => {
+        
+        })
+      }
+    </script>
   </body>
   </html>
