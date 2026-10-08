@@ -10,34 +10,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/auth/config.js"></script>
   <script src="/auth/theme.js"></script>
-  <link rel="stylesheet" href="/master-combined.css">
+  <link rel="stylesheet" href="/master-combined.css" disabled>
+  <link rel="stylesheet" href="/test/test.css">
 </head>
 <body>
-
-<header class="top-header">
-  <div class="nav-actions">
-    <div class="header-left">
-      <img src="../favicon.jpeg" alt="logo" id="logo">
-    </div>
-    <a href="/credits.html" class="btn btn-primary" id="credits">Credits</a>
-    <a href="/" class="btn btn-secondary" id="dashboard">Homepage</a>
-    <a href="/man-page/index.html" class="btn btn-secondary">Manual</a>
-    <a href="/mod-page/index.html" class="btn btn-secondary">Mods</a>
-    <div class="dropdown">
-      <button class="dropbtn btn btn-secondary">Study</button>
-      <div class="dropdown-content">
-        <a href="/corkboard" class="btn btn-secondary" id="cb">Corkboard</a>
-        <a href="/study" class="btn btn-secondary" id="study">Study Guides</a>
-        <a href="/documents" class="btn btn-secondary" id="documents">Documents</a>
-        <a href="/calendar" class="btn btn-secondary" id="calendar">Calendar</a>
-  
-      </div>
-    </div>
-
-    <a href="/dashboard/settings" class="btn btn-secondary" id="settings-nav">Settings</a>
-    <a href="/dashboard" class="btn btn-secondary" id="d-nav">Dashboard</a>
-  </div>
-</header>
 
     <h1 class="title">Testing Area</h1>
     <h3>--IDEAS--</h3>
@@ -48,5 +24,13 @@
     <p>&middot; Add delete options for calendar events, corkboard rooms, and other user generated media.
         Along with even maybe automated deletion of old events, and maybe even a way to delete old corkboard rooms that are inactive for a certain amount of time.
     </p>
+
+    <p>&middot; Maybe perhaps, if GoldenNotes somehow blows up and we get funds, we may get a server for free!</p>
+
+    <div class="panel-controller">
+      <button class="button-primary-panel" id="ban-user">Ban User</button>
+      <button class="button-primary-panel" id="unban-user">Unban User</button>
+      <button class="button-primary-panel" id="change-user-rank">Change User Rank</button>
+    </div>
   </body>
   </html>

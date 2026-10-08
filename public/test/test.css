@@ -1,0 +1,48 @@
+/* ==========================================================================
+   GoldenNotes — Test.css
+   ========================================================================== */
+
+.panel-controller {
+    display: flex;
+    justify-content: center;
+    flex-direction: row;      
+    gap: 10px;                
+    justify-content: flex-start; 
+    align-items: center;
+    border: 1px solid #ccc;
+    color: #333; 
+    border-radius: 5px;
+    background: linear-gradient(to bottom, #f9f9f9, #e0e0e0);
+}
+
+.button-primary-panel {
+    background-color: #3e3e3e;
+    color: #ffffff;
+    border: 1px solid #020202;
+    box-shadow: 0 15px 15px rgba(0, 0, 0, 0.1);
+    font-size: 16px;
+    font-family: 'Montserrat';
+    font-weight: bold;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px; 
+    margin: 10px 10px;
+    transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+    transform: translateY(0px);
+}
+.button-primary-panel:hover {
+    background-color: #5e5e5e;
+    transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
+    transform: translateY(-3px);
+    box-shadow: 0 15px 15px rgba(0, 0, 0, 0.1); 
+}
+.button-primary-panel:active {
+    background-color: #2e2e2e;
+    transition: transform 0.1s ease, background-color 0.1s ease, box-shadow 0.1s ease;
+    transform: translateY(2px);
+    box-shadow: 0 5px 5px rgba(0, 0, 0, 0.1);
+}
+h1, h2, h3, h4, h5, h6, p {
+    color: #333;
+    font-family: 'Montserrat'
+}
