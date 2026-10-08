@@ -47,6 +47,10 @@
         <form id="user-id">
             UUID here <input type="text" id="user-id" placeholder="User UUID" required>
         </form>
+        <form id="set-rank">
+            UUID here <input type="text" id="user-id-rank" placeholder="User UUID" required>
+            New Rank <input type="text" id="new-rank" placeholder="New Rank" required>
+        </form>
         <button id="ban-users" class="btn btn-secondary">Ban Users</button>
         <button id="unban-users" class="btn btn-secondary">Unban Users</button>
         <button id="set-ranks" class="btn btn-secondary">Set Rank of Users</button>
@@ -63,7 +67,8 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    import { createClient } from "https://ccdn.jsdeliver.net/npm/@supabase/supabase-js/+esm";
+    const userIdInputRank = document.getElementById("user-id-rank");
+    const newRankInput = document.getElementById("new-rank");
 
     async function fetchTable(tableName, searchFor = undefined) {
     try {
@@ -126,6 +131,7 @@ if (userRank === "Admin") {
             app.post('api/ban-user', async (req, res) =>{
                 const {userId} = uuidInput.value;
                 const { data, error } = await supabaseClient.auth.admin.banUser(userId);
+                alert(`Banned user ${userId}`);
             })
         })
     }
@@ -135,6 +141,7 @@ if (userRank === "Admin") {
             app.post('api/unban-user', async (req, res) => {
                 const {userId} = uuidInput.value;
                 const { data, error } = await supabaseClient.auth.admin.unbanUser(userId);
+                alert(`Unbanned user ${userId}`);
             })
         })
     }
@@ -142,8 +149,10 @@ if (userRank === "Admin") {
     if (setRanksButton) {
         setRanksButton.addEventListener("click", () => {
             app.post('api/set-rank', async (req, res) => {
-                const {userId, newRank} = uuidInput.value;
+                const {userId} = userIdInputRank.value;
+                const {newRank} = newRankInput.value;
                 const { data, error } = await supabaseClient.from('users').update({ rank: newRank}).where({ id: userId});
+                alert(`Set rank of user ${userId} to ${newRank}`);
             })
         })
     }

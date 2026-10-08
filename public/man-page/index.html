@@ -96,6 +96,11 @@
             card.innerHTML = "<h3>The Moderator Page</h3>" +
                 "<br><p>Moderators can manage and review content, keep the community organized, and handle reports when needed.</p>";
             break;
+        case "6":
+            title.innerText = "The Admin Page";
+            card.innerHTML = "<h3>The Admin Page</h3>" +
+                "<br><p>Admins have full access to the website's backend, including user management, content moderation, and system settings.</p>";
+            break;
         case "":
         case null:
         default:
@@ -109,6 +114,7 @@
                 "<li><a href='/man-page?page=2'>The Dashboard</a></li>" +
                 "<li><a href='/man-page?page=4'>How to make study guides?</a></li>" +
                 "<li><a href='/man-page?page=5'>The Moderator Page</a></li>" +
+                "<li><a href='/man-page?page=6'>The Admin Page</a></li>" +
                 "</ol>";
             break;
     }
