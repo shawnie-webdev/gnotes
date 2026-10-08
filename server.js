@@ -12,7 +12,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 // Initialize inside block scope to avoid global collision
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const userRank = data.user?.app_metadata?.rank
 
 console.log("[INFO]: Server module loading - [server.js]");
 
