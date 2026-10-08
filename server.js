@@ -13,7 +13,6 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // Initialize inside block scope to avoid global collision
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-
 console.log("[INFO]: Server module loading - [server.js]");
 
 const app = express();
@@ -183,6 +182,7 @@ app.get("/public", (req, res) => res.redirect("/"));
 
 app.get("/man-page/index.html", (req, res) => sendFileOrError(res, '/man-page/index.html', 'man-page/index.html'));
 app.get("/mod-page/index.html", (req, res) => sendFileOrError(res, '/mod-page/index.html', 'mod-page/index.html'));
+app.get("/test/index.html", (req, res) => sendFileOrError(res, '/test/index.html', 'test/index.html'));
 
 /* DEBBUGER ENDPOINT -- DO NOT EDIT SECTION - roshaun */
 app.get("/developers/debug", async (req, res) => {
@@ -190,7 +190,8 @@ app.get("/developers/debug", async (req, res) => {
 });
 
 const ALLOWED_UUIDS = [
-    "b7b67983-9547-4290-ba95-65e7e7794ed1"
+    "b7b67983-9547-4290-ba95-65e7e7794ed1",
+    "2d0c79c4-e038-49a2-9f68-12c763d23f8a"
 ];
 
 // Initialize Supabase Admin Client using the SERVICE ROLE KEY

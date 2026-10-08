@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GoldenNotes v1.2</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+
+  <!-- Supabase JS Client via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/auth/config.js"></script>
+  <script src="/auth/theme.js"></script>
+  <link rel="stylesheet" href="/master-combined.css" disabled>
+  <link rel="stylesheet" href="/test/test.css">
+</head>
+<body>
+
+    <h1 class="title">Testing Area</h1>
+    <h3>--IDEAS--</h3>
+    <p>&middot; Add section to see rankings of all users, have filters, and create a process to apply for admin or any role a user desires.
+    The application will be checked by moderators or admins, and if the user is accepted, they recieve the role they applied for.
+    We may even add special ranks, such as the Developer and Debugger ranks, which are only concepts one developer imagines.
+    </p>
+    <p>&middot; Add delete options for calendar events, corkboard rooms, and other user generated media.
+        Along with even maybe automated deletion of old events, and maybe even a way to delete old corkboard rooms that are inactive for a certain amount of time.
+    </p>
+
+    <p>&middot; Maybe perhaps, if GoldenNotes somehow blows up and we get funds, we may get a server for free!</p>
+
+    <div class="panel-controller">
+      <button class="button-primary-panel" id="ban-user">Ban User</button>
+      <button class="button-primary-panel" id="unban-user">Unban User</button>
+      <button class="button-primary-panel" id="change-user-rank">Change User Rank</button>
+    </div>
+  </body>
+  </html>

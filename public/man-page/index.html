@@ -96,6 +96,21 @@
             card.innerHTML = "<h3>The Moderator Page</h3>" +
                 "<br><p>Moderators can manage and review content, keep the community organized, and handle reports when needed.</p>";
             break;
+        case "6":
+            title.innerText = "The Admin Page";
+            card.innerHTML = "<h3>The Admin Page</h3>" +
+                "<br><p>Admins have full access to the website's backend, including user management, content moderation, and system settings.</p>";
+            break;
+        case "7":
+            title.innerText = "Console";
+            card.innerHTML = "<h3>Console</h3>" +
+                "<br><p>The Console is a simple text-based interface for interacting with the website's backend systems.</p>";
+            break;
+        case "7":
+            title.innerText = "Documents";
+            card.innerHTML = "<h3>Documents</h3>" +
+                "<br><p>Documents are used to store and manage various files and resources within the GoldenNotes platform.</p>";
+            break;
         case "":
         case null:
         default:
@@ -109,6 +124,9 @@
                 "<li><a href='/man-page?page=2'>The Dashboard</a></li>" +
                 "<li><a href='/man-page?page=4'>How to make study guides?</a></li>" +
                 "<li><a href='/man-page?page=5'>The Moderator Page</a></li>" +
+                "<li><a href='/man-page?page=6'>The Admin Page</a></li>" +
+                "<li><a href='/man-page?page=7'>Console</a></li>" +
+                "<li><a href='/man-page?page=8'>Documents</a></li>" +
                 "</ol>";
             break;
     }
