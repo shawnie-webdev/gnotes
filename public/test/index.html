@@ -27,10 +27,36 @@
 
     <p>&middot; Maybe perhaps, if GoldenNotes somehow blows up and we get funds, we may get a server for free!</p>
 
-    <div class="panel-controller">
+    <div class="panel-controller" id="nav1">
+      <div class="title-card">
+      <ah1>User Actions</ah1>
+      <ah2>Used to manage users, and modify them.</ah2>
+      </div>
       <button class="button-primary-panel" id="ban-user">Ban User</button>
+      <div class="input-container">
+        <p>Ban Users</p>
+      <input placeholder="UUID Here" id="user-uuid-input-ban">
+      <input placeholder="Amount of hours" id="user-uuid-input-ban">
+      </div>
       <button class="button-primary-panel" id="unban-user">Unban User</button>
+      <div class="input-container">
+        <p>Unban Users</p>
+      <input placeholder="UUID Here" id="user-uuid-input-unban">
+      </div>
       <button class="button-primary-panel" id="change-user-rank">Change User Rank</button>
+      <div class="input-container">
+        <p>Change Ranks</p>
+      <input placeholder="UUID Here" id="user-uuid-input-rank">
+      <input placeholder="Rank" id="user-rank-input">
+      </div>
+    </div>
+    
+    <div class="panel-controller" id="nav2">
+      <div class="title-card">
+      <ah1>Management Tools</ah1>
+      <ah2>Used to manage other properties of GoldenNotes.</ah2>
+      </div>
+      <button class="button-primary-panel" id="lists-see">See Lists</button>
     </div>
   </body>
   </html>
