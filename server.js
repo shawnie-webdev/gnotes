@@ -522,6 +522,8 @@ app.post('/auth/signup-provider/posthttps', async (req, res) => {
     }
 });
 
+app.post('')
+
 /* DEBBUGER ENDPOINT -- DO NOT EDIT SECTION */
 // 404 Catch-All Route (Must be placed AFTER all valid routes)
 app.use((req, res) => {
