@@ -13,6 +13,7 @@
     color: #333; 
     border-radius: 5px;
     background: linear-gradient(to bottom, #f9f9f9, #e0e0e0);
+    margin-bottom: 50px; 
 }
 
 .button-primary-panel {
@@ -71,4 +72,21 @@ ah1 {
     font-family: 'Montserrat';
     font-weight: bold;
     font-size: large;
+}
+ah2 {
+    color: #ffffff;
+    font-family:'Montserrat';
+    font-size: medium;
+}
+.title-card {
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(to bottom, #606060, #acacac);
+    gap: 10px; 
+    border: none;
+    border-radius: 5px;
+    width: 250px;
+    height: 100px;
+    margin: 10px;
+    align-items: center;
 }
