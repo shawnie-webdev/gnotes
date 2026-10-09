@@ -118,30 +118,6 @@ ah2 {
   position: relative;
   display: inline-block;
 }
-.dropbtn {
-    background-color: #3e3e3e;
-    border: 1px solid #020202;
-    color: white;
-    padding: 12px 24px;
-    font-size: 16px;
-    cursor: pointer;
-    border-radius: 4px;
-    font-family: 'Montserrat';
-    font-weight: bold;
-    transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
-    transform: translateY(0px);
-
-.dropdown .dropbtn:hover {
-    background-color: #5e5e5e;
-    transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
-    transform: translateY(-3px)
-}
-.dropdown .dropbtn:active {
-    background-color: #2e2e2e;
-    transition: transform 0.1s ease, background-color 0.1s ease, box-shadow 0.1s ease;
-    transform: translateY(2px);
-}
-}
 .dropdown-content {
   display: none;
   position: absolute;
