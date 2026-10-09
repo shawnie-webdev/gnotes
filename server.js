@@ -1,5 +1,6 @@
 /* Project Goldenotes | Inspiration by Ram, Programmed by Roshaun */
 
+const cookieParser = require('cookie-parser'); // <-- Add this
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
@@ -408,6 +409,9 @@ app.post("/developers/post", async (req, res) => {
 
         const token = authHeader.split(" ")[1];
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+
+
 
         if (authError || !user) {
             return res.status(401).json({
