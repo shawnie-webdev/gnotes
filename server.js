@@ -522,7 +522,9 @@ app.post('/auth/signup-provider/posthttps', async (req, res) => {
     }
 });
 
-app.post('')
+app.post('/auth/moderator/actionpost', async (req, res) => {
+
+})
 
 /* DEBBUGER ENDPOINT -- DO NOT EDIT SECTION */
 // 404 Catch-All Route (Must be placed AFTER all valid routes)
