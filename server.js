@@ -188,20 +188,27 @@ app.get("/test/index.html", (req, res) => sendFileOrError(res, '/test/index.html
 app.get('/admin-dashboard', async (req, res) => {
     try {
         // 1. Get the session token from cookies or Authorization header
+        console.log("[server.js]: Admin dashboard GET request detected, authorizing user...");
         const token = req.cookies?.token || req.headers.authorization?.split(' ')[1];
+        console.log("[server.js | /admin-dashboard]: Token: ", token);
 
         if (!token) {
+            console.log("[server.js | /admin-dashboard]: Invalid/No token provided, returning 401");
             return res.status(401).send('Unauthorized: No session token provided.');
         }
 
         // 2. Validate the token and get the user object from Supabase Auth
         const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+        console.log("[server.js | /admin-dashboard]: User: ", user);
+        console.log("[server.js | /admin-dashboard]: AuthError: ", authError);
 
         if (authError || !user) {
+            console.log("[server.js | /admin-dashboard]: Invalid/Expired session, returning 401");
             return res.status(401).send('Unauthorized: Invalid or expired session.');
         }
 
         const userUuid = user.id;
+        console.log("[server.js | /admin-dashboard]: User: ", userUuid);
 
         // 3. Query the 'user-background' table to check their 'rank'
         const { data: bgData, error: dbError } = await supabaseAdmin
@@ -211,14 +218,16 @@ app.get('/admin-dashboard', async (req, res) => {
             .single();
 
         if (dbError || !bgData) {
+            console.log("[server.js | /admin-dashboard]: Failed to query user background profile, returning 403");
             return res.status(403).send('Forbidden: User background profile not found.');
         }
 
         const userRank = bgData.rank;
+        console.log("[server.js | /admin-dashboard]: Rank ", userRank);
 
         // 4. Verify if they are an 'admin' or 'moderator'
-        if (userRank !== 'admin' && userRank !== 'moderator') {
-            return res.status(403).send('Forbidden: You do not have permission to view this page.');
+        if (userRank !== 'Admin' && userRank !== 'Moderator') {
+            return res.status(403).send('auth/');
         }
 
         // 5. Access Granted! Serve your admin webpage file
