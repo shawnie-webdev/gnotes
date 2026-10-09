@@ -159,6 +159,10 @@
         <div id="usersec" class="centerx" style="width: 80%; margin: 20px auto 0 auto;">
             <!-- User cards render here -->
         </div>
+
+        <button id="adminBtn" style="padding: 10px 20px; background-color: #4f46e5; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Admin Dashboard
+        </button>
     </div>
 </div>
 
@@ -268,6 +272,29 @@
         if (searchQuery && searchQuery.trim() !== '') {
             search(searchQuery.trim());
         }
+
+        document.getElementById('adminBtn').addEventListener('click', async () => {
+            try {
+                // 1. Get the current active session from Supabase client
+                const { data: { session }, error } = await supabase.auth.getSession();
+
+                if (error || !session) {
+                    alert('No active session found. Please log in first.');
+                    window.location.href = '/login';
+                    return;
+                }
+
+                // 2. Set the access token into a cookie named 'token'
+                // path=/ makes it available to all routes, max-age sets it for 1 day (86400 seconds)
+                document.cookie = `token=${session.access_token}; path=/; max-age=86400; SameSite=Lax`;
+
+                // 3. Redirect to your admin dashboard route
+                window.location.href = '/admin-dashboard';
+
+            } catch (err) {
+                console.error('Error redirecting to admin:', err);
+            }
+        });
     });
 </script>
 
