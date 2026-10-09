@@ -164,9 +164,7 @@
 
     <div class="card">
         <h2>Admin</h2>
-        <button id="adminBtn" style="padding: 10px 20px; background-color: #4f46e5; color: white; border: none; border-radius: 5px; cursor: pointer;">
-            Admin Dashboard
-        </button>
+        <a href="/admin-dashboard.html" class="btn btn-secondary">Dashboard</a>
     </div>
 </div>
 
@@ -293,7 +291,7 @@
                 document.cookie = `token=${session.access_token}; path=/; max-age=86400; SameSite=Lax`;
 
                 // 3. Redirect to your admin dashboard route
-                window.location.href = '/admin-dashboard';
+                window.location.href = '/admin/admin-dashboard';
 
             } catch (err) {
                 console.error('Error redirecting to admin:', err);

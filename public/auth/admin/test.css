@@ -114,3 +114,52 @@ ah2 {
     margin: 10px;
     align-items: center;
 }
+/* The container element - needed to position the dropdown content */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* Style the clickable button */
+.dropbtn {
+  background-color: #3498db;
+  color: white;
+  padding: 12px 24px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {
+  background-color: #ddd;
+}
+
+/* Show the dropdown menu when hovering over the container */
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/* Change the button background color when open */
+.dropdown:hover .dropbtn {
+  background-color: #2980b9;
+}
