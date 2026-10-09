@@ -114,24 +114,20 @@ ah2 {
     margin: 10px;
     align-items: center;
 }
-/* The container element - needed to position the dropdown content */
 .dropdown {
   position: relative;
   display: inline-block;
 }
-
-/* Style the clickable button */
 .dropbtn {
-  background-color: #3498db;
-  color: white;
-  padding: 12px 24px;
-  font-size: 16px;
-  border: none;
-  cursor: pointer;
-  border-radius: 4px;
+background-color: #3e3e3e;
+border: 1px solid #020202;
+color: white;
+padding: 12px 24px;
+font-size: 16px;
+cursor: pointer;
+border-radius: 4px;
+font-family: 'Montserrat';
 }
-
-/* Dropdown Content (Hidden by Default) */
 .dropdown-content {
   display: none;
   position: absolute;
