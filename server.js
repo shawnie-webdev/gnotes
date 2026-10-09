@@ -231,7 +231,7 @@ app.get('/admin-dashboard', async (req, res) => {
         }
 
         // 5. Access Granted! Serve your admin webpage file
-        return sendFileOrError(res, '/admin-dashboard', 'test/admin-page.html');
+        return sendFileOrError(res, '/admin-dashboard', 'auth/admin/admin-dashboard.html');
 
     } catch (err) {
         console.error('Error checking user permissions:', err);
