@@ -184,6 +184,51 @@ app.get("/man-page/index.html", (req, res) => sendFileOrError(res, '/man-page/in
 app.get("/mod-page/index.html", (req, res) => sendFileOrError(res, '/mod-page/index.html', 'mod-page/index.html'));
 app.get("/test/index.html", (req, res) => sendFileOrError(res, '/test/index.html', 'test/index.html'));
 
+app.get('/admin-dashboard', async (req, res) => {
+    try {
+        // 1. Get the session token from cookies or Authorization header
+        const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+
+        if (!token) {
+            return res.status(401).send('Unauthorized: No session token provided.');
+        }
+
+        // 2. Validate the token and get the user object from Supabase Auth
+        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+        if (authError || !user) {
+            return res.status(401).send('Unauthorized: Invalid or expired session.');
+        }
+
+        const userUuid = user.id;
+
+        // 3. Query the 'user-background' table to check their 'rank'
+        const { data: bgData, error: dbError } = await supabaseAdmin
+            .from('user-background')
+            .select('rank')
+            .eq('uuid', userUuid)
+            .single();
+
+        if (dbError || !bgData) {
+            return res.status(403).send('Forbidden: User background profile not found.');
+        }
+
+        const userRank = bgData.rank;
+
+        // 4. Verify if they are an 'admin' or 'moderator'
+        if (userRank !== 'admin' && userRank !== 'moderator') {
+            return res.status(403).send('Forbidden: You do not have permission to view this page.');
+        }
+
+        // 5. Access Granted! Send or render your admin dashboard file
+        // (You can replace this with sendFileOrError if you have an html file for it)
+        return res.send(`Welcome to the dashboard, ${userRank}!`);
+
+    } catch (err) {
+        console.error('Error checking user permissions:', err);
+        return res.status(500).send('Internal Server Error');
+    }
+});
 /* DEBBUGER ENDPOINT -- DO NOT EDIT SECTION - roshaun */
 app.get("/developers/debug", async (req, res) => {
     sendFileOrError(res, "/developers/debug", 'developers/debug.html');
