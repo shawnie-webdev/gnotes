@@ -131,12 +131,12 @@ ah2 {
     transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
     transform: translateY(0px);
 
-.dropbtn:hover .dropdown {
+.dropdown .dropbtn:hover {
     background-color: #5e5e5e;
     transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
     transform: translateY(-3px)
 }
-.dropbtn:active .dropdown {
+.dropdown .dropbtn:active {
     background-color: #2e2e2e;
     transition: transform 0.1s ease, background-color 0.1s ease, box-shadow 0.1s ease;
     transform: translateY(2px);
