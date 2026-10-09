@@ -160,6 +160,10 @@
             <!-- User cards render here -->
         </div>
 
+    </div>
+
+    <div class="card">
+        <h2>Admin</h2>
         <button id="adminBtn" style="padding: 10px 20px; background-color: #4f46e5; color: white; border: none; border-radius: 5px; cursor: pointer;">
             Admin Dashboard
         </button>
@@ -276,7 +280,7 @@
         document.getElementById('adminBtn').addEventListener('click', async () => {
             try {
                 // 1. Get the current active session from Supabase client
-                const { data: { session }, error } = await supabase.auth.getSession();
+                const { data: { session }, error } = await supabaseClient.auth.getSession();
 
                 if (error || !session) {
                     alert('No active session found. Please log in first.');
