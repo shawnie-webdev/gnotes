@@ -68,7 +68,7 @@
 (() => {
   const status = document.getElementById('admin-status');
   const userList = document.getElementById('user-list');
-  let supabaseClient;
+  let supabaseClient = window.GoldenNotesConfig?.initClient?.() || window.supabaseClient;
   let currentRank = null;
   const $ = (id) => document.getElementById(id);
   const setStatus = (message, isError = false) => {
@@ -77,10 +77,9 @@
   };
 
   async function initClient() {
-    if (!window.supabase || !window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+    if (!window.supabase || !window.GoldenNotesConfig || !supabaseClient) {
       throw new Error('Supabase config was not loaded. Check /auth/config.js.');
     }
-    supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
     const { data: { session }, error } = await supabaseClient.auth.getSession();
     if (error || !session) {
       location.href = '/auth/login.html';
