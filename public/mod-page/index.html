@@ -13,7 +13,7 @@
         main { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
         .mod-panel { margin: 1.25rem 0; padding: 1.25rem; border: 1px solid var(--border-color, #444); border-radius: 12px; }
         .mod-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: .75rem; margin: .75rem 0; }
-        .mod-fields input, .mod-fields select { width: 100%; box-sizing: border-box; padding: .7rem; }
+        .mod-fields input, .mod-fields select, .mod-fields textarea { width: 100%; box-sizing: border-box; padding: .7rem; }
         .mod-actions { display: flex; flex-wrap: wrap; gap: .6rem; }
         #mod-status { min-height: 1.5rem; white-space: pre-wrap; overflow-wrap: anywhere; }
         #user-list { padding-left: 1.25rem; overflow-wrap: anywhere; }
@@ -42,6 +42,7 @@
         <div class="mod-fields">
             <input id="ban-uuid" autocomplete="off" placeholder="Target user UUID" aria-label="Target user UUID">
             <input id="ban-hours" type="number" min="1" max="8760" step="1" value="24" aria-label="Ban duration in hours" placeholder="Hours">
+            <textarea id="ban-reason" rows="3" maxlength="1000" aria-label="Ban reason" placeholder="Required reason for the ban"></textarea>
         </div>
         <button id="ban-button" class="btn btn-primary" type="button">Ban user</button>
     </section>
@@ -60,7 +61,7 @@
         <div class="mod-fields">
             <input id="rank-uuid" autocomplete="off" placeholder="Target user UUID" aria-label="Target user UUID">
             <select id="rank-value" aria-label="New rank">
-                <option value="User">User</option>
+                <option value="Viewer">Viewer</option>
                 <option value="Moderator">Moderator</option>
                 <option value="Admin">Admin</option>
             </select>
@@ -148,10 +149,12 @@
     document.getElementById('ban-button').addEventListener('click', () => {
         const targetUuid = document.getElementById('ban-uuid').value.trim();
         const hours = Number(document.getElementById('ban-hours').value);
+        const reason = document.getElementById('ban-reason').value.trim();
         if (!targetUuid) return setStatus('Enter the target user UUID first.');
         if (!Number.isInteger(hours) || hours < 1 || hours > 8760) return setStatus('Ban duration must be 1–8760 whole hours.');
-        if (!window.confirm('Ban this user for ' + hours + ' hour(s)?')) return;
-        runAction({ action: 'ban', targetUuid, hours });
+        if (!reason) return setStatus('Enter a reason for the ban.');
+        if (!window.confirm('Ban this user for ' + hours + ' hour(s)?\n\nReason: ' + reason)) return;
+        runAction({ action: 'ban', targetUuid, hours, reason });
     });
 
     document.getElementById('unban-button').addEventListener('click', () => {
