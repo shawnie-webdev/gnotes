@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Account Banned · GoldenNotes</title>
+  <link rel="stylesheet" href="/master-combined.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/auth/theme.js"></script>
+  <style>
+    .ban-wrap{width:min(680px,100%);margin:8vh auto;padding:clamp(22px,5vw,42px);background:var(--bg-card);border:1px solid var(--border-color);border-radius:16px;box-shadow:var(--shadow-lg);text-align:center}
+    .ban-icon{display:block;width:112px;height:112px;object-fit:contain;margin:0 auto 22px}
+    .ban-reason{margin:20px 0;padding:16px;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--deepest-background);border:1px solid var(--border-color);border-radius:10px}
+    .ban-label{font-size:.82rem;color:var(--muted-text);text-transform:uppercase;letter-spacing:.08em}
+    .ban-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:24px}
+  </style>
+</head>
+<body>
+  <main class="ban-wrap">
+    <img class="ban-icon" src="/ban-icon.jpeg" alt="Account banned icon">
+    <p class="ban-label">GoldenNotes account notice</p>
+    <h1>Account temporarily banned</h1>
+    <p>Sign-in or access to GoldenNotes is currently restricted for this account. If you believe this is a mistake, contact the project moderators or administrator.</p>
+    <section class="ban-reason" aria-live="polite">
+      <strong>Reason given</strong>
+      <p id="ban-reason">Loading ban information…</p>
+    </section>
+    <div class="ban-actions">
+      <a class="btn btn-primary" href="/login">Return to sign in</a>
+      <a class="btn btn-secondary" href="/">Homepage</a>
+    </div>
+  </main>
+  <script>
+    (() => {
+      const params = new URLSearchParams(location.search);
+      const reason = params.get('reason');
+      document.getElementById('ban-reason').textContent =
+        reason ? reason.slice(0, 1000) : 'Your account is currently restricted. Sign in again or contact a moderator for more information.';
+    })();
+  </script>
+</body>
+</html>
