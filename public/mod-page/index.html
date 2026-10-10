@@ -186,10 +186,9 @@
                 setStatus('You are not signed in. Please sign in, then reopen this page.');
                 return;
             }
-            const result = await requestAction({ action: 'list-users' });
-            // Server authorizes the request. Find the current user’s role from the returned safe profile list.
-            const ownProfile = (result.users || []).find(user => user.uuid === session.user.id);
-            currentRank = ownProfile?.rank || null;
+            const result = await requestAction({ action: 'whoami' });
+            // The role comes from the server's service-role lookup, never from client-supplied data.
+            currentRank = result.rank || null;
             if (!['Admin', 'Moderator'].includes(currentRank)) {
                 setStatus('Access denied: an Admin or Moderator rank is required.');
                 return;
