@@ -3,77 +3,203 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GoldenNotes v1.2</title>
+  <title>GoldenNotes Admin Dashboard</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-
-  <!-- Supabase JS Client via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/auth/config.js"></script>
   <script src="/auth/theme.js"></script>
-
   <link rel="stylesheet" href="/auth/admin/test.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://googleapis.com" rel="stylesheet">
-
+  <style>
+    .admin-tools{max-width:980px;margin:24px auto;padding:0 18px}
+    .panel-controller{margin:18px 0;padding:20px;border-radius:12px}
+    .admin-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;align-items:end}
+    .admin-form label{display:grid;gap:6px}
+    .admin-form input,.admin-form select{width:100%;box-sizing:border-box;padding:10px;border-radius:7px}
+    .admin-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+    #admin-status{white-space:pre-wrap;padding:12px;border-radius:8px;margin:18px 0}
+    #user-list{overflow:auto}
+    #user-list table{width:100%;border-collapse:collapse}
+    #user-list th,#user-list td{text-align:left;padding:9px;border-bottom:1px solid #7775;overflow-wrap:anywhere}
+    .danger-note{opacity:.85;font-size:.92rem}
+  </style>
 </head>
 <body>
   <div class="top-header">
-    <a href="/" class="button-primary-panel" id="dashboard">Homepage</a>
-   
-       <div class="dropdown">
-  <button class="button-primary-panel">Dropdown Menu</button>
-  <div class="dropdown-content">
-    <button class="button-primary-panel">Edit Users</button>
-    <button class="button-primary-panel">Delete Users</button>
-    <button class="button-primary-panel">Restore Users</button>
+    <a href="/" class="button-primary-panel">Homepage</a>
+    <a href="/auth/dashboard.html" class="button-primary-panel">My Dashboard</a>
   </div>
-</div>
-</div>
+  <main class="admin-tools">
+    <h1 class="title">GoldenNotes Admin Dashboard</h1>
+    <p>Manage accounts using server-verified permissions. Actions are checked again by the server; hiding a button is not a security boundary.</p>
+    <div id="admin-status" role="status" aria-live="polite">Checking your session…</div>
 
-    <h1 class="title">Testing Area</h1>
-    <h3>--IDEAS--</h3>
-    <p>&middot; Add section to see rankings of all users, have filters, and create a process to apply for admin or any role a user desires.
-    The application will be checked by moderators or admins, and if the user is accepted, they recieve the role they applied for.
-    We may even add special ranks, such as the Developer and Debugger ranks, which are only concepts one developer imagines.
-    </p>
-    <p>&middot; Add delete options for calendar events, corkboard rooms, and other user generated media.
-        Along with even maybe automated deletion of old events, and maybe even a way to delete old corkboard rooms that are inactive for a certain amount of time.
-    </p>
+    <section class="panel-controller" id="user-management">
+      <div class="title-card"><h2>User Actions</h2><p>Ban, restore access, or change a user's rank.</p></div>
+      <div class="admin-form">
+        <label for="target-uuid">User UUID
+          <input id="target-uuid" autocomplete="off" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+        </label>
+        <label for="ban-hours">Ban duration (hours)
+          <input id="ban-hours" type="number" min="1" max="8760" step="1" value="24">
+        </label>
+        <label for="target-rank">New rank
+          <select id="target-rank"><option>User</option><option>Moderator</option><option>Admin</option></select>
+        </label>
+      </div>
+      <div class="admin-actions">
+        <button class="button-primary-panel" id="ban-user" type="button">Ban User</button>
+        <button class="button-primary-panel" id="unban-user" type="button">Restore / Unban User</button>
+        <button class="button-primary-panel" id="change-user-rank" type="button">Change User Rank</button>
+        <button class="button-primary-panel" id="edit-users" type="button">Edit Users (focus form)</button>
+        <button class="button-primary-panel" id="delete-users" type="button">Delete Users</button>
+      </div>
+      <p class="danger-note">Permanent account deletion is intentionally not enabled in this dashboard: it can be irreversible and may leave related content behind. Use a temporary ban to restrict access instead.</p>
+    </section>
 
-    <p>&middot; Maybe perhaps, if GoldenNotes somehow blows up and we get funds, we may get a server for free!</p>
+    <section class="panel-controller" id="management-tools">
+      <div class="title-card"><h2>Management Tools</h2><p>Load the available user profiles and their ranks.</p></div>
+      <div class="admin-actions">
+        <button class="button-primary-panel" id="lists-see" type="button">See Lists / Refresh Users</button>
+      </div>
+      <div id="user-list" aria-live="polite"></div>
+    </section>
+  </main>
+<script>
+(() => {
+  const status = document.getElementById('admin-status');
+  const userList = document.getElementById('user-list');
+  let supabaseClient;
+  let currentRank = null;
+  const $ = (id) => document.getElementById(id);
+  const setStatus = (message, isError = false) => {
+    status.textContent = message;
+    status.style.color = isError ? '#ff7777' : '';
+  };
 
-    <div class="panel-controller" id="nav1">
-      <div class="title-card">
-      <ah1>User Actions</ah1>
-      <ah2>Used to manage users, and modify them.</ah2>
-      </div>
-      <button class="button-primary-panel" id="ban-user">Ban User</button>
-      <div class="input-container">
-        <p>Ban Users</p>
-      <input placeholder="UUID Here" id="user-uuid-input-ban">
-      <input placeholder="Amount of hours" id="user-uuid-input-ban">
-      </div>
-      <button class="button-primary-panel" id="unban-user">Unban User</button>
-      <div class="input-container">
-        <p>Unban Users</p>
-      <input placeholder="UUID Here" id="user-uuid-input-unban">
-      </div>
-      <button class="button-primary-panel" id="change-user-rank">Change User Rank</button>
-      <div class="input-container">
-        <p>Change Ranks</p>
-      <input placeholder="UUID Here" id="user-uuid-input-rank">
-      <input placeholder="Rank" id="user-rank-input">
-      </div>
-    </div>
+  async function initClient() {
+    if (!window.supabase || !window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) {
+      throw new Error('Supabase config was not loaded. Check /auth/config.js.');
+    }
+    supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    const { data: { session }, error } = await supabaseClient.auth.getSession();
+    if (error || !session) {
+      location.href = '/auth/login.html';
+      throw new Error('Please sign in to continue.');
+    }
+    return session;
+  }
 
-    <div class="panel-controller" id="nav2">
-      <div class="title-card">
-      <ah1>Management Tools</ah1>
-      <ah2>Used to manage other properties of GoldenNotes.</ah2>
-      </div>
-      <button class="button-primary-panel" id="lists-see">See Lists</button>
-    </div>
+  async function api(action, extra = {}) {
+    const { data: { session }, error } = await supabaseClient.auth.getSession();
+    if (error || !session) throw new Error('Your session expired. Please sign in again.');
+    const response = await fetch('/auth/moderator/actionpost', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + session.access_token
+      },
+      body: JSON.stringify({ action, sessionId: session.access_token, ...extra })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.success) throw new Error(data.error || 'Request failed (' + response.status + ').');
+    return data;
+  }
 
-  </body>
-  </html>
+  function targetUuid() {
+    const uuid = $('target-uuid').value.trim();
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uuid)) {
+      throw new Error('Enter a valid user UUID first.');
+    }
+    return uuid;
+  }
+
+  async function runAction(action, extra = {}, confirmation = '') {
+    try {
+      const uuid = targetUuid();
+      if (confirmation && !confirm(confirmation)) return;
+      const result = await api(action, { targetUuid: uuid, ...extra });
+      setStatus(result.message || 'Action completed successfully.');
+      if (action === 'ban' || action === 'unban' || action === 'delete-user') await loadUsers();
+    } catch (error) {
+      setStatus(error.message || String(error), true);
+    }
+  }
+
+  async function loadUsers() {
+    try {
+      const result = await api('list-users');
+      const users = result.users || [];
+      userList.replaceChildren();
+      if (!users.length) {
+        userList.textContent = 'No user profiles returned.';
+        return;
+      }
+      const table = document.createElement('table');
+      const thead = document.createElement('thead');
+      const headRow = document.createElement('tr');
+      ['UUID', 'Rank', 'Select'].forEach(label => {
+        const th = document.createElement('th'); th.textContent = label; headRow.appendChild(th);
+      });
+      thead.appendChild(headRow); table.appendChild(thead);
+      const tbody = document.createElement('tbody');
+      users.forEach(user => {
+        const tr = document.createElement('tr');
+        const uuidCell = document.createElement('td'); uuidCell.textContent = user.uuid || '';
+        const rankCell = document.createElement('td'); rankCell.textContent = user.rank || 'User';
+        const selectCell = document.createElement('td');
+        const button = document.createElement('button');
+        button.type = 'button'; button.className = 'button-primary-panel'; button.textContent = 'Use UUID';
+        button.addEventListener('click', () => {
+          $('target-uuid').value = user.uuid || '';
+          $('target-rank').value = ['User','Moderator','Admin'].includes(user.rank) ? user.rank : 'User';
+          $('user-management').scrollIntoView({behavior:'smooth', block:'start'});
+        });
+        selectCell.appendChild(button);
+        tr.append(uuidCell, rankCell, selectCell); tbody.appendChild(tr);
+      });
+      table.appendChild(tbody); userList.appendChild(table);
+      setStatus('Loaded ' + users.length + ' user profile(s). The list is limited to the first 100 profiles.');
+    } catch (error) {
+      setStatus(error.message || String(error), true);
+    }
+  }
+
+  $('ban-user').addEventListener('click', () => {
+    const hours = Number($('ban-hours').value);
+    if (!Number.isInteger(hours) || hours < 1 || hours > 8760) {
+      setStatus('Ban duration must be a whole number from 1 to 8760 hours.', true); return;
+    }
+    runAction('ban', { hours }, 'Ban this account for ' + hours + ' hour(s)?');
+  });
+  $('unban-user').addEventListener('click', () =>
+    runAction('unban', {}, 'Restore access for this account?'));
+  $('change-user-rank').addEventListener('click', () => {
+    if (currentRank !== 'Admin') { setStatus('Only Admins can change user ranks.', true); return; }
+    runAction('change-rank', { rank: $('target-rank').value }, 'Change this user rank to ' + $('target-rank').value + '?');
+  });
+  $('edit-users').addEventListener('click', () => {
+    $('user-management').scrollIntoView({behavior:'smooth', block:'start'});
+    $('target-uuid').focus();
+    setStatus('Choose a UUID, then use the rank or access controls. Server permissions still apply.');
+  });
+  $('delete-users').addEventListener('click', () => {
+    setStatus('Permanent deletion is disabled to avoid orphaning user content. Use Ban User to restrict access, or contact the project maintainer to design a safe deletion workflow.');
+    $('user-management').scrollIntoView({behavior:'smooth', block:'start'});
+  });
+  $('lists-see').addEventListener('click', loadUsers);
+
+  initClient().then(async () => {
+    try {
+      const result = await api('whoami');
+      currentRank = result.rank;
+      if (currentRank !== 'Admin') {
+        $('change-user-rank').disabled = true;
+        $('target-rank').disabled = true;
+      }
+      setStatus('Signed in and verified as ' + currentRank + '.');
+    } catch (error) { setStatus(error.message || String(error), true); }
+  }).catch(error => setStatus(error.message || String(error), true));
+})();
+</script>
+</body>
+</html>
