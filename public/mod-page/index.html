@@ -95,7 +95,9 @@
     }
 
     function disableActions(disabled) {
-        actionButtons.forEach(button => { button.disabled = disabled; });
+        actionButtons.forEach(button => {
+            button.disabled = disabled || (button.id === 'rank-button' && currentRank !== 'Admin');
+        });
     }
 
     async function requestAction(payload) {
