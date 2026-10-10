@@ -579,6 +579,55 @@ app.post('/auth/signup-provider/posthttps', async (req, res) => {
     }
 });
 
+
+// Public-facing ban lookup: only returns a reason for an account currently banned by Supabase.
+app.post('/auth/ban-info', async (req, res) => {
+    try {
+        const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
+        if (!email || email.length > 320 || !email.includes("@")) {
+            return res.status(400).json({ banned: false });
+        }
+        const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+        if (error) {
+            console.error("[auth/ban-info] User lookup failed:", error.message);
+            return res.status(503).json({ banned: false });
+        }
+        const matched = (data.users || []).find(u => (u.email || "").toLowerCase() === email);
+        if (!matched?.banned_until || new Date(matched.banned_until).getTime() <= Date.now()) {
+            return res.json({ banned: false });
+        }
+        return res.json({ banned: true, reason: matched.app_metadata?.ban_reason || "No reason was provided." });
+    } catch (err) {
+        console.error("[auth/ban-info] Lookup failed:", err);
+        return res.status(503).json({ banned: false });
+    }
+});
+
+// Checks a bearer session's user record using the trusted Auth Admin API, even if getUser(token) rejects a banned session.
+app.post('/auth/ban-status', async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization || "";
+        const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+        if (!token) return res.status(401).json({ banned: false });
+        let userId;
+        try {
+            const payload = JSON.parse(Buffer.from(token.split(".")[1], "base64url").toString("utf8"));
+            userId = payload.sub;
+        } catch (_) {
+            return res.status(401).json({ banned: false });
+        }
+        if (typeof userId !== "string") return res.status(401).json({ banned: false });
+        const { data, error } = await supabaseAdmin.auth.admin.getUserById(userId);
+        if (error || !data?.user) return res.status(401).json({ banned: false });
+        const u = data.user;
+        const banned = !!u.banned_until && new Date(u.banned_until).getTime() > Date.now();
+        return res.json({ banned, reason: banned ? (u.app_metadata?.ban_reason || "No reason was provided.") : "" });
+    } catch (err) {
+        console.error("[auth/ban-status] Check failed:", err);
+        return res.status(503).json({ banned: false });
+    }
+});
+
 app.post('/auth/moderator/actionpost', async (req, res) => {
     try {
         // The browser sends the Supabase access token as a Bearer token.
@@ -610,7 +659,7 @@ app.post('/auth/moderator/actionpost', async (req, res) => {
             return res.status(403).json({ error: "Admin or Moderator rank required." });
         }
 
-        const { action, targetUuid, hours, rank } = req.body || {};
+        const { action, targetUuid, hours, rank, reason } = req.body || {};
 
         if (action === "whoami") {
             return res.json({ success: true, userId: user.id, rank: actorRank });
@@ -664,9 +713,9 @@ app.post('/auth/moderator/actionpost', async (req, res) => {
             if (actorRank !== "Admin") {
                 return res.status(403).json({ error: "Only Admins can change user ranks." });
             }
-            const allowedRanks = ["User", "Moderator", "Admin"];
+            const allowedRanks = ["Viewer", "Moderator", "Admin"];
             if (!allowedRanks.includes(rank)) {
-                return res.status(400).json({ error: "Rank must be User, Moderator, or Admin." });
+                return res.status(400).json({ error: "Rank must be Viewer, Moderator, or Admin." });
             }
             if (targetUuid === user.id && rank !== "Admin") {
                 return res.status(400).json({ error: "You cannot remove your own Admin rank." });
@@ -688,8 +737,18 @@ app.post('/auth/moderator/actionpost', async (req, res) => {
             if (!Number.isInteger(durationHours) || durationHours < 1 || durationHours > 8760) {
                 return res.status(400).json({ error: "Ban duration must be 1–8760 whole hours." });
             }
+            const banReason = typeof reason === "string" ? reason.trim().slice(0, 1000) : "";
+            if (!banReason) {
+                return res.status(400).json({ error: "A reason is required to ban an account." });
+            }
+            const { data: existingAuth, error: lookupError } = await supabaseAdmin.auth.admin.getUserById(targetUuid);
+            if (lookupError || !existingAuth?.user) {
+                return res.status(404).json({ error: "Could not find the target authentication account." });
+            }
+            const appMetadata = { ...(existingAuth.user.app_metadata || {}), ban_reason: banReason };
             const { error } = await supabaseAdmin.auth.admin.updateUserById(targetUuid, {
-                ban_duration: `${durationHours}h`
+                ban_duration: `${durationHours}h`,
+                app_metadata: appMetadata
             });
             if (error) {
                 console.error("[moderator/actionpost] Ban failed:", error.message);
@@ -699,8 +758,12 @@ app.post('/auth/moderator/actionpost', async (req, res) => {
         }
 
         if (action === "unban") {
+            const { data: existingAuth } = await supabaseAdmin.auth.admin.getUserById(targetUuid);
+            const appMetadata = { ...(existingAuth?.user?.app_metadata || {}) };
+            delete appMetadata.ban_reason;
             const { error } = await supabaseAdmin.auth.admin.updateUserById(targetUuid, {
-                ban_duration: "none"
+                ban_duration: "none",
+                app_metadata: appMetadata
             });
             if (error) {
                 console.error("[moderator/actionpost] Unban failed:", error.message);
