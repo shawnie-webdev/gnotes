@@ -130,9 +130,49 @@
         getClient
     };
 
+    // Shared guard: check existing/background sessions on pages that load theme.js.
+    // Supabase may still have a cached session after the server bans the account.
+    async function checkBanStatus(session) {
+        if (!session?.access_token || location.pathname.endsWith('/ban.html')) return;
+        try {
+            const response = await fetch('/auth/ban-status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + session.access_token
+                },
+                body: '{}'
+            });
+            if (!response.ok) return;
+            const result = await response.json();
+            if (result.banned) {
+                const reason = encodeURIComponent(result.reason || 'No reason was provided.');
+                location.replace('/auth/ban.html?reason=' + reason);
+            }
+        } catch (err) {
+            console.warn('Could not verify account ban status:', err);
+        }
+    }
+
+    function installBanGuard() {
+        const client = getClient();
+        if (!client || global.__gnBanGuardInstalled) return;
+        global.__gnBanGuardInstalled = true;
+        client.auth.getSession().then(({ data, error }) => {
+            if (!error) checkBanStatus(data?.session);
+        });
+        client.auth.onAuthStateChange((event, session) => {
+            if (event !== 'INITIAL_SESSION' && session) {
+                // Defer network work until Supabase finishes its auth callback.
+                Promise.resolve().then(() => checkBanStatus(session));
+            }
+        });
+    }
+
     function autoInit() {
         if (!global.supabase) return;
         initThemeFromUser();
+        installBanGuard();
     }
 
     if (document.readyState === 'loading') {
