@@ -580,8 +580,135 @@ app.post('/auth/signup-provider/posthttps', async (req, res) => {
 });
 
 app.post('/auth/moderator/actionpost', async (req, res) => {
+    try {
+        // The browser sends the Supabase access token as a Bearer token.
+        const authHeader = req.headers.authorization || "";
+        const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
 
-})
+        if (!token) {
+            return res.status(401).json({ error: "Missing session access token." });
+        }
+
+        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+        if (authError || !user) {
+            return res.status(401).json({ error: "Invalid or expired session." });
+        }
+
+        const { data: actorProfile, error: actorError } = await supabaseAdmin
+            .from("user-background")
+            .select("rank")
+            .eq("uuid", user.id)
+            .maybeSingle();
+
+        if (actorError) {
+            console.error("[moderator/actionpost] Could not verify moderator rank:", actorError.message);
+            return res.status(500).json({ error: "Could not verify your permissions." });
+        }
+
+        const actorRank = actorProfile?.rank;
+        if (actorRank !== "Admin" && actorRank !== "Moderator") {
+            return res.status(403).json({ error: "Admin or Moderator rank required." });
+        }
+
+        const { action, targetUuid, hours, rank } = req.body || {};
+
+        if (action === "list-users") {
+            const { data, error } = await supabaseAdmin
+                .from("user-background")
+                .select("uuid, rank")
+                .order("rank", { ascending: true })
+                .limit(100);
+            if (error) {
+                console.error("[moderator/actionpost] list-users failed:", error.message);
+                return res.status(500).json({ error: "Could not load users." });
+            }
+            return res.json({ success: true, users: data || [] });
+        }
+
+        if (!["ban", "unban", "change-rank"].includes(action)) {
+            return res.status(400).json({ error: "Unknown moderator action." });
+        }
+        if (typeof targetUuid !== "string" ||
+            !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(targetUuid)) {
+            return res.status(400).json({ error: "Enter a valid target user UUID." });
+        }
+        if (targetUuid === user.id && action !== "change-rank") {
+            return res.status(400).json({ error: "You cannot ban or unban your own account here." });
+        }
+
+        const { data: targetProfile, error: targetError } = await supabaseAdmin
+            .from("user-background")
+            .select("rank")
+            .eq("uuid", targetUuid)
+            .maybeSingle();
+
+        if (targetError) {
+            console.error("[moderator/actionpost] Target lookup failed:", targetError.message);
+            return res.status(500).json({ error: "Could not verify the target account." });
+        }
+        if (!targetProfile) {
+            return res.status(404).json({ error: "Target user profile was not found." });
+        }
+
+        // Moderators cannot take action against admins or other moderators.
+        if (actorRank === "Moderator" &&
+            ["Admin", "Moderator"].includes(targetProfile.rank)) {
+            return res.status(403).json({ error: "Moderators cannot change another staff account." });
+        }
+
+        if (action === "change-rank") {
+            if (actorRank !== "Admin") {
+                return res.status(403).json({ error: "Only Admins can change user ranks." });
+            }
+            const allowedRanks = ["User", "Moderator", "Admin"];
+            if (!allowedRanks.includes(rank)) {
+                return res.status(400).json({ error: "Rank must be User, Moderator, or Admin." });
+            }
+            if (targetUuid === user.id && rank !== "Admin") {
+                return res.status(400).json({ error: "You cannot remove your own Admin rank." });
+            }
+            const { error } = await supabaseAdmin
+                .from("user-background")
+                .update({ rank })
+                .eq("uuid", targetUuid);
+            if (error) {
+                console.error("[moderator/actionpost] Rank update failed:", error.message);
+                return res.status(500).json({ error: "Could not update the user's rank." });
+            }
+            return res.json({ success: true, message: "User rank updated.", rank });
+        }
+
+        // Use Supabase Auth's supported ban_duration setting; no client-provided SQL or table names.
+        if (action === "ban") {
+            const durationHours = Number(hours);
+            if (!Number.isInteger(durationHours) || durationHours < 1 || durationHours > 8760) {
+                return res.status(400).json({ error: "Ban duration must be 1–8760 whole hours." });
+            }
+            const { error } = await supabaseAdmin.auth.admin.updateUserById(targetUuid, {
+                ban_duration: `${durationHours}h`
+            });
+            if (error) {
+                console.error("[moderator/actionpost] Ban failed:", error.message);
+                return res.status(500).json({ error: "Could not ban the user." });
+            }
+            return res.json({ success: true, message: `User banned for ${durationHours} hour(s).` });
+        }
+
+        if (action === "unban") {
+            const { error } = await supabaseAdmin.auth.admin.updateUserById(targetUuid, {
+                ban_duration: "none"
+            });
+            if (error) {
+                console.error("[moderator/actionpost] Unban failed:", error.message);
+                return res.status(500).json({ error: "Could not unban the user." });
+            }
+            return res.json({ success: true, message: "User unbanned." });
+        }
+    } catch (err) {
+        console.error("[moderator/actionpost] Unexpected error:", err);
+        return res.status(500).json({ error: "Internal server error." });
+    }
+});
 
 /* DEBBUGER ENDPOINT -- DO NOT EDIT SECTION */
 // 404 Catch-All Route (Must be placed AFTER all valid routes)
