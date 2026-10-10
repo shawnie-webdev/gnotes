@@ -3,55 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GoldenNotes v1.1</title>
+    <title>GoldenNotes Moderator Page</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-
-    <!-- Supabase JS Client via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="/auth/config.js"></script>
     <script src="/auth/theme.js"></script>
     <link rel="stylesheet" href="/master-combined.css">
-    <script src="../auth/permissions.js"></script>
+    <style>
+        main { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+        .mod-panel { margin: 1.25rem 0; padding: 1.25rem; border: 1px solid var(--border-color, #444); border-radius: 12px; }
+        .mod-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: .75rem; margin: .75rem 0; }
+        .mod-fields input, .mod-fields select { width: 100%; box-sizing: border-box; padding: .7rem; }
+        .mod-actions { display: flex; flex-wrap: wrap; gap: .6rem; }
+        #mod-status { min-height: 1.5rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+        #user-list { padding-left: 1.25rem; overflow-wrap: anywhere; }
+        button:disabled { opacity: .55; cursor: not-allowed; }
+    </style>
 </head>
 <body>
-
 <header class="top-header">
     <div class="nav-actions">
-        <div class="header-left">
-            <img src="../favicon.jpeg" alt="logo" id="logo">
-        </div>
-        <a href="/credits.html" class="btn btn-primary" id="credits">Credits</a>
-        <a href="/" class="btn btn-secondary" id="dashboard">Homepage</a>
+        <div class="header-left"><img src="/favicon.jpeg" alt="GoldenNotes logo" id="logo"></div>
+        <a href="/" class="btn btn-secondary">Homepage</a>
         <a href="/man-page/index.html" class="btn btn-secondary">Manual</a>
-        <div class="dropdown">
-            <button class="dropbtn btn btn-secondary">Study</button>
-            <div class="dropdown-content">
-                <a href="/corkboard" class="btn btn-secondary" id="cb">Corkboard</a>
-                <a href="/study" class="btn btn-secondary" id="study">Study Guides</a>
-                <a href="/documents" class="btn btn-secondary" id="documents">Documents</a>
-                <a href="/calendar" class="btn btn-secondary" id="calendar">Calendar</a>
-            </div>
-        </div>
-
-        <a href="/dashboard/settings" class="btn btn-secondary" id="settings-nav">Settings</a>
-        <a href="/dashboard" class="btn btn-secondary" id="d-nav">Dashboard</a>
+        <a href="/study" class="btn btn-secondary">Study Guides</a>
+        <a href="/dashboard/settings" class="btn btn-secondary">Settings</a>
+        <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
     </div>
 </header>
 
 <main>
-    <dialog>Please wait while we authenticate your account</dialog>
+    <h1>GoldenNotes Moderator Page</h1>
+    <p>Moderator actions are checked by the server. Your rank and the target account's rank are verified before a change is made.</p>
+    <p id="mod-status" role="status" aria-live="polite">Checking your session…</p>
 
-    <h1 id="title">GoldenNotes Moderator Page</h1>
-    <div class="card">
-        <h3>Actions:</h3>
- 
-        <h3>Console</h3>
-        <a href="/developers/debug" class="btn btn-secondary">Console</a>
-        <h3>Test Area</h3>
-        <a href="/auth/admin/dashboard.html" class="btn btn-secondary">Test</a>
-    </div>
+    <section class="mod-panel">
+        <h2>Ban a user</h2>
+        <div class="mod-fields">
+            <input id="ban-uuid" autocomplete="off" placeholder="Target user UUID" aria-label="Target user UUID">
+            <input id="ban-hours" type="number" min="1" max="8760" step="1" value="24" aria-label="Ban duration in hours" placeholder="Hours">
+        </div>
+        <button id="ban-button" class="btn btn-primary" type="button">Ban user</button>
+    </section>
 
-    <button id="return" class=" btn btn-secondary">Go back</button>
+    <section class="mod-panel">
+        <h2>Unban a user</h2>
+        <div class="mod-fields">
+            <input id="unban-uuid" autocomplete="off" placeholder="Target user UUID" aria-label="Target user UUID">
+        </div>
+        <button id="unban-button" class="btn btn-secondary" type="button">Unban user</button>
+    </section>
+
+    <section class="mod-panel">
+        <h2>Change a user's rank</h2>
+        <p>Admin-only. Moderators cannot promote users or change staff ranks.</p>
+        <div class="mod-fields">
+            <input id="rank-uuid" autocomplete="off" placeholder="Target user UUID" aria-label="Target user UUID">
+            <select id="rank-value" aria-label="New rank">
+                <option value="User">User</option>
+                <option value="Moderator">Moderator</option>
+                <option value="Admin">Admin</option>
+            </select>
+        </div>
+        <button id="rank-button" class="btn btn-primary" type="button">Update rank</button>
+    </section>
+
+    <section class="mod-panel">
+        <h2>Users</h2>
+        <button id="list-button" class="btn btn-secondary" type="button">Load user list</button>
+        <ul id="user-list"></ul>
+    </section>
+
+    <button id="return-button" class="btn btn-secondary" type="button">Go back</button>
 </main>
+
+<script>
+(() => {
+    const statusEl = document.getElementById('mod-status');
+    const actionButtons = [
+        document.getElementById('ban-button'),
+        document.getElementById('unban-button'),
+        document.getElementById('rank-button'),
+        document.getElementById('list-button')
+    ];
+    let client = null;
+    let session = null;
+    let currentRank = null;
+
+    function setStatus(message) {
+        statusEl.textContent = message;
+    }
+
+    function disableActions(disabled) {
+        actionButtons.forEach(button => {
+            button.disabled = disabled || (button.id === 'rank-button' && currentRank !== 'Admin');
+        });
+    }
+
+    async function requestAction(payload) {
+        if (!client || !session?.access_token) {
+            throw new Error('Your session has expired. Please sign in again.');
+        }
+        const response = await fetch('/auth/moderator/actionpost', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + session.access_token
+            },
+            // Send the current session access token with the action as well.
+            body: JSON.stringify({ ...payload, sessionId: session.access_token })
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || 'Request failed (' + response.status + ').');
+        return result;
+    }
+
+    async function runAction(payload) {
+        disableActions(true);
+        setStatus('Processing request…');
+        try {
+            const result = await requestAction(payload);
+            setStatus(result.message || 'Action completed successfully.');
+            if (payload.action === 'list-users') {
+                const list = document.getElementById('user-list');
+                list.replaceChildren();
+                (result.users || []).forEach(user => {
+                    const item = document.createElement('li');
+                    item.textContent = user.uuid + ' — ' + (user.rank || 'Unranked');
+                    list.appendChild(item);
+                });
+                if (!result.users?.length) {
+                    const item = document.createElement('li');
+                    item.textContent = 'No user profiles found.';
+                    list.appendChild(item);
+                }
+            }
+        } catch (error) {
+            setStatus(error.message || 'Action failed.');
+        } finally {
+            disableActions(!session || !currentRank);
+        }
+    }
+
+    document.getElementById('ban-button').addEventListener('click', () => {
+        const targetUuid = document.getElementById('ban-uuid').value.trim();
+        const hours = Number(document.getElementById('ban-hours').value);
+        if (!targetUuid) return setStatus('Enter the target user UUID first.');
+        if (!Number.isInteger(hours) || hours < 1 || hours > 8760) return setStatus('Ban duration must be 1–8760 whole hours.');
+        if (!window.confirm('Ban this user for ' + hours + ' hour(s)?')) return;
+        runAction({ action: 'ban', targetUuid, hours });
+    });
+
+    document.getElementById('unban-button').addEventListener('click', () => {
+        const targetUuid = document.getElementById('unban-uuid').value.trim();
+        if (!targetUuid) return setStatus('Enter the target user UUID first.');
+        if (!window.confirm('Unban this user?')) return;
+        runAction({ action: 'unban', targetUuid });
+    });
+
+    document.getElementById('rank-button').addEventListener('click', () => {
+        const targetUuid = document.getElementById('rank-uuid').value.trim();
+        const rank = document.getElementById('rank-value').value;
+        if (!targetUuid) return setStatus('Enter the target user UUID first.');
+        if (currentRank !== 'Admin') return setStatus('Only Admins can change ranks.');
+        if (!window.confirm('Set this user’s rank to ' + rank + '?')) return;
+        runAction({ action: 'change-rank', targetUuid, rank });
+    });
+
+    document.getElementById('list-button').addEventListener('click', () => runAction({ action: 'list-users' }));
+    document.getElementById('return-button').addEventListener('click', () => {
+        if (window.history.length > 1) window.history.back();
+        else window.location.assign('/');
+    });
+
+    async function initialize() {
+        disableActions(true);
+        try {
+            client = window.GoldenNotesConfig?.initClient();
+            if (!client) throw new Error('Could not initialize Supabase. Reload the page and try again.');
+            const { data, error } = await client.auth.getSession();
+            if (error) throw error;
+            session = data.session;
+            if (!session?.access_token) {
+                setStatus('You are not signed in. Please sign in, then reopen this page.');
+                return;
+            }
+            const result = await requestAction({ action: 'whoami' });
+            // The role comes from the server's service-role lookup, never from client-supplied data.
+            currentRank = result.rank || null;
+            if (!['Admin', 'Moderator'].includes(currentRank)) {
+                setStatus('Access denied: an Admin or Moderator rank is required.');
+                return;
+            }
+            if (currentRank !== 'Admin') {
+                document.getElementById('rank-button').disabled = true;
+                document.getElementById('rank-button').title = 'Only Admins can change ranks.';
+            }
+            disableActions(false);
+            setStatus('Signed in and authorized as ' + currentRank + '.');
+        } catch (error) {
+            setStatus(error.message || 'Could not verify your session or moderator permissions.');
+        }
+    }
+
+    initialize();
+})();
+</script>
 </body>
 </html>
