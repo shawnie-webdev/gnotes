@@ -291,7 +291,7 @@
                 document.cookie = `token=${session.access_token}; path=/; max-age=86400; SameSite=Lax`;
 
                 // 3. Redirect to your admin dashboard route
-                window.location.href = '/admin/admin-dashboard';
+                window.location.href = '/aadmin-dashboard.html';
 
             } catch (err) {
                 console.error('Error redirecting to admin:', err);
