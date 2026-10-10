@@ -250,9 +250,9 @@ const ALLOWED_UUIDS = [
 
 // Initialize Supabase Admin Client using the SERVICE ROLE KEY
 const supabaseAdmin = createClient(
-    "https://cqxlnmvmfkylozcdffxf.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4ODc0Nzg5MywiZXhwIjoyMTA0MzIzODkzfQ.6YlboHOlFZtDHb433W4HDpAMn_1TMjmgnqyX1ODiGs0"
-)
+    SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+);
 /**
  * Helper function to query the APILayer Bad Words API
  */
@@ -611,6 +611,10 @@ app.post('/auth/moderator/actionpost', async (req, res) => {
         }
 
         const { action, targetUuid, hours, rank } = req.body || {};
+
+        if (action === "whoami") {
+            return res.json({ success: true, userId: user.id, rank: actorRank });
+        }
 
         if (action === "list-users") {
             const { data, error } = await supabaseAdmin
