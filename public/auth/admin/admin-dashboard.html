@@ -14,7 +14,7 @@
     .panel-controller{margin:18px 0;padding:20px;border-radius:12px}
     .admin-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;align-items:end}
     .admin-form label{display:grid;gap:6px}
-    .admin-form input,.admin-form select{width:100%;box-sizing:border-box;padding:10px;border-radius:7px}
+    .admin-form input,.admin-form select,.admin-form textarea{width:100%;box-sizing:border-box;padding:10px;border-radius:7px;font:inherit}
     .admin-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
     #admin-status{white-space:pre-wrap;padding:12px;border-radius:8px;margin:18px 0}
     #user-list{overflow:auto}
@@ -42,8 +42,11 @@
         <label for="ban-hours">Ban duration (hours)
           <input id="ban-hours" type="number" min="1" max="8760" step="1" value="24">
         </label>
+        <label for="ban-reason">Ban reason (required)
+          <textarea id="ban-reason" rows="3" maxlength="1000" placeholder="Explain why this account is being banned" required></textarea>
+        </label>
         <label for="target-rank">New rank
-          <select id="target-rank"><option>User</option><option>Moderator</option><option>Admin</option></select>
+          <select id="target-rank"><option>Viewer</option><option>Moderator</option><option>Admin</option></select>
         </label>
       </div>
       <div class="admin-actions">
@@ -144,13 +147,13 @@
       users.forEach(user => {
         const tr = document.createElement('tr');
         const uuidCell = document.createElement('td'); uuidCell.textContent = user.uuid || '';
-        const rankCell = document.createElement('td'); rankCell.textContent = user.rank || 'User';
+        const rankCell = document.createElement('td'); rankCell.textContent = user.rank || 'Viewer';
         const selectCell = document.createElement('td');
         const button = document.createElement('button');
         button.type = 'button'; button.className = 'button-primary-panel'; button.textContent = 'Use UUID';
         button.addEventListener('click', () => {
           $('target-uuid').value = user.uuid || '';
-          $('target-rank').value = ['User','Moderator','Admin'].includes(user.rank) ? user.rank : 'User';
+          $('target-rank').value = ['Viewer','Moderator','Admin'].includes(user.rank) ? user.rank : 'Viewer';
           $('user-management').scrollIntoView({behavior:'smooth', block:'start'});
         });
         selectCell.appendChild(button);
@@ -168,7 +171,9 @@
     if (!Number.isInteger(hours) || hours < 1 || hours > 8760) {
       setStatus('Ban duration must be a whole number from 1 to 8760 hours.', true); return;
     }
-    runAction('ban', { hours }, 'Ban this account for ' + hours + ' hour(s)?');
+    const reason = $('ban-reason').value.trim();
+    if (!reason) { setStatus('Enter a reason for the ban.', true); $('ban-reason').focus(); return; }
+    runAction('ban', { hours, reason }, 'Ban this account for ' + hours + ' hour(s)?\n\nReason: ' + reason);
   });
   $('unban-user').addEventListener('click', () =>
     runAction('unban', {}, 'Restore access for this account?'));
