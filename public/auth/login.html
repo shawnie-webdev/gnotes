@@ -241,6 +241,22 @@
             });
 
             if (error) {
+                // Supabase can reject a banned account before issuing a session, so look up
+                // the ban notice by the email the person just attempted to use.
+                try {
+                    const response = await fetch('/auth/ban-info', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email })
+                    });
+                    const banInfo = await response.json().catch(() => ({}));
+                    if (response.ok && banInfo.banned) {
+                        window.location.href = '/auth/ban.html?reason=' + encodeURIComponent(banInfo.reason || 'No reason was provided.');
+                        return;
+                    }
+                } catch (lookupError) {
+                    console.warn('Could not check ban status:', lookupError);
+                }
                 errorBox.textContent = error.message;
                 errorBox.style.display = 'block';
                 submitBtn.disabled = false;
