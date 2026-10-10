@@ -185,7 +185,7 @@ app.get("/public", (req, res) => res.redirect("/"));
 app.get("/man-page/index.html", (req, res) => sendFileOrError(res, '/man-page/index.html', 'man-page/index.html'));
 app.get("/mod-page/index.html", (req, res) => sendFileOrError(res, '/mod-page/index.html', 'mod-page/index.html'));
 app.get("/test/index.html", (req, res) => sendFileOrError(res, '/test/index.html', 'test/index.html'));
-app.get('/admin-dashboard.html', async (req, res) => { 
+app.get('/auth/admin/admin-dashboard.html', async (req, res) => { 
     try {
         // 1. Get the session token from cookies or Authorization header
         console.log("[server.js]: Admin dashboard GET request detected, authorizing user...");
