@@ -212,6 +212,7 @@
 
     <div class="dashboard-actions">
         <a href="/dashboard/settings" class="btn btn-primary">Open Settings</a>
+        <button type="button" class="btn btn-secondary" id="change-password-btn">Change Password</button>
     </div>
 
     <h1><br></h1>
@@ -389,6 +390,56 @@
         if (event === 'SIGNED_OUT' || !nextSession) location.href = '/login';
       });
 
+
+      // Change password through Supabase Auth; no service-role key is exposed to the browser.
+      const passwordModal = $('password-modal');
+      const passwordForm = $('change-password-form');
+      const passwordMessage = $('password-message');
+      const savePasswordButton = $('save-password-btn');
+      const closePasswordModal = () => {
+        if (passwordModal) passwordModal.style.display = 'none';
+        passwordForm?.reset();
+        if (passwordMessage) passwordMessage.textContent = '';
+      };
+      $('change-password-btn')?.addEventListener('click', () => {
+        if (passwordModal) passwordModal.style.display = 'flex';
+        $('new-password')?.focus();
+      });
+      $('cancel-password-btn')?.addEventListener('click', closePasswordModal);
+      passwordModal?.addEventListener('click', (event) => {
+        if (event.target === passwordModal) closePasswordModal();
+      });
+      passwordForm?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const newPassword = $('new-password')?.value || '';
+        const confirmPassword = $('confirm-password')?.value || '';
+        if (newPassword.length < 8) {
+          showText(passwordMessage, 'Use at least 8 characters.', 'var(--danger)');
+          return;
+        }
+        if (newPassword !== confirmPassword) {
+          showText(passwordMessage, 'The passwords do not match.', 'var(--danger)');
+          return;
+        }
+        savePasswordButton.disabled = true;
+        savePasswordButton.textContent = 'Updating…';
+        showText(passwordMessage, 'Updating your password…');
+        try {
+          const { data: { session: currentSession }, error: sessionError } = await supabaseClient.auth.getSession();
+          if (sessionError || !currentSession?.user) throw new Error('Your session expired. Please sign in again.');
+          const { error: updateError } = await supabaseClient.auth.updateUser({ password: newPassword });
+          if (updateError) throw updateError;
+          showText(passwordMessage, 'Password updated successfully. Use the new password next time you sign in.', 'var(--success, #16803c)');
+          passwordForm.reset();
+          setTimeout(closePasswordModal, 1800);
+        } catch (error) {
+          showText(passwordMessage, error.message || 'Could not update the password.', 'var(--danger)');
+        } finally {
+          savePasswordButton.disabled = false;
+          savePasswordButton.textContent = 'Update Password';
+        }
+      });
+
       // Verify the current user's staff rank with the server before opening admin tools.
       const adminBtn = $('adminBtn');
       adminBtn?.addEventListener('click', async (event) => {
@@ -451,6 +502,26 @@
   });
 })();
 </script>
+
+
+<!-- Change password dialog -->
+<div id="password-modal" class="popup-overlay" role="dialog" aria-modal="true" aria-labelledby="password-modal-title">
+  <div class="popup-card" style="text-align:left;background:var(--bg-card);color:var(--main-text)">
+    <h2 id="password-modal-title">Change Password</h2>
+    <p>Enter a new password for your GoldenNotes account. Your current session will be used.</p>
+    <form id="change-password-form">
+      <label for="new-password">New password</label>
+      <input id="new-password" class="form-input" type="password" autocomplete="new-password" minlength="8" required style="width:100%;margin:8px 0 14px">
+      <label for="confirm-password">Confirm new password</label>
+      <input id="confirm-password" class="form-input" type="password" autocomplete="new-password" minlength="8" required style="width:100%;margin:8px 0 14px">
+      <p id="password-message" role="status" aria-live="polite"></p>
+      <div class="popup-buttons">
+        <button type="submit" class="btn btn-primary" id="save-password-btn">Update Password</button>
+        <button type="button" class="btn btn-secondary" id="cancel-password-btn">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 </body>
 </html>
