@@ -153,10 +153,10 @@
         getClient
     };
 
-    // Require a linked Google identity so users have a recovery sign-in method.
+    // Recovery uses a separate verified email, not a linked Google identity.
     async function enforceGoogleLink(session) {
         const path = location.pathname;
-        const exempt = ['/auth/google-link.html', '/auth/phone-setup.html', '/auth/login.html', '/auth/signup.html', '/login', '/login.html', '/signup'];
+        const exempt = ['/auth/google-link.html', '/auth/recovery.html', '/auth/phone-setup.html', '/auth/login.html', '/auth/signup.html', '/login', '/login.html', '/signup'];
         if (!session?.access_token || exempt.includes(path) || path.startsWith('/auth/google-link')) return;
         try {
             const { data, error } = await getClient().auth.getUser(session.access_token);
@@ -165,18 +165,8 @@
                 location.replace('/auth/password-change.html');
                 return;
             }
-            const hasGoogleIdentity = Array.isArray(data.user.identities) && data.user.identities.some(identity => identity.provider === 'google');
-            if (!hasGoogleIdentity) {
-                try {
-                    if (!sessionStorage.getItem('gn-google-link-notice')) {
-                        sessionStorage.setItem('gn-google-link-notice', 'shown');
-                        alert('Link a secondary Google account to secure your GoldenNotes account and enable account recovery.');
-                    }
-                } catch (_) { /* session storage may be disabled */ }
-                location.replace('/auth/google-link.html');
-            } else {
-                try { sessionStorage.removeItem('gn-google-link-notice'); } catch (_) {}
-            }
+            // Do not force OAuth identity linking for password recovery.
+
         } catch (err) {
             console.warn('Could not verify Google-link status:', err);
         }
