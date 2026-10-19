@@ -53,8 +53,16 @@ button:disabled{opacity:.65;cursor:wait}#status{margin-top:14px;white-space:pre-
       if(error) throw error;
       show('Continue in the Google window to link your account.');
     } catch(error) {
-      show('Could not link Google account: '+error.message,true);
-      linkButton.disabled=false; linkButton.textContent='Link secondary Google account';
+      const message = String(error?.message || error || 'Unknown error');
+      if (/manual linking is disabled/i.test(message)) {
+        show('Google linking is blocked by a Supabase setting. In your Supabase dashboard, open Authentication settings and enable Manual Identity Linking (if available), save the change, then reload this page. This cannot be enabled from GoldenNotes code. If the setting is unavailable, check your Supabase Auth version/project options.', true);
+      } else if (/invalid api key/i.test(message)) {
+        show('Supabase rejected the public API key. Check Project Settings → API Keys and update the frontend key in GoldenNotes if it has changed.', true);
+      } else {
+        show('Could not link Google account: ' + message, true);
+      }
+      linkButton.disabled=false;
+      linkButton.textContent='Link secondary Google account';
     }
   });
   signoutButton.addEventListener('click',async()=>{
