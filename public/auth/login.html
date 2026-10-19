@@ -204,7 +204,7 @@
             <label class="remember-me">
                 <input type="checkbox" name="remember"> Remember me
             </label>
-            <a href="#" class="forgot-password" id="forgot-password-link">Forgot password?</a>
+            <a href="#" class="forgot-password">Forgot password?</a>
         </div>
 
         <button type="submit" id="submit-btn" class="btn btn-primary login-btn">Sign In</button>
@@ -224,12 +224,6 @@
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('forgot-password-link')?.addEventListener('click', (event) => {
-            event.preventDefault();
-            const email = document.getElementById('email')?.value?.trim() || '';
-            const target = '/auth/recovery.html#reset';
-            window.location.href = target + (email ? '?email=' + encodeURIComponent(email) : '');
-        });
         const loginForm = document.getElementById('login-form');
         const emailInput = document.getElementById('email');
         const passwordInput = document.getElementById('password');
