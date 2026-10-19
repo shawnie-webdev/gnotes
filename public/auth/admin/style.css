@@ -69,3 +69,6 @@ table tbody button { color: #172033; }
   column-gap: 5px;
   row-gap: 5px;
 }
+.generic-button {
+  gap: 5px
+}
