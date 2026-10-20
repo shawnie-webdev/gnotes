@@ -75,7 +75,7 @@
           <textarea class="form-input" id="task-description" maxlength="2000"></textarea>
           <label for="task-subject">Subject</label>
           <input class="form-input" id="task-subject" maxlength="100" required>
-          <button class="btn btn-primary" id="create-task" type="submit">Add task</button>
+          <button class="btn btn-primary" id="submitBtn" type="submit">Add task</button>
           <p class="task-message" id="task-form-status" role="status" aria-live="polite"></p>
         </form>
       </section>
@@ -137,6 +137,7 @@
                 body: JSON.stringify({ text: [
                     document.getElementById("author").value,
                     document.getElementById("taskTitle").value,
+                    taskDesc,
                     document.getElementById("taskSubj").value,
                     editorContent.replace(/<[^>]*>/g, ' ')
                 ].join(' ') })
@@ -156,7 +157,8 @@
 
         const record = {
             author: document.getElementById("author").value,
-            subject: { name: task-title },
+            subject: { name: taskTitle},
+            desc: document.getElementById("task-description"),
             name: document.getElementById("task-subject").value,
             data: editorContent,
         };
@@ -171,7 +173,7 @@
 
             alert("Task saved successfully!");
             form.reset();
-            window.location.href = "/study";
+            window.location.href = "/student-resources/tasks.html";
         } catch (err) {
             console.error("Error inserting data:", err);
             alert("Failed to save task: " + err.message);
@@ -180,7 +182,7 @@
             submitBtn.textContent = canWrite ? "Save Task" : "Editor access required";
         }
     });
-    
+
   </script>
 </body>
 </html>
