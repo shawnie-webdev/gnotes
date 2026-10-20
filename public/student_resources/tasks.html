@@ -182,6 +182,113 @@
         }
     });
 
+    // Display tasks
+
+    const container = document.getElementById('topics-container');
+    const info = document.getElementById('info');
+
+    if (!window.supabase) {
+        console.error("Supabase CDN failed to load. Check script inclusion.");
+    }
+
+
+    // Navigation listener for Add Topic button with safety check
+    const addTopicBtn = document.getElementById('submitBtn');
+    if (addTopicBtn) {
+        addTopicBtn.addEventListener('click', () => {
+            if (!canWrite) return;
+            window.location.href = "";
+        });
+    }
+
+    // Initialize write permissions safely
+    if (window.GoldenNotesPermissions && addTopicBtn) {
+        window.GoldenNotesPermissions.initWriteControls(
+            supabaseClient,
+            addTopicBtn
+        ).then((result) => {
+            if (result) {
+                canWrite = result.canWrite;
+            }
+        }).catch(err => console.error("Permissions error:", err));
+    }
+
+    async function displayTasks(search = '') {
+        if (!container) return;
+
+        const { data: tasks, error } = await supabaseClient
+            .from('study')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            if (info) info.innerHTML = `<p style="color: #ef4444;">Failed to load topics: ${escapeHtml(error.message)}</p>`;
+            return;
+        }
+
+        if (!topics || topics.length === 0) {
+            if (info) info.innerHTML = `<p style="color: #cbd5e1;">No topics created yet.</p>`;
+            return;
+        }
+
+        // Clear loading/info message
+        if (info) info.innerHTML = '';
+        let renderedCount = 0;
+
+        task.forEach(task => {
+            const taskSubject = task.subject?.name || 'General';
+            const taskName = task.name || '';
+
+            if (topicName.toLowerCase().includes(search.toLowerCase())) {
+                renderedCount++;
+
+                const card = document.createElement('div');
+                card.className = 'card effect_button card';
+
+                card.innerHTML = `
+                        <div class="card-header" data-id="${task.id}">
+                            <span class="card-member badge-subject">${escapeHtml(taskName)}</span>
+                            <span class="card-member badge-sg">${escapeHtml(task.sg || 'SG N/A')}</span>
+                        </div>
+                        <h3 class="card-member">${escapeHtml(taskName)}</h3>
+                        <div class="card-member card-footer">
+                            <small>By: ${escapeHtml(task.author || 'Anonymous')}</small>
+                        </div>
+                    `;
+
+                card.addEventListener('click', () => {
+                    window.location.href = `/study/view?id=${task.id}`;
+                });
+
+                container.appendChild(card);
+            }
+        });
+
+        if (renderedCount === 0 && info) {
+            info.innerHTML = `<p style="color: #cbd5e1;">No matching topics found for "${escapeHtml(search)}".</p>`;
+        }
+    }
+
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+    }
+
+    // Initialization
+    const params = new URLSearchParams(window.location.search);
+    let searchparams = params.get("search");
+
+    if (searchparams !== null) {
+        searchparams = decodeURIComponent(searchparams).trim();
+        const searchBar = document.getElementById('search-bar');
+        if (searchBar) searchBar.value = searchparams;
+        displayTasks(searchparams);
+    } else {
+        displayTasks();
+    }
   </script>
 </body>
 </html>
