@@ -237,4 +237,22 @@
     } else {
         autoInit();
     }
+
+    // Keep the Quiz entry available in every page using the shared theme script.
+    function addQuizNavigation() {
+        document.querySelectorAll('.dropdown-content').forEach(menu => {
+            if (menu.querySelector('a[href="/quiz"]')) return;
+            const link = document.createElement('a');
+            link.href = '/quiz';
+            link.className = 'btn btn-secondary';
+            link.textContent = 'Quizzes';
+            menu.appendChild(link);
+        });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', addQuizNavigation, { once: true });
+    } else {
+        addQuizNavigation();
+    }
+
 })(window);
