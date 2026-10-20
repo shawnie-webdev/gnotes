@@ -264,7 +264,7 @@ app.post("/api/quizzes/:uuid/answer", async (req, res) => {
     }
 });
 
-\n/* ===---===---=== ENDPOINTS ===---===---=== */
+/* ===---===---=== ENDPOINTS ===---===---=== */
 
 app.get("/", (req, res) => sendFileOrError(res, '/', 'homepage/index.html'));
 app.get("/credits", (req, res) => sendFileOrError(res, '/credits', 'credits.html'));
