@@ -75,7 +75,7 @@
           <textarea class="form-input" id="task-description" maxlength="2000"></textarea>
           <label for="task-subject">Subject</label>
           <input class="form-input" id="task-subject" maxlength="100" required>
-          <button class="btn btn-primary" id="submitBtn" type="submit">Add task</button>
+          <button class="submit-btn btn btn-primary" id="submitBtn" type="submit">Add task</button>
           <p class="task-message" id="task-form-status" role="status" aria-live="polite"></p>
         </form>
       </section>
@@ -127,7 +127,7 @@
         const taskTitle = document.getElementById("task-title").value;
         const taskDesc = document.getElementById("task-description").value;
         const taskSubj = document.getElementById("task-subject").value;
-        const editorContent = tinymce.get('topicData').getContent();
+
         try {
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (!session?.access_token) throw new Error("Please sign in again.");
@@ -158,9 +158,8 @@
         const record = {
             author: document.getElementById("author").value,
             subject: { name: taskTitle},
-            desc: document.getElementById("task-description"),
+            data: document.getElementById("task-description"),
             name: document.getElementById("task-subject").value,
-            data: editorContent,
         };
 
         try {
