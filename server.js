@@ -402,6 +402,52 @@ app.get("/api/tasks", async (req, res) => {
     }
 });
 
+app.post("/api/tasks/manage", async (req, res) => {
+    try {
+        const authorization = req.headers.authorization || "";
+        const token = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
+        if (!token) return res.status(401).json({ error: "Sign in to manage tasks." });
+
+        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+        if (authError || !user) return res.status(401).json({ error: "Your session has expired. Please sign in again." });
+
+        const [{ data: profile, error: profileError }, { data: editorEntries, error: editorError }] = await Promise.all([
+            supabaseAdmin.from("user-background").select("rank").eq("uuid", user.id).maybeSingle(),
+            supabaseAdmin.from("editors").select("*").eq("user-uuid", user.id).limit(1)
+        ]);
+        if (profileError || editorError) {
+            console.error("[tasks] Management permission lookup failed:", profileError?.message || editorError?.message);
+            return res.status(503).json({ error: "Could not verify your permissions." });
+        }
+
+        const allowed = ["Admin", "Moderator"].includes(profile?.rank) ||
+            (Array.isArray(editorEntries) && editorEntries.length > 0);
+        if (!allowed) return res.status(403).json({ error: "Editor, Moderator, or Admin access required." });
+
+        const { id, action, completed } = req.body || {};
+        if (!(typeof id === "string" && id.trim()) && !(typeof id === "number" && Number.isFinite(id))) {
+            return res.status(400).json({ error: "A task ID is required." });
+        }
+        if (action !== "delete" && !(action === "complete" && typeof completed === "boolean")) {
+            return res.status(400).json({ error: "Choose a valid task action." });
+        }
+
+        const query = action === "delete"
+            ? supabaseAdmin.from("tasks").delete().eq("id", id)
+            : supabaseAdmin.from("tasks").update({ completed }).eq("id", id);
+        const { data, error } = await query.select("id");
+        if (error) {
+            console.error("[tasks] Management action failed:", error.message);
+            return res.status(500).json({ error: "Could not update the task. Check that the tasks table has a completed column." });
+        }
+        if (!data?.length) return res.status(404).json({ error: "Task not found." });
+        return res.json({ success: true });
+    } catch (error) {
+        console.error("[tasks] Management request failed:", error);
+        return res.status(503).json({ error: "Task management is temporarily unavailable." });
+    }
+});
+
 app.post("/api/moderate-text", async (req, res) => {
     try {
         const authorization = req.headers.authorization || "";

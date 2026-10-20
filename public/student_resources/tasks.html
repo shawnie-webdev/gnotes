@@ -32,7 +32,7 @@
     .task-subject { margin: 0.25rem 0; color: var(--text-secondary, #aab2bd); font-size: 0.9rem; }
     .task-description { margin: 0.75rem 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
     .task-delete { border: 0; background: transparent; color: var(--danger, #ef4444); cursor: pointer; font: inherit; padding: 0.25rem; }
-    .task-delete:disabled, .task-item input:disabled { cursor: wait; opacity: 0.6; }
+    .task-delete:disabled, .task-item input:disabled { cursor: not-allowed; opacity: 0.6; }
     .task-message { min-height: 1.4em; }
     .task-message:empty { display: none; }
     .task-actions { display: flex; align-items: center; gap: 0.75rem; }
@@ -210,25 +210,42 @@
             }
 
             async function updateTask(task, changes) {
-                const { error } = await supabaseClient.from('tasks').update(changes).eq('id', task.id);
-                if (error) {
+                try {
+                    await manageTask(task, 'complete', changes.completed);
+                    Object.assign(task, changes);
+                    renderTasks();
+                } catch (error) {
                     listStatus.textContent = `Could not update task: ${error.message}`;
                     await loadTasks();
-                    return;
                 }
-                Object.assign(task, changes);
-                renderTasks();
             }
 
             async function deleteTask(task) {
                 if (!window.confirm(`Delete “${task.name || 'Untitled task'}”?`)) return;
-                const { error } = await supabaseClient.from('tasks').delete().eq('id', task.id);
-                if (error) {
+                try {
+                    await manageTask(task, 'delete');
+                    tasks = tasks.filter((item) => item.id !== task.id);
+                    renderTasks();
+                } catch (error) {
                     listStatus.textContent = `Could not delete task: ${error.message}`;
-                    return;
                 }
-                tasks = tasks.filter((item) => item.id !== task.id);
-                renderTasks();
+            }
+
+            async function manageTask(task, action, completed) {
+                const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+                if (sessionError) throw sessionError;
+                if (!session?.access_token) throw new Error('Please sign in again.');
+
+                const response = await fetch('/api/tasks/manage', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session.access_token}`
+                    },
+                    body: JSON.stringify({ id: task.id, action, completed })
+                });
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok) throw new Error(result.error || 'Task update failed.');
             }
 
             async function initializePermissions() {
@@ -260,7 +277,7 @@
                     }
 
                     canWrite = editorCanWrite || isStaff;
-                    canManageTasks = editorCanWrite;
+                    canManageTasks = canWrite;
                     window.GoldenNotesPermissions?.setWriteEnabled(
                         submitButton,
                         canWrite,
