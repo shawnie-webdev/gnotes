@@ -178,8 +178,8 @@
 
       async function loadTasks() {
         const { data, error } = await client.from('tasks')
-          .select('id, user_id, title, description, subject, completed, created_at')
-          .eq('user_id', currentUser.id)
+          .select('id, userid, title, description, subject, completed, created_at')
+          .eq('userid', currentUser.id)
           .order('created_at', { ascending: false });
         if (error) throw error;
         tasks = data || [];
@@ -189,7 +189,7 @@
       async function updateTask(task, changes, control) {
         control.disabled = true;
         const { error } = await client.from('tasks').update(changes)
-          .eq('id', task.id).eq('user_id', currentUser.id);
+          .eq('id', task.id).eq('userid', currentUser.id);
         if (error) {
           control.disabled = false;
           showDatabaseError(error);
@@ -202,7 +202,7 @@
       async function deleteTask(task, button) {
         button.disabled = true;
         const { error } = await client.from('tasks').delete()
-          .eq('id', task.id).eq('user_id', currentUser.id);
+          .eq('id', task.id).eq('userid', currentUser.id);
         if (error) {
           button.disabled = false;
           showDatabaseError(error);
@@ -218,7 +218,7 @@
         submitButton.disabled = true;
         setStatus(formStatus, 'Adding task...');
         const task = {
-          user_id: currentUser.id,
+          userid: currentUser.id,
           title: document.getElementById('task-name').value.trim(),
           description: document.getElementById('task-description').value.trim(),
           subject: document.getElementById('task-subject').value.trim(),

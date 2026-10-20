@@ -6,23 +6,23 @@ grant select, insert, update, delete on table public.tasks to authenticated;
 drop policy if exists tasks_select_own on public.tasks;
 create policy tasks_select_own on public.tasks
   for select to authenticated
-  using ((select auth.uid()) = user_id);
+  using ((select auth.uid()) = userid);
 
 drop policy if exists tasks_insert_own on public.tasks;
 create policy tasks_insert_own on public.tasks
   for insert to authenticated
-  with check ((select auth.uid()) = user_id);
+  with check ((select auth.uid()) = userid);
 
 drop policy if exists tasks_update_own on public.tasks;
 create policy tasks_update_own on public.tasks
   for update to authenticated
-  using ((select auth.uid()) = user_id)
-  with check ((select auth.uid()) = user_id);
+  using ((select auth.uid()) = userid)
+  with check ((select auth.uid()) = userid);
 
 drop policy if exists tasks_delete_own on public.tasks;
 create policy tasks_delete_own on public.tasks
   for delete to authenticated
-  using ((select auth.uid()) = user_id);
+  using ((select auth.uid()) = userid);
 
 do $$
 declare
