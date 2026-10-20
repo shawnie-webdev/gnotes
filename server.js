@@ -354,20 +354,17 @@ app.post("/api/tasks", async (req, res) => {
             author: user.user_metadata?.username || user.email || "Anonymous",
             subject: { name: subject },
             name: title,
-            data: description,
-            completed: false
+            data: description
         };
-        const { data: task, error: insertError } = await supabaseAdmin
+        const { error: insertError } = await supabaseAdmin
             .from("tasks")
-            .insert([record])
-            .select()
-            .single();
+            .insert([record]);
         if (insertError) {
             console.error("[tasks] Insert failed:", insertError.message);
             return res.status(500).json({ error: "Could not save the task." });
         }
 
-        return res.status(201).json({ success: true, task });
+        return res.status(201).json({ success: true });
     } catch (error) {
         console.error("[tasks] Creation failed:", error);
         return res.status(503).json({ error: "Task creation is temporarily unavailable." });
