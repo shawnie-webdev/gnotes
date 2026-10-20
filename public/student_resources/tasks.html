@@ -3,170 +3,244 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GoldenNotes v1.2</title>
+  <title>Tasks | GoldenNotes</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-
-  <!-- Supabase JS Client via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/auth/config.js"></script>
-  <script src="/auth/permissions.js"></script>
   <script src="/auth/theme.js"></script>
   <link rel="stylesheet" href="/master-combined.css">
   <link rel="stylesheet" href="/master-experimental.css">
-
-  <section class="card" aria-labelledby="create-task-heading">
-    <h2 id="create-task-heading">Add a task</h2>
-    <form id="task-form">
-      <label for="task-name">Task name</label>
-      <input class="form-input" id="task-name" maxlength="150" required>
-
-      <label for="task-description">Task description</label>
-      <textarea class="form-input" id="task-description" maxlength="2000" required></textarea>
-
-      <label for="task-subject">Task subject</label>
-      <input class="form-input" id="task-subject" maxlength="100" required>
-
-      <button class="btn btn-secondary" id="create-task" type="submit">Add Task</button>
-      <p id="task-form-status" role="status" aria-live="polite"></p>
-    </form>
-  </section>
-
-  <section aria-labelledby="tasks-heading">
-    <h2 id="tasks-heading">Tasks</h2>
-    <p id="tasks-status" role="status" aria-live="polite">Loading tasks...</p>
-    <div id="tasks-list"></div>
-  </section>
-    <a href="/man-page/index.html" class="btn btn-secondary">Manual</a>
-    <div class="dropdown btn btn-secondary">
-<script>
-    const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const taskForm = document.getElementById('task-form');
-    const createTaskButton = document.getElementById('create-task');
-    const taskFormStatus = document.getElementById('task-form-status');
-    const tasksStatus = document.getElementById('tasks-status');
-    const tasksList = document.getElementById('tasks-list');
-    let canWrite = false;
-
-    function showStatus(element, message, isError = false) {
-      element.textContent = message;
-      element.style.color = isError ? '#ef4444' : '';
+  <style>
+    main { width: min(100% - 2rem, 960px); margin: 2rem auto 4rem; }
+    .task-layout { display: grid; grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1.4fr); gap: 1.5rem; align-items: start; }
+    .task-panel { padding: 1.25rem; }
+    .task-panel h1, .task-panel h2 { margin-top: 0; }
+    .task-form { display: grid; gap: 0.65rem; }
+    .task-form label { margin-top: 0.35rem; }
+    .task-form textarea { min-height: 105px; resize: vertical; }
+    .task-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+    .task-toolbar h2 { margin: 0; }
+    .task-filter { min-width: 130px; }
+    .task-list { display: grid; gap: 0.75rem; }
+    .task-item { border: 1px solid var(--border-color, #59616d); border-radius: 6px; padding: 1rem; }
+    .task-item.is-complete { opacity: 0.68; }
+    .task-item.is-complete .task-title { text-decoration: line-through; }
+    .task-item-header { display: flex; align-items: flex-start; gap: 0.75rem; }
+    .task-item-header input { margin-top: 0.35rem; }
+    .task-item-content { min-width: 0; flex: 1; }
+    .task-title { margin: 0; overflow-wrap: anywhere; }
+    .task-subject { margin: 0.25rem 0; color: var(--text-secondary, #aab2bd); font-size: 0.9rem; }
+    .task-description { margin: 0.75rem 0 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .task-delete { border: 0; background: transparent; color: var(--danger, #ef4444); cursor: pointer; font: inherit; padding: 0.25rem; }
+    .task-delete:disabled, .task-item input:disabled { cursor: wait; opacity: 0.6; }
+    .task-message { min-height: 1.4em; }
+    @media (max-width: 680px) {
+      main { width: min(100% - 1rem, 960px); margin-top: 1rem; }
+      .task-layout { grid-template-columns: 1fr; gap: 1rem; }
+      .task-panel { padding: 1rem; }
     }
+  </style>
+</head>
+<body>
+  <header class="top-header">
+    <div class="nav-actions">
+      <div class="header-left"><img src="/favicon.jpeg" alt="GoldenNotes" id="logo"></div>
+      <a href="/" class="btn btn-secondary">Homepage</a>
+      <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+    </div>
+  </header>
 
-    function renderTask(task) {
-      const card = document.createElement('article');
-      card.className = 'card';
+  <main>
+    <div class="task-layout">
+      <section class="card task-panel" aria-labelledby="create-task-heading">
+        <h1 id="create-task-heading">Add a task</h1>
+        <form class="task-form" id="task-form">
+          <label for="task-name">Task name</label>
+          <input class="form-input" id="task-name" maxlength="150" required>
+          <label for="task-description">Description</label>
+          <textarea class="form-input" id="task-description" maxlength="2000"></textarea>
+          <label for="task-subject">Subject</label>
+          <input class="form-input" id="task-subject" maxlength="100" required>
+          <button class="btn btn-primary" id="create-task" type="submit">Add task</button>
+          <p class="task-message" id="task-form-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
 
-      const title = document.createElement('h3');
-      title.textContent = task.name || 'Untitled task';
+      <section class="card task-panel" aria-labelledby="tasks-heading">
+        <div class="task-toolbar">
+          <h2 id="tasks-heading">Your tasks</h2>
+          <select class="form-input task-filter" id="task-filter" aria-label="Filter tasks">
+            <option value="all">All</option>
+            <option value="active">Active</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+        <p id="task-list-status" class="task-message" role="status" aria-live="polite">Loading tasks...</p>
+        <div class="task-list" id="task-list"></div>
+      </section>
+    </div>
+  </main>
 
-      const subject = document.createElement('p');
-      subject.textContent = `Subject: ${task.subj || 'General'}`;
+  <script>
+    (() => {
+      'use strict';
+      const client = window.GoldenNotesConfig?.initClient?.();
+      const form = document.getElementById('task-form');
+      const list = document.getElementById('task-list');
+      const formStatus = document.getElementById('task-form-status');
+      const listStatus = document.getElementById('task-list-status');
+      const filter = document.getElementById('task-filter');
+      const submitButton = document.getElementById('create-task');
+      let currentUser = null;
+      let tasks = [];
 
-      const description = document.createElement('p');
-      description.textContent = task.desc || '';
-
-      card.append(title, subject, description);
-      return card;
-    }
-
-    async function loadTasks() {
-      if (!supabaseClient) {
-        showStatus(tasksStatus, 'Supabase could not be initialized.', true);
-        return;
+      function setStatus(element, message, isError = false) {
+        element.textContent = message;
+        element.style.color = isError ? 'var(--danger, #ef4444)' : '';
       }
 
-      const { data: tasks, error } = await supabaseClient
-        .from('tasks')
-        .select('name, desc, subj');
-
-      if (error) {
-        showStatus(tasksStatus, `Could not load tasks: ${error.message}`, true);
-        return;
+      function showDatabaseError(error) {
+        console.error('Tasks error:', error);
+        setStatus(listStatus, `Could not access the tasks table: ${error?.message || 'The request failed.'}`, true);
       }
 
-      tasksList.replaceChildren(...(tasks || []).map(renderTask));
-      showStatus(tasksStatus, tasks?.length ? '' : 'No tasks have been added yet.');
-    }
-
-    if (supabaseClient && window.GoldenNotesPermissions) {
-      window.GoldenNotesPermissions.initWriteControls(supabaseClient, createTaskButton)
-        .then((result) => {
-          canWrite = result.canWrite;
-          if (!canWrite) createTaskButton.textContent = 'Editor access required';
-        })
-        .catch(() => showStatus(taskFormStatus, 'Could not verify editor access.', true));
-    } else {
-      createTaskButton.disabled = true;
-      showStatus(taskFormStatus, 'Supabase or editor permissions could not be initialized.', true);
-    }
-
-    taskForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      if (!supabaseClient) return;
-      if (!canWrite) {
-        showStatus(taskFormStatus, 'Sign in with an editor account to add tasks.', true);
-        return;
-      }
-
-      createTaskButton.disabled = true;
-      showStatus(taskFormStatus, 'Adding task...');
-
-      const task = {
-        name: document.getElementById('task-name').value.trim(),
-        desc: document.getElementById('task-description').value.trim(),
-        subj: document.getElementById('task-subject').value.trim()
-      };
-
-      const { error } = await supabaseClient.from('tasks').insert(task);
-      if (error) {
-        showStatus(taskFormStatus, `Could not add task: ${error.message}`, true);
-        createTaskButton.disabled = false;
-        return;
-      }
-
-      taskForm.reset();
-      showStatus(taskFormStatus, 'Task added.');
-      createTaskButton.disabled = false;
-      await loadTasks();
-    });
-
-    loadTasks();
-      taskForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        if (!supabaseClient) return;
-        if (!canWrite) {
-          showStatus(taskFormStatus, 'Sign in with an editor account to add tasks.', true);
+      function renderTasks() {
+        list.replaceChildren();
+        const visibleTasks = tasks.filter((task) => {
+          if (filter.value === 'active') return !task.completed;
+          if (filter.value === 'completed') return task.completed;
+          return true;
+        });
+        if (!visibleTasks.length) {
+          setStatus(listStatus, tasks.length ? 'No tasks match this filter.' : 'No tasks yet. Add one to get started.');
           return;
         }
+        setStatus(listStatus, `${visibleTasks.length} ${visibleTasks.length === 1 ? 'task' : 'tasks'}`);
 
-        createTaskButton.disabled = true;
-        showStatus(taskFormStatus, 'Adding task...');
+        visibleTasks.forEach((task) => {
+          const item = document.createElement('article');
+          item.className = `task-item${task.completed ? ' is-complete' : ''}`;
+          const header = document.createElement('div');
+          header.className = 'task-item-header';
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.checked = task.completed;
+          checkbox.setAttribute('aria-label', `${task.completed ? 'Reopen' : 'Complete'} ${task.title}`);
+          checkbox.addEventListener('change', () => updateTask(task, { completed: checkbox.checked }, checkbox));
 
-        const task = {
-          name: document.getElementById('task-name').value.trim(),
-          description: document.getElementById('task-description').value.trim(),
-          subject: document.getElementById('task-subject').value.trim()
-        };
+          const content = document.createElement('div');
+          content.className = 'task-item-content';
+          const title = document.createElement('h3');
+          title.className = 'task-title';
+          title.textContent = task.title;
+          const subject = document.createElement('p');
+          subject.className = 'task-subject';
+          subject.textContent = task.subject;
+          content.append(title, subject);
+          header.append(checkbox, content);
 
-        const { error } = await supabaseClient.from('tasks').insert(task);
+          const deleteButton = document.createElement('button');
+          deleteButton.type = 'button';
+          deleteButton.className = 'task-delete';
+          deleteButton.textContent = 'Delete';
+          deleteButton.setAttribute('aria-label', `Delete ${task.title}`);
+          deleteButton.addEventListener('click', () => deleteTask(task, deleteButton));
+          header.appendChild(deleteButton);
+          item.appendChild(header);
+          if (task.description) {
+            const description = document.createElement('p');
+            description.className = 'task-description';
+            description.textContent = task.description;
+            item.appendChild(description);
+          }
+          list.appendChild(item);
+        });
+      }
+
+      async function loadTasks() {
+        const { data, error } = await client.from('tasks')
+          .select('id, user_id, title, description, subject, completed, created_at')
+          .eq('user_id', currentUser.id)
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        tasks = data || [];
+        renderTasks();
+      }
+
+      async function updateTask(task, changes, control) {
+        control.disabled = true;
+        const { error } = await client.from('tasks').update(changes)
+          .eq('id', task.id).eq('user_id', currentUser.id);
         if (error) {
-          showStatus(taskFormStatus, `Could not add task: ${error.message}`, true);
-          createTaskButton.disabled = false;
+          control.disabled = false;
+          showDatabaseError(error);
           return;
         }
+        task.completed = changes.completed;
+        renderTasks();
+      }
 
-        taskForm.reset();
-        showStatus(taskFormStatus, 'Task added.');
-        createTaskButton.disabled = false;
-        await loadTasks();
+      async function deleteTask(task, button) {
+        button.disabled = true;
+        const { error } = await client.from('tasks').delete()
+          .eq('id', task.id).eq('user_id', currentUser.id);
+        if (error) {
+          button.disabled = false;
+          showDatabaseError(error);
+          return;
+        }
+        tasks = tasks.filter((entry) => entry.id !== task.id);
+        renderTasks();
+      }
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!currentUser) return;
+        submitButton.disabled = true;
+        setStatus(formStatus, 'Adding task...');
+        const task = {
+          user_id: currentUser.id,
+          title: document.getElementById('task-name').value.trim(),
+          description: document.getElementById('task-description').value.trim(),
+          subject: document.getElementById('task-subject').value.trim(),
+          completed: false
+        };
+        const { error } = await client.from('tasks').insert(task);
+        submitButton.disabled = false;
+        if (error) {
+          setStatus(formStatus, `Could not add task: ${error.message}`, true);
+          return;
+        }
+        form.reset();
+        setStatus(formStatus, 'Task added.');
+        try {
+          await loadTasks();
+        } catch (loadError) {
+          showDatabaseError(loadError);
+        }
       });
 
-      loadTasks();
-      
-</script>
-
+      filter.addEventListener('change', renderTasks);
+      (async () => {
+        if (!client) {
+          setStatus(listStatus, 'Supabase could not be initialized. Reload and try again.', true);
+          form.querySelectorAll('input, textarea, button').forEach((control) => { control.disabled = true; });
+          return;
+        }
+        const { data, error } = await client.auth.getUser();
+        if (error || !data.user) {
+          setStatus(listStatus, 'Sign in to manage your tasks.', true);
+          form.querySelectorAll('input, textarea, button').forEach((control) => { control.disabled = true; });
+          return;
+        }
+        currentUser = data.user;
+        try {
+          await loadTasks();
+        } catch (loadError) {
+          showDatabaseError(loadError);
+        }
+      })();
+    })();
+  </script>
 </body>
 </html>
