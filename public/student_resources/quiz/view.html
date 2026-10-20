@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Take quiz | GoldenNotes</title>
     <style>
+<<<<<<< HEAD
       :root {
         --easy-bg: #dff7e8;
         --easy-text: #186a3b;
@@ -74,14 +75,23 @@
       input,
       textarea,
       select {
-        width: 100%;
-        padding: 11px;
-        margin: 5px 0 14px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: #111a13;
-        color: #fff;
+=======
+      /* Quiz-specific layout only; palette and theme come from master-combined.css. */
+      main.quiz-page {
+        width: min(100%, 900px);
+        margin: 28px auto 56px;
+        padding: 0 12px;
       }
+      #title { margin: 12px 0 8px; line-height: 1.2; overflow-wrap: anywhere; }
+      #description { color: var(--text-muted); margin: 0 0 22px; line-height: 1.6; }
+      #form { display: flex; flex-direction: column; gap: 14px; }
+      #form .quiz-question {
+>>>>>>> bf7478764a8316330c8715987a4e9529d658fd93
+        width: 100%;
+        margin: 0;
+        padding: clamp(16px, 3vw, 24px);
+      }
+<<<<<<< HEAD
 
       label.option {
         display: block;
@@ -95,7 +105,60 @@
         color: white;
         border: 1px solid var(--line);
         border-radius: 8px;
+=======
+      #form .quiz-question h2 {
+        font-size: clamp(1.05rem, 2.3vw, 1.35rem);
+        line-height: 1.45;
+        margin: 0 0 14px;
+        overflow-wrap: anywhere;
+      }
+      #form label.option {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 9px 10px;
+        margin: 2px 0;
+        border-radius: var(--radius-md);
+        line-height: 1.45;
+        cursor: pointer;
+      }
+      #form label.option:hover { background: color-mix(in srgb, var(--main-gold) 8%, transparent); }
+      #form input[type="radio"],
+      #form input[type="checkbox"] {
+        flex: 0 0 auto;
+        width: auto;
+        margin: 4px 0 0;
+        accent-color: var(--main-gold);
+      }
+      #form input[type="text"],
+      #form textarea,
+      #form select {
+        display: block;
+        box-sizing: border-box;
+>>>>>>> bf7478764a8316330c8715987a4e9529d658fd93
         width: 100%;
+        max-width: 100%;
+        min-height: 42px;
+        margin: 8px 0 0;
+        padding: 10px 12px;
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-md);
+        background: var(--bg-main);
+        color: var(--text-main);
+        font: inherit;
+        font-size: 0.96rem;
+        text-align: left;
+      }
+      #form select { align-self: flex-start; }
+      #form input[type="text"]:focus,
+      #form textarea:focus,
+      #form select:focus { outline: 2px solid var(--main-gold); outline-offset: 2px; }
+      #form button[type="submit"] { align-self: flex-start; }
+      #status { min-height: 1.5em; margin-top: 16px; color: var(--text-muted); line-height: 1.6; }
+      #status:empty { display: none; }
+      @media (max-width: 600px) {
+        main.quiz-page { margin-top: 18px; padding: 0 4px; }
+        #form .quiz-question { padding: 15px; }
       }
     </style>
     <link rel="stylesheet" href="../master-combined.css">
@@ -106,7 +169,31 @@
     <script src="/auth/theme-experimental.js"></script>
   </head>
   <body>
-    <main>
+  <header class="top-header">
+    <div class="nav-actions">
+      <div class="header-left">
+        <img src="/favicon.jpeg" alt="logo" id="logo">
+      </div>
+      <a href="/credits.html" class="btn btn-primary" id="credits">Credits</a>
+      <a href="/" class="btn btn-secondary" id="dashboard">Homepage</a>
+      <a href="/man-page/index.html" class="btn btn-secondary">Manual</a>
+      <div class="dropdown btn btn-secondary">
+        Study
+        <div class="dropdown-content">
+          <a href="/corkboard" class="btn btn-secondary" id="cb">Corkboard</a>
+          <a href="/study" class="btn btn-secondary" id="study">Study Guides</a>
+          <a href="/documents" class="btn btn-secondary" id="documents">Documents</a>
+          <a href="/calendar" class="btn btn-secondary" id="calendar">Calendar</a>
+          <a href="/quiz" class="btn btn-secondary" id="calendar">Quiz</a>
+
+        </div>
+      </div>
+
+      <a href="/dashboard/settings" class="btn btn-secondary" id="settings-nav">Settings</a>
+      <a href="/dashboard" class="btn btn-secondary" id="d-nav">Dashboard</a>
+    </div>
+  </header>
+    <main class="quiz-page">
       <p><a href="/quiz">← All quizzes</a></p>
       <h1 id="title">Loading quiz…</h1>
       <p id="description"></p>
@@ -151,7 +238,7 @@
 
           qz.questions.forEach((q, i) => {
             const box = document.createElement("section");
-            box.className = "card";
+            box.className = "card quiz-question";
             const h = document.createElement("h2");
             h.textContent = i + 1 + ". " + q.prompt;
             box.append(h);
