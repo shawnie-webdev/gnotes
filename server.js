@@ -249,12 +249,17 @@ app.post("/api/quizzes/:uuid/answer", async (req, res) => {
         let correct = 0, gradable = 0;
         for (let i = 0; i < quiz.questions.length; i++) {
             const q = quiz.questions[i];
-            if (q.type === "text" && !String(q.answer || "").trim()) continue;
-            if (!["single", "multiple", "text"].includes(q.type) || !q.answer?.length) continue;
+            if (!["single", "multiple", "text"].includes(q.type)) continue;
+
+            // Choice answers are stored as arrays; text answers are stored as strings.
+            const rawExpected = Array.isArray(q.answer) ? q.answer : [q.answer ?? ""];
+            const expected = rawExpected.map(v => String(v).trim().toLowerCase()).filter(Boolean).sort();
+            if (!expected.length) continue;
+
             gradable++;
-            const expected = q.answer.map(v => String(v).trim().toLowerCase()).sort();
             const actualValue = submitted[i];
-            const actual = (Array.isArray(actualValue) ? actualValue : [actualValue ?? ""]).map(v => String(v).trim().toLowerCase()).filter(Boolean).sort();
+            const actual = (Array.isArray(actualValue) ? actualValue : [actualValue ?? ""])
+                .map(v => String(v).trim().toLowerCase()).filter(Boolean).sort();
             if (expected.length === actual.length && expected.every((v, n) => v === actual[n])) correct++;
         }
         return res.json({ correct, gradable, total: quiz.questions.length, message: gradable ? "Your answers have been checked." : "Answers submitted. This quiz has no automatically gradable questions." });
