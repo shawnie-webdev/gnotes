@@ -117,6 +117,7 @@
 
             const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             let canWrite = false;
+            let canManageTasks = false;
             let tasks = [];
 
             function setFormStatus(message, isError = false) {
@@ -155,7 +156,7 @@
                     toggle.type = 'checkbox';
                     toggle.className = 'task-toggle';
                     toggle.checked = isComplete;
-                    toggle.disabled = !canWrite;
+                    toggle.disabled = !canManageTasks;
                     toggle.setAttribute('aria-label', `${isComplete ? 'Mark' : 'Complete'} ${task.name || 'task'}`);
                     toggle.addEventListener('change', () => updateTask(task, { completed: toggle.checked }));
 
@@ -175,7 +176,7 @@
                     remove.type = 'button';
                     remove.className = 'task-delete';
                     remove.textContent = 'Delete';
-                    remove.disabled = !canWrite;
+                    remove.disabled = !canManageTasks;
                     remove.setAttribute('aria-label', `Delete ${task.name || 'task'}`);
                     remove.addEventListener('click', () => deleteTask(task));
                     actions.append(remove);
@@ -194,17 +195,18 @@
 
             async function loadTasks() {
                 listStatus.textContent = 'Loading tasks...';
-                const { data, error } = await supabaseClient
-                    .from('tasks')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (error) {
+                try {
+                    const response = await fetch('/api/tasks', {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    const result = await response.json().catch(() => ({}));
+                    if (!response.ok) throw new Error(result.error || 'Request failed.');
+                    tasks = Array.isArray(result.tasks) ? result.tasks : [];
+                    renderTasks();
+                } catch (error) {
                     listStatus.textContent = `Could not load tasks: ${error.message}`;
                     return;
                 }
-                tasks = data || [];
-                renderTasks();
             }
 
             async function updateTask(task, changes) {
@@ -230,15 +232,40 @@
             }
 
             async function initializePermissions() {
-                if (!window.GoldenNotesPermissions?.initWriteControls) {
-                    submitButton.disabled = true;
-                    submitButton.textContent = 'Permissions unavailable';
-                    setFormStatus('Could not verify task editing permissions.', true);
-                    return;
-                }
+                let editorCanWrite = false;
                 try {
-                    const result = await window.GoldenNotesPermissions.initWriteControls(supabaseClient, submitButton);
-                    canWrite = Boolean(result?.canWrite);
+                    if (window.GoldenNotesPermissions?.initWriteControls) {
+                        const result = await window.GoldenNotesPermissions.initWriteControls(supabaseClient, submitButton);
+                        editorCanWrite = Boolean(result?.canWrite);
+                    }
+
+                    const { data: { session }, error } = await supabaseClient.auth.getSession();
+                    if (error) throw error;
+                    let isStaff = false;
+                    if (!editorCanWrite && session?.access_token) {
+                        const response = await fetch('/auth/moderator/actionpost', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${session.access_token}`
+                            },
+                            body: JSON.stringify({ action: 'whoami' })
+                        });
+                        const result = await response.json().catch(() => ({}));
+                        if (response.ok) {
+                            isStaff = result.success && ['Admin', 'Moderator'].includes(result.rank);
+                        } else if (![401, 403].includes(response.status)) {
+                            throw new Error(result.error || 'Could not verify staff permissions.');
+                        }
+                    }
+
+                    canWrite = editorCanWrite || isStaff;
+                    canManageTasks = editorCanWrite;
+                    window.GoldenNotesPermissions?.setWriteEnabled(
+                        submitButton,
+                        canWrite,
+                        canWrite ? '' : 'Editor, Moderator, or Admin access required'
+                    );
                     submitButton.disabled = !canWrite;
                     submitButton.textContent = canWrite ? 'Add task' : 'Editor access required';
                     renderTasks();
@@ -272,30 +299,20 @@
                     if (sessionError) throw sessionError;
                     if (!session?.access_token) throw new Error('Please sign in again.');
 
-                    const moderationResponse = await fetch('/api/moderate-text', {
+                    const response = await fetch('/api/tasks', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${session.access_token}`
                         },
-                        body: JSON.stringify({ text: [title, description, subject].join(' ') })
+                        body: JSON.stringify({ title, description, subject })
                     });
-                    const moderation = await moderationResponse.json();
-                    if (!moderationResponse.ok) throw new Error(moderation.error || 'Moderation check failed.');
-                    if (moderation.flagged) {
+                    const result = await response.json().catch(() => ({}));
+                    if (response.status === 422 && result.flagged) {
                         window.location.assign('/auth/cursing.html');
                         return;
                     }
-
-                    const author = session.user.user_metadata?.username || session.user.email || 'Anonymous';
-                    const { error } = await supabaseClient.from('tasks').insert([{
-                        author,
-                        subject: { name: subject },
-                        name: title,
-                        data: description,
-                        completed: false
-                    }]);
-                    if (error) throw error;
+                    if (!response.ok) throw new Error(result.error || 'Could not save task.');
 
                     form.reset();
                     setFormStatus('Task added.');

@@ -300,6 +300,111 @@ async function appendCurseSentence(userId, sentence) {
     if (error) throw error;
 }
 
+app.post("/api/tasks", async (req, res) => {
+    try {
+        const authorization = req.headers.authorization || "";
+        const token = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
+        if (!token) return res.status(401).json({ error: "Sign in to create a task." });
+
+        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+        if (authError || !user) return res.status(401).json({ error: "Your session has expired. Please sign in again." });
+
+        const { data: profile, error: profileError } = await supabaseAdmin
+            .from("user-background")
+            .select("rank")
+            .eq("uuid", user.id)
+            .maybeSingle();
+        if (profileError) {
+            console.error("[tasks] Rank lookup failed:", profileError.message);
+            return res.status(503).json({ error: "Could not verify your permissions." });
+        }
+
+        const { data: editorEntries, error: editorError } = await supabaseAdmin
+            .from("editors")
+            .select("*")
+            .eq("user-uuid", user.id)
+            .limit(1);
+        if (editorError) {
+            console.error("[tasks] Editor lookup failed:", editorError.message);
+            return res.status(503).json({ error: "Could not verify your permissions." });
+        }
+
+        const isStaff = ["Admin", "Moderator"].includes(profile?.rank);
+        const isEditor = Array.isArray(editorEntries) && editorEntries.length > 0;
+        if (!isStaff && !isEditor) {
+            return res.status(403).json({ error: "Editor, Moderator, or Admin access required." });
+        }
+
+        const title = typeof req.body?.title === "string" ? req.body.title.trim() : "";
+        const subject = typeof req.body?.subject === "string" ? req.body.subject.trim() : "";
+        const description = typeof req.body?.description === "string" ? req.body.description.trim() : "";
+        if (!title || title.length > 150 || !subject || subject.length > 100 || description.length > 2000) {
+            return res.status(400).json({ error: "Enter a task name and subject within the allowed lengths." });
+        }
+
+        const moderatedText = [title, description, subject].join(" ");
+        const moderation = await checkProfanity(moderatedText);
+        const flagged = Number(moderation.bad_words_total || 0) > 0;
+        if (flagged) {
+            await incrementProfanityCount(user.id, Number(moderation.bad_words_total) || 1, moderatedText);
+            return res.status(422).json({ flagged: true, error: "This task cannot be posted." });
+        }
+
+        const record = {
+            author: user.user_metadata?.username || user.email || "Anonymous",
+            subject: { name: subject },
+            name: title,
+            data: description,
+            completed: false
+        };
+        const { data: task, error: insertError } = await supabaseAdmin
+            .from("tasks")
+            .insert([record])
+            .select()
+            .single();
+        if (insertError) {
+            console.error("[tasks] Insert failed:", insertError.message);
+            return res.status(500).json({ error: "Could not save the task." });
+        }
+
+        return res.status(201).json({ success: true, task });
+    } catch (error) {
+        console.error("[tasks] Creation failed:", error);
+        return res.status(503).json({ error: "Task creation is temporarily unavailable." });
+    }
+});
+
+app.get("/api/tasks", async (req, res) => {
+    try {
+        let { data: tasks, error } = await supabaseAdmin
+            .from("tasks")
+            .select("*")
+            .order("created_at", { ascending: false });
+
+        if (error && /created_at/i.test(error.message || "")) {
+            ({ data: tasks, error } = await supabaseAdmin.from("tasks").select("*"));
+        }
+        if (error) {
+            console.error("[tasks] List failed:", error.message);
+            return res.status(503).json({ error: "Could not load tasks." });
+        }
+
+        const publicTasks = (tasks || []).map((task) => ({
+            id: task.id,
+            author: task.author,
+            subject: task.subject,
+            name: task.name,
+            data: task.data,
+            completed: task.completed === true,
+            created_at: task.created_at
+        }));
+        return res.json({ tasks: publicTasks });
+    } catch (error) {
+        console.error("[tasks] List request failed:", error);
+        return res.status(503).json({ error: "Could not load tasks." });
+    }
+});
+
 app.post("/api/moderate-text", async (req, res) => {
     try {
         const authorization = req.headers.authorization || "";
