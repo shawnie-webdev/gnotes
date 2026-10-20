@@ -9,125 +9,125 @@
   <!-- Supabase JS Client via CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/auth/config.js"></script>
+  <script src="/auth/permissions.js"></script>
   <script src="/auth/theme.js"></script>
-  <link rel="stylesheet" href="/master-combined.css">
-  <link rel="stylesheet" href="../master-experimental.css">
+  <section class="card" aria-labelledby="create-task-heading">
+    <h2 id="create-task-heading">Add a task</h2>
+    <form id="task-form">
+      <label for="task-name">Task name</label>
+      <input class="form-input" id="task-name" maxlength="150" required>
 
-</head>
-<body>
+      <label for="task-description">Task description</label>
+      <textarea class="form-input" id="task-description" maxlength="2000" required></textarea>
 
-<header class="top-header">
-  <div class="nav-actions">
-    <div class="header-left">
-      <img src="/favicon.jpeg" alt="logo" id="logo">
-    </div>
-    <a href="/credits.html" class="btn btn-primary" id="credits">Credits</a>
-    <a href="/" class="btn btn-secondary" id="dashboard">Homepage</a>
+      <label for="task-subject">Task subject</label>
+      <input class="form-input" id="task-subject" maxlength="100" required>
+
+      <button class="btn btn-secondary" id="create-task" type="submit">Add Task</button>
+      <p id="task-form-status" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+
+  <section aria-labelledby="tasks-heading">
+    <h2 id="tasks-heading">Tasks</h2>
+    <p id="tasks-status" role="status" aria-live="polite">Loading tasks...</p>
+    <div id="tasks-list"></div>
+  </section>
     <a href="/man-page/index.html" class="btn btn-secondary">Manual</a>
     <div class="dropdown btn btn-secondary">
-      Study
-      <div class="dropdown-content">
-        <a href="/corkboard" class="btn btn-secondary" id="cb">Corkboard</a>
-        <a href="/study" class="btn btn-secondary" id="study">Study Guides</a>
-        <a href="/documents" class="btn btn-secondary" id="documents">Documents</a>
-        <a href="/calendar" class="btn btn-secondary" id="calendar">Calendar</a>
-  
-      </div>
-    </div>
-
-    <a href="/dashboard/settings" class="btn btn-secondary" id="settings-nav">Settings</a>
-    <a href="/dashboard" class="btn btn-secondary" id="d-nav">Dashboard</a>
-  </div>
-</header>
-
-<main>
-  <section class="card">
-    <h1>Welcome to the Student Made section.</h1>
-    <p>&middot; This is where the quizzes, tasks, and flashcards are located at.</p>
-    <p>&middot; An ILA does not count as a task, tasks are only long term such as projects.</p>
-    <p>&middot; Quizzes and flashcards can only be made by moderators, editors, or admins.</p>
-  </section>
-    <label for="task">
-        <input class="form-input" id="task-name" placeholder="Task name" required>
-    </label>    
-
-    <label for="task">
-        <input class="form-input" id="task-description" placeholder="Task description" required>
-    </label>    
-
-    <label for="task">
-        <input class="form-input" id="task-subject" placeholder="Task subject" required>
-    </label>    
-
-    <button class="btn btn-secondary" id="create-task">Add Task</button>
-</main>
-
 <script>
-    const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
-      const supabaseClient = window.GoldenNotesConfig?.initClient();
+    const supabaseClient = window.GoldenNotesConfig?.initClient();
+    const taskForm = document.getElementById('task-form');
+    const createTaskButton = document.getElementById('create-task');
+    const taskFormStatus = document.getElementById('task-form-status');
+    const tasksStatus = document.getElementById('tasks-status');
+    const tasksList = document.getElementById('tasks-list');
+    let canWrite = false;
 
-      const taskForm = document.getElementById('task-form');
-      const createTaskButton = document.getElementById('create-task');
-      const taskFormStatus = document.getElementById('task-form-status');
-      const tasksStatus = document.getElementById('tasks-status');
-      const tasksList = document.getElementById('tasks-list');
-      let canWrite = false;
+    function showStatus(element, message, isError = false) {
+      element.textContent = message;
+      element.style.color = isError ? '#ef4444' : '';
+    }
 
-      function showStatus(element, message, isError = false) {
-        element.textContent = message;
-        element.style.color = isError ? '#ef4444' : '';
+    function renderTask(task) {
+      const card = document.createElement('article');
+      card.className = 'card';
+
+      const title = document.createElement('h3');
+      title.textContent = task.name || 'Untitled task';
+
+      const subject = document.createElement('p');
+      subject.textContent = `Subject: ${task.subj || 'General'}`;
+
+      const description = document.createElement('p');
+      description.textContent = task.desc || '';
+
+      card.append(title, subject, description);
+      return card;
+    }
+
+    async function loadTasks() {
+      if (!supabaseClient) {
+        showStatus(tasksStatus, 'Supabase could not be initialized.', true);
+        return;
       }
 
-      function renderTask(task) {
-        const card = document.createElement('article');
-        card.className = 'card';
+      const { data: tasks, error } = await supabaseClient
+        .from('tasks')
+        .select('name, desc, subj');
 
-        const title = document.createElement('h3');
-        title.textContent = task.name;
-
-        const subject = document.createElement('p');
-        subject.textContent = `Subject: ${task.subject}`;
-
-        const description = document.createElement('p');
-        description.textContent = task.description;
-
-        card.append(title, subject, description);
-        return card;
+      if (error) {
+        showStatus(tasksStatus, `Could not load tasks: ${error.message}`, true);
+        return;
       }
 
-      async function loadTasks() {
-        if (!supabaseClient) {
-          showStatus(tasksStatus, 'Supabase could not be initialized. Please try again later.', true);
-          return;
-        }
+      tasksList.replaceChildren(...(tasks || []).map(renderTask));
+      showStatus(tasksStatus, tasks?.length ? '' : 'No tasks have been added yet.');
+    }
 
-        const { data: tasks, error } = await supabaseClient
-          .from('tasks')
-          .select('id, name, description, subject, created_at')
-          .order('created_at', { ascending: false });
+    if (supabaseClient && window.GoldenNotesPermissions) {
+      window.GoldenNotesPermissions.initWriteControls(supabaseClient, createTaskButton)
+        .then((result) => {
+          canWrite = result.canWrite;
+          if (!canWrite) createTaskButton.textContent = 'Editor access required';
+        })
+        .catch(() => showStatus(taskFormStatus, 'Could not verify editor access.', true));
+    } else {
+      createTaskButton.disabled = true;
+      showStatus(taskFormStatus, 'Supabase or editor permissions could not be initialized.', true);
+    }
 
-        if (error) {
-          showStatus(tasksStatus, `Could not load tasks: ${error.message}`, true);
-          return;
-        }
-
-        tasksList.replaceChildren(...(tasks || []).map(renderTask));
-        showStatus(tasksStatus, tasks?.length ? '' : 'No tasks have been added yet.');
+    taskForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (!supabaseClient) return;
+      if (!canWrite) {
+        showStatus(taskFormStatus, 'Sign in with an editor account to add tasks.', true);
+        return;
       }
 
-      if (supabaseClient) {
-        window.GoldenNotesPermissions.initWriteControls(supabaseClient, createTaskButton)
-          .then((result) => {
-            canWrite = result.canWrite;
-            if (!canWrite) createTaskButton.textContent = 'Editor access required';
-          })
-          .catch(() => showStatus(taskFormStatus, 'Could not verify editor access.', true));
-      } else {
-        createTaskButton.disabled = true;
-        showStatus(taskFormStatus, 'Supabase could not be initialized.', true);
+      createTaskButton.disabled = true;
+      showStatus(taskFormStatus, 'Adding task...');
+
+      const task = {
+        name: document.getElementById('task-name').value.trim(),
+        desc: document.getElementById('task-description').value.trim(),
+        subj: document.getElementById('task-subject').value.trim()
+      };
+
+      const { error } = await supabaseClient.from('tasks').insert(task);
+      if (error) {
+        showStatus(taskFormStatus, `Could not add task: ${error.message}`, true);
+        createTaskButton.disabled = false;
+        return;
       }
 
+      taskForm.reset();
+      showStatus(taskFormStatus, 'Task added.');
+      createTaskButton.disabled = false;
+      await loadTasks();
+    });
+
+    loadTasks();
       taskForm.addEventListener('submit', async (event) => {
         event.preventDefault();
         if (!supabaseClient) return;
@@ -159,12 +159,7 @@
       });
 
       loadTasks();
-
-    const data = {
-        name: task_name,
-        desc: task_desc,
-        subj: task_subj
-    };
+      
 </script>
 
 </body>
