@@ -156,14 +156,14 @@ app.use((req, res, next) => {
 
 
 /* === QUIZZES === */
-app.get("/quiz", (req, res) => sendFileOrError(res, "/quiz", "student-resources/quiz/index.html"));
-app.get("/quiz/make", (req, res) => sendFileOrError(res, "/quiz/make", "student-resources/quiz/make.html"));
+app.get("/quiz", (req, res) => sendFileOrError(res, "/quiz", "student_resources/quiz/index.html"));
+app.get("/quiz/make", (req, res) => sendFileOrError(res, "/quiz/make", "student_resources/quiz/make.html"));
 app.get("/quiz/answer", (req, res) => {
     if (!req.query.uuid && req.url.includes("?=")) {
         const id = req.url.split("?=")[1]?.split("&")[0];
         if (id) return res.redirect(302, "/quiz/answer?uuid=" + encodeURIComponent(id));
     }
-    return sendFileOrError(res, "/quiz/answer", "student-resources/quiz/view.html");
+    return sendFileOrError(res, "/quiz/answer", "student_resources/quiz/view.html");
 });
 app.get("/api/quizzes", async (req, res) => {
     try {
