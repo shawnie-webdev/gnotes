@@ -34,12 +34,17 @@
     .task-delete { border: 0; background: transparent; color: var(--danger, #ef4444); cursor: pointer; font: inherit; padding: 0.25rem; }
     .task-delete:disabled, .task-item input:disabled { cursor: wait; opacity: 0.6; }
     .task-message { min-height: 1.4em; }
+    .task-message:empty { display: none; }
+    .task-actions { display: flex; align-items: center; gap: 0.75rem; }
+    .task-toggle { width: 1rem; height: 1rem; }
     @media (max-width: 680px) {
       main { width: min(100% - 1rem, 960px); margin-top: 1rem; }
       .task-layout { grid-template-columns: 1fr; gap: 1rem; }
       .task-panel { padding: 1rem; }
     }
   </style>
+</head>
+<body>
 <header class="top-header">
   <div class="nav-actions">
     <div class="header-left">
@@ -69,13 +74,13 @@
       <section class="card task-panel" aria-labelledby="create-task-heading">
         <h1 id="create-task-heading">Add a task</h1>
         <form class="task-form" id="task-form">
-          <label for="task-name">Task name</label>
-          <input class="form-input" id="task-title" maxlength="150" required>
+          <label for="task-title">Task name</label>
+          <input class="form-input" id="task-title" name="title" maxlength="150" autocomplete="off" required>
           <label for="task-description">Description</label>
-          <textarea class="form-input" id="task-description" maxlength="2000"></textarea>
+          <textarea class="form-input" id="task-description" name="description" maxlength="2000"></textarea>
           <label for="task-subject">Subject</label>
-          <input class="form-input" id="task-subject" maxlength="100" required>
-          <button class="submit-btn btn btn-primary" id="submitBtn" type="submit">Add task</button>
+          <input class="form-input" id="task-subject" name="subject" maxlength="100" required>
+          <button class="submit-btn btn btn-primary" id="submitBtn" type="submit" disabled>Add task</button>
           <p class="task-message" id="task-form-status" role="status" aria-live="polite"></p>
         </form>
       </section>
@@ -92,203 +97,222 @@
         <p id="task-list-status" class="task-message" role="status" aria-live="polite">Loading tasks...</p>
         <div class="task-list" id="task-list"></div>
       </section>
-    </div>
-  </main>
+        </div>
+    </main>
+    <script>
+        (() => {
+            const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
+            const form = document.getElementById('task-form');
+            const submitButton = document.getElementById('submitBtn');
+            const list = document.getElementById('task-list');
+            const listStatus = document.getElementById('task-list-status');
+            const formStatus = document.getElementById('task-form-status');
+            const filter = document.getElementById('task-filter');
 
-  <script>
-    const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const form = document.getElementById("task-form");
-    const submitBtn = document.getElementById("submit");
-    let canWrite = false;
-
-    submitBtn.disabled = false;
-
-    window.GoldenNotesPermissions.initWriteControls(supabaseClient, submitBtn).then((result) => {
-        canWrite = result.canWrite;
-        if (!canWrite) {
-            submitBtn.textContent = "Editor access required";
-        }
-    });
-
-    // 2. Insert payload into Supabase table
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        if (!canWrite) {
-            alert("You do not have editor access to create tasks.");
-            return;
-        }
-
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Saving...";
-
-        const taskTitle = document.getElementById("task-title").value;
-        const taskDesc = document.getElementById("task-description").value;
-        const taskSubj = document.getElementById("task-subject").value;
-
-        try {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (!session?.access_token) throw new Error("Please sign in again.");
-            const moderationResponse = await fetch('/api/moderate-text', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
-                body: JSON.stringify({ text: [
-                    document.getElementById("author").value,
-                    document.getElementById("taskTitle").value,
-                    taskDesc,
-                    document.getElementById("taskSubj").value,
-                    editorContent.replace(/<[^>]*>/g, ' ')
-                ].join(' ') })
-            });
-            const moderation = await moderationResponse.json();
-            if (!moderationResponse.ok) throw new Error(moderation.error || "Moderation check failed.");
-            if (moderation.flagged) {
-                window.location.assign('/auth/cursing.html');
+            if (!window.supabase) {
+                listStatus.textContent = 'Tasks are unavailable because Supabase failed to load.';
                 return;
             }
-        } catch (moderationError) {
-            alert(moderationError.message || "Could not check this task. Please try again.");
-            submitBtn.disabled = !canWrite;
-            submitBtn.textContent = canWrite ? "Save Task" : "Editor access required";
-            return;
-        }
 
-        const record = {
-            author: document.getElementById("author").value,
-            subject: { name: taskTitle},
-            data: document.getElementById("task-description"),
-            name: document.getElementById("task-subject").value,
-        };
+            const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            let canWrite = false;
+            let tasks = [];
 
-        try {
-            const { data, error } = await supabaseClient
-                .from('tasks')
-                .insert([record])
-                .select();
-
-            if (error) throw error;
-
-            alert("Task saved successfully!");
-            form.reset();
-            window.location.href = "/student-resources/tasks.html";
-        } catch (err) {
-            console.error("Error inserting data:", err);
-            alert("Failed to save task: " + err.message);
-        } finally {
-            submitBtn.disabled = !canWrite;
-            submitBtn.textContent = canWrite ? "Save Task" : "Editor access required";
-        }
-    });
-
-    // Display tasks
-
-    const container = document.getElementById('topics-container');
-    const info = document.getElementById('info');
-
-    if (!window.supabase) {
-        console.error("Supabase CDN failed to load. Check script inclusion.");
-    }
-
-
-    // Navigation listener for Add Topic button with safety check
-    const addTopicBtn = document.getElementById('submitBtn');
-    if (addTopicBtn) {
-        addTopicBtn.addEventListener('click', () => {
-            if (!canWrite) return;
-            window.location.href = "";
-        });
-    }
-
-    // Initialize write permissions safely
-    if (window.GoldenNotesPermissions && addTopicBtn) {
-        window.GoldenNotesPermissions.initWriteControls(
-            supabaseClient,
-            addTopicBtn
-        ).then((result) => {
-            if (result) {
-                canWrite = result.canWrite;
+            function setFormStatus(message, isError = false) {
+                formStatus.textContent = message;
+                formStatus.setAttribute('role', isError ? 'alert' : 'status');
             }
-        }).catch(err => console.error("Permissions error:", err));
-    }
 
-    async function displayTasks(search = '') {
-        if (!container) return;
+            function taskIsComplete(task) {
+                return task.completed === true;
+            }
 
-        const { data: tasks, error } = await supabaseClient
-            .from('study')
-            .select('*')
-            .order('created_at', { ascending: false });
-
-        if (error) {
-            if (info) info.innerHTML = `<p style="color: #ef4444;">Failed to load topics: ${escapeHtml(error.message)}</p>`;
-            return;
-        }
-
-        if (!topics || topics.length === 0) {
-            if (info) info.innerHTML = `<p style="color: #cbd5e1;">No topics created yet.</p>`;
-            return;
-        }
-
-        // Clear loading/info message
-        if (info) info.innerHTML = '';
-        let renderedCount = 0;
-
-        task.forEach(task => {
-            const taskSubject = task.subject?.name || 'General';
-            const taskName = task.name || '';
-
-            if (topicName.toLowerCase().includes(search.toLowerCase())) {
-                renderedCount++;
-
-                const card = document.createElement('div');
-                card.className = 'card effect_button card';
-
-                card.innerHTML = `
-                        <div class="card-header" data-id="${task.id}">
-                            <span class="card-member badge-subject">${escapeHtml(taskName)}</span>
-                            <span class="card-member badge-sg">${escapeHtml(task.sg || 'SG N/A')}</span>
-                        </div>
-                        <h3 class="card-member">${escapeHtml(taskName)}</h3>
-                        <div class="card-member card-footer">
-                            <small>By: ${escapeHtml(task.author || 'Anonymous')}</small>
-                        </div>
-                    `;
-
-                card.addEventListener('click', () => {
-                    window.location.href = `/study/view?id=${task.id}`;
+            function renderTasks() {
+                list.replaceChildren();
+                const selectedFilter = filter.value;
+                const visibleTasks = tasks.filter((task) => {
+                    const complete = taskIsComplete(task);
+                    return selectedFilter === 'all' || (selectedFilter === 'completed' ? complete : !complete);
                 });
 
-                container.appendChild(card);
+                if (visibleTasks.length === 0) {
+                    listStatus.textContent = tasks.length === 0
+                        ? 'No tasks yet. Add one using the form.'
+                        : 'No tasks match this filter.';
+                    return;
+                }
+
+                listStatus.textContent = '';
+                visibleTasks.forEach((task) => {
+                    const isComplete = taskIsComplete(task);
+                    const item = document.createElement('article');
+                    item.className = `task-item${isComplete ? ' is-complete' : ''}`;
+
+                    const header = document.createElement('div');
+                    header.className = 'task-item-header';
+                    const toggle = document.createElement('input');
+                    toggle.type = 'checkbox';
+                    toggle.className = 'task-toggle';
+                    toggle.checked = isComplete;
+                    toggle.disabled = !canWrite;
+                    toggle.setAttribute('aria-label', `${isComplete ? 'Mark' : 'Complete'} ${task.name || 'task'}`);
+                    toggle.addEventListener('change', () => updateTask(task, { completed: toggle.checked }));
+
+                    const content = document.createElement('div');
+                    content.className = 'task-item-content';
+                    const title = document.createElement('h3');
+                    title.className = 'task-title';
+                    title.textContent = task.name || 'Untitled task';
+                    const subject = document.createElement('p');
+                    subject.className = 'task-subject';
+                    subject.textContent = typeof task.subject === 'string' ? task.subject : (task.subject?.name || 'General');
+                    content.append(title, subject);
+
+                    const actions = document.createElement('div');
+                    actions.className = 'task-actions';
+                    const remove = document.createElement('button');
+                    remove.type = 'button';
+                    remove.className = 'task-delete';
+                    remove.textContent = 'Delete';
+                    remove.disabled = !canWrite;
+                    remove.setAttribute('aria-label', `Delete ${task.name || 'task'}`);
+                    remove.addEventListener('click', () => deleteTask(task));
+                    actions.append(remove);
+                    header.append(toggle, content, actions);
+                    item.append(header);
+
+                    if (task.data) {
+                        const description = document.createElement('p');
+                        description.className = 'task-description';
+                        description.textContent = typeof task.data === 'string' ? task.data : '';
+                        item.append(description);
+                    }
+                    list.append(item);
+                });
             }
-        });
 
-        if (renderedCount === 0 && info) {
-            info.innerHTML = `<p style="color: #cbd5e1;">No matching topics found for "${escapeHtml(search)}".</p>`;
-        }
-    }
+            async function loadTasks() {
+                listStatus.textContent = 'Loading tasks...';
+                const { data, error } = await supabaseClient
+                    .from('tasks')
+                    .select('*')
+                    .order('created_at', { ascending: false });
 
-    function escapeHtml(str) {
-        return String(str)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;");
-    }
+                if (error) {
+                    listStatus.textContent = `Could not load tasks: ${error.message}`;
+                    return;
+                }
+                tasks = data || [];
+                renderTasks();
+            }
 
-    // Initialization
-    const params = new URLSearchParams(window.location.search);
-    let searchparams = params.get("search");
+            async function updateTask(task, changes) {
+                const { error } = await supabaseClient.from('tasks').update(changes).eq('id', task.id);
+                if (error) {
+                    listStatus.textContent = `Could not update task: ${error.message}`;
+                    await loadTasks();
+                    return;
+                }
+                Object.assign(task, changes);
+                renderTasks();
+            }
 
-    if (searchparams !== null) {
-        searchparams = decodeURIComponent(searchparams).trim();
-        const searchBar = document.getElementById('search-bar');
-        if (searchBar) searchBar.value = searchparams;
-        displayTasks(searchparams);
-    } else {
-        displayTasks();
-    }
-  </script>
+            async function deleteTask(task) {
+                if (!window.confirm(`Delete “${task.name || 'Untitled task'}”?`)) return;
+                const { error } = await supabaseClient.from('tasks').delete().eq('id', task.id);
+                if (error) {
+                    listStatus.textContent = `Could not delete task: ${error.message}`;
+                    return;
+                }
+                tasks = tasks.filter((item) => item.id !== task.id);
+                renderTasks();
+            }
+
+            async function initializePermissions() {
+                if (!window.GoldenNotesPermissions?.initWriteControls) {
+                    submitButton.disabled = true;
+                    submitButton.textContent = 'Permissions unavailable';
+                    setFormStatus('Could not verify task editing permissions.', true);
+                    return;
+                }
+                try {
+                    const result = await window.GoldenNotesPermissions.initWriteControls(supabaseClient, submitButton);
+                    canWrite = Boolean(result?.canWrite);
+                    submitButton.disabled = !canWrite;
+                    submitButton.textContent = canWrite ? 'Add task' : 'Editor access required';
+                    renderTasks();
+                } catch (error) {
+                    submitButton.disabled = true;
+                    submitButton.textContent = 'Permissions unavailable';
+                    setFormStatus(`Could not verify permissions: ${error.message}`, true);
+                }
+            }
+
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                if (!canWrite) {
+                    setFormStatus('Editor access is required to create tasks.', true);
+                    return;
+                }
+
+                const title = document.getElementById('task-title').value.trim();
+                const description = document.getElementById('task-description').value.trim();
+                const subject = document.getElementById('task-subject').value.trim();
+                if (!title || !subject) {
+                    form.reportValidity();
+                    return;
+                }
+
+                submitButton.disabled = true;
+                submitButton.textContent = 'Saving...';
+                setFormStatus('');
+                try {
+                    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+                    if (sessionError) throw sessionError;
+                    if (!session?.access_token) throw new Error('Please sign in again.');
+
+                    const moderationResponse = await fetch('/api/moderate-text', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${session.access_token}`
+                        },
+                        body: JSON.stringify({ text: [title, description, subject].join(' ') })
+                    });
+                    const moderation = await moderationResponse.json();
+                    if (!moderationResponse.ok) throw new Error(moderation.error || 'Moderation check failed.');
+                    if (moderation.flagged) {
+                        window.location.assign('/auth/cursing.html');
+                        return;
+                    }
+
+                    const author = session.user.user_metadata?.username || session.user.email || 'Anonymous';
+                    const { error } = await supabaseClient.from('tasks').insert([{
+                        author,
+                        subject: { name: subject },
+                        name: title,
+                        data: description,
+                        completed: false
+                    }]);
+                    if (error) throw error;
+
+                    form.reset();
+                    setFormStatus('Task added.');
+                    await loadTasks();
+                } catch (error) {
+                    console.error('Could not save task:', error);
+                    setFormStatus(`Could not save task: ${error.message}`, true);
+                } finally {
+                    submitButton.disabled = !canWrite;
+                    submitButton.textContent = canWrite ? 'Add task' : 'Editor access required';
+                }
+            });
+
+            filter.addEventListener('change', renderTasks);
+            initializePermissions();
+            loadTasks();
+        })();
+    </script>
 </body>
 </html>
