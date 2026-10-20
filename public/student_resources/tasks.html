@@ -69,8 +69,7 @@
     <a href="/dashboard" class="btn btn-secondary" id="d-nav">Dashboard</a>
   </div>
 </header>
-
-  <main>
+<main>
     <div class="task-layout">
       <section class="card task-panel" aria-labelledby="create-task-heading">
         <h1 id="create-task-heading">Add a task</h1>
@@ -85,8 +84,8 @@
           <p class="task-message" id="task-form-status" role="status" aria-live="polite"></p>
         </form>
       </section>
-    </div>
-        <section class="card task-panel" aria-labelledby="tasks-heading">
+
+      <section class="card task-panel" aria-labelledby="tasks-heading">
         <div class="task-toolbar">
           <h2 id="tasks-heading">Your tasks</h2>
           <select class="form-input task-filter" id="task-filter" aria-label="Filter tasks">
@@ -94,12 +93,13 @@
             <option value="active">Active</option>
             <option value="completed">Completed</option>
           </select>
-        <div class="task-list" id="task-list"></div>
+        </div>
         <p id="task-list-status" class="task-message" role="status" aria-live="polite">Loading tasks...</p>
+        <div class="task-list" id="task-list"></div>
       </section>
         </div>
-        
-        <a href="/quiz" class="btn btn-primary btn-lg">Quiz</a>
+
+        <a href="/quiz" class="btn btn-primary btn-lg">Quizzes</a>
     </main>
     <script>
         (() => {
