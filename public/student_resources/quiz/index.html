@@ -5,27 +5,110 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Quizzes | GoldenNotes</title>
     <style>
-        main {
-        max-width: 900px;
+      :root {
+        --easy-bg: #dff7e8;
+        --easy-text: #186a3b;
+        --medium-bg: #fff3d6;
+        --medium-text: #8a5b00;
+        --hard-bg: #ffe3e2;
+        --hard-text: #9a2d2d;
+        --expert-bg: #e9e1ff;
+        --expert-text: #5632a8;
+      }
+
+      main {
+        max-width: 980px;
         margin: auto;
         padding: 24px;
       }
+
       header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         gap: 16px;
         flex-wrap: wrap;
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 24px 24px 0;
       }
+
+      #quizzes {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 18px;
+        margin-top: 20px;
+      }
+
       .card {
         background: var(--panel);
         border: 1px solid var(--line);
         border-radius: 14px;
         padding: 18px;
-        margin: 12px 0;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
       }
+
+      .quiz-title {
+        margin: 0 0 10px;
+      }
+
+      .quiz-description {
+        margin: 0 0 12px;
+        color: var(--muted);
+      }
+
+      .difficulty-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: capitalize;
+        margin: 6px 0 12px;
+      }
+
+      .topic-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        margin: 6px 6px 12px 0;
+      }
+
+      .difficulty-easy {
+        background: var(--easy-bg);
+        color: var(--easy-text);
+      }
+
+      .difficulty-medium {
+        background: var(--medium-bg);
+        color: var(--medium-text);
+      }
+
+      .difficulty-hard {
+        background: var(--hard-bg);
+        color: var(--hard-text);
+      }
+
+      .difficulty-expert {
+        background: var(--expert-bg);
+        color: var(--expert-text);
+      }
+
       .muted {
         color: var(--muted);
+      }
+
+      .quiz-meta {
+        margin: 0 0 14px;
+        font-size: 0.9rem;
+      }
+
+      .btn {
+        display: inline-block;
       }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -48,41 +131,72 @@
       <section id="quizzes"></section>
     </main>
     <script>
+      function normalizeDifficulty(value) {
+        const safe = (value || "medium").toString().trim().toLowerCase();
+        const allowed = ["easy", "medium", "hard", "expert"];
+        return allowed.includes(safe) ? safe : "medium";
+      }
+
+      function difficultyClass(value) {
+        return "difficulty-" + normalizeDifficulty(value);
+      }
+
       async function load() {
-        const status = document.querySelector("#status"),
-          list = document.querySelector("#quizzes");
+        const status = document.querySelector("#status");
+        const list = document.querySelector("#quizzes");
+
         try {
           const r = await fetch("/api/quizzes");
           const d = await r.json();
           if (!r.ok) throw Error(d.error || "Unable to load quizzes");
+
           list.replaceChildren();
+
           if (!d.quizzes?.length) {
             status.textContent = "No quizzes have been published yet.";
             return;
           }
+
           status.textContent = "Published quizzes";
+
           for (const q of d.quizzes) {
             const card = document.createElement("article");
             card.className = "card";
+
             const title = document.createElement("h2");
+            title.className = "quiz-title";
             title.textContent = q.metadata?.title || "Untitled quiz";
+
             const desc = document.createElement("p");
-            desc.textContent =
-              q.metadata?.description || "No description provided.";
+            desc.className = "quiz-description";
+            desc.textContent = q.metadata?.description || "No description provided.";
+
+            const topic = document.createElement("span");
+            topic.className = "topic-badge";
+            topic.textContent = q.metadata?.topic || "Topic not set";
+
+            const difficultyValue = normalizeDifficulty(q.metadata?.difficulty || q.difficulty);
+            const difficulty = document.createElement("p");
+            difficulty.className = "difficulty-badge " + difficultyClass(difficultyValue);
+            difficulty.textContent = difficultyValue;
+
             const count = document.createElement("p");
-            count.className = "muted";
+            count.className = "quiz-meta muted";
             count.textContent = (q.questions?.length || 0) + " questions";
+
             const link = document.createElement("a");
             link.className = "btn";
             link.href = "/quiz/answer?uuid=" + encodeURIComponent(q.uuid);
             link.textContent = "Take quiz";
-            card.append(title, desc, count, link);
+
+            card.append(title, desc, topic, difficulty, count, link);
             list.append(card);
           }
         } catch (e) {
           status.textContent = "Could not load quizzes: " + e.message;
         }
       }
+
       load();
     </script>
   </body>

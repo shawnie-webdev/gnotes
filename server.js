@@ -170,6 +170,14 @@ app.use((req, res, next) => {
 });
 
 
+const QUIZ_DIFFICULTY_VALUES = new Set(["easy", "medium", "hard", "expert"]);
+
+function normalizeQuizDifficulty(value) {
+    if (typeof value !== "string") return "";
+    const normalized = value.trim().toLowerCase();
+    return QUIZ_DIFFICULTY_VALUES.has(normalized) ? normalized : "";
+}
+
 /* === QUIZZES === */
 app.get("/quiz", (req, res) => sendFileOrError(res, "/quiz", "student_resources/quiz/index.html"));
 app.get("/quiz/make", (req, res) => sendFileOrError(res, "/quiz/make", "student_resources/quiz/make.html"));
@@ -183,10 +191,19 @@ app.get("/quiz/answer", (req, res) => {
 app.get("/api/quizzes", async (req, res) => {
     try {
         const { data, error } = await supabaseAdmin.from("quizzes")
-            .select("uuid,author,metadata,created_on").order("created_on", { ascending: false }).limit(200);
+            .select("uuid,author,metadata,difficulty,created_on")
+            .order("created_on", { ascending: false })
+            .limit(200);
         if (error) throw error;
+
+        const quizzes = (data || []).map((quiz) => ({
+            ...quiz,
+            difficulty: normalizeQuizDifficulty(quiz.metadata?.difficulty) ||
+                normalizeQuizDifficulty(quiz.difficulty) || "medium"
+        }));
+
         res.set("Cache-Control", "no-store");
-        return res.json({ quizzes: data || [] });
+        return res.json({ quizzes });
     } catch (error) {
         console.error("[quiz] list failed:", error.message);
         return res.status(503).json({ error: "Quizzes are temporarily unavailable." });
@@ -194,13 +211,19 @@ app.get("/api/quizzes", async (req, res) => {
 });
 app.get("/api/quizzes/:uuid", async (req, res) => {
     try {
-        const { data, error } = await supabaseAdmin.from("quizzes").select("uuid,author,metadata,questions,created_on")
-            .eq("uuid", req.params.uuid).maybeSingle();
+        const { data, error } = await supabaseAdmin.from("quizzes")
+            .select("uuid,author,metadata,questions,difficulty,created_on")
+            .eq("uuid", req.params.uuid)
+            .maybeSingle();
         if (error) throw error;
         if (!data) return res.status(404).json({ error: "Quiz not found." });
+
         const questions = (Array.isArray(data.questions) ? data.questions : []).map(({ answer, correct, ...q }) => q);
+        const quizDifficulty = normalizeQuizDifficulty(data.metadata?.difficulty) ||
+            normalizeQuizDifficulty(data.difficulty) || "medium";
+
         res.set("Cache-Control", "no-store");
-        return res.json({ quiz: { ...data, questions } });
+        return res.json({ quiz: { ...data, difficulty: quizDifficulty, questions } });
     } catch (error) {
         console.error("[quiz] read failed:", error.message);
         return res.status(503).json({ error: "Could not load this quiz." });
@@ -221,11 +244,19 @@ app.post("/api/quizzes", async (req, res) => {
         if (!["Admin", "Moderator"].includes(profile?.rank) && !(editors || []).length) {
             return res.status(403).json({ error: "Editor, Moderator, or Admin access required." });
         }
+
         const title = typeof req.body?.title === "string" ? req.body.title.trim().slice(0, 150) : "";
+        const topic = typeof req.body?.topic === "string" ? req.body.topic.trim().slice(0, 80) : "";
         const description = typeof req.body?.description === "string" ? req.body.description.trim().slice(0, 2000) : "";
+        const difficulty = normalizeQuizDifficulty(req.body?.difficulty);
         const questions = req.body?.questions;
-        if (!title || !Array.isArray(questions) || questions.length < 1 || questions.length > 100)
-            return res.status(400).json({ error: "Add a title and between 1 and 100 questions." });
+
+        if (!title || !topic || !Array.isArray(questions) || questions.length < 1 || questions.length > 100)
+            return res.status(400).json({ error: "Add a title, topic, and between 1 and 100 questions." });
+        if (!difficulty) {
+            return res.status(400).json({ error: "Choose a quiz difficulty: easy, medium, hard, or expert." });
+        }
+
         const allowed = new Set(["single", "text", "scale", "multiple"]);
         for (const q of questions) {
             if (!q || typeof q.prompt !== "string" || !q.prompt.trim() || !allowed.has(q.type))
@@ -235,7 +266,7 @@ app.post("/api/quizzes", async (req, res) => {
             if (q.type === "scale" && (!Number.isFinite(Number(q.min)) || !Number.isFinite(Number(q.max)) || Number(q.max) <= Number(q.min)))
                 return res.status(400).json({ error: "Scale questions need a valid minimum and maximum." });
         }
-        const metadata = { title, description };
+        const metadata = { title, topic, description, difficulty };
         const cleanQuestions = questions.map(q => ({
             prompt: q.prompt.trim().slice(0, 1000), type: q.type,
             ...(q.type === "single" || q.type === "multiple" ? {
@@ -246,8 +277,8 @@ app.post("/api/quizzes", async (req, res) => {
             ...(q.type === "text" ? { answer: String(q.answer || "").trim().slice(0, 500) } : {})
         }));
         const { data, error } = await supabaseAdmin.from("quizzes")
-            .insert({ author: user.id, metadata, questions: cleanQuestions })
-            .select("uuid,author,metadata,created_on").single();
+            .insert({ author: user.id, metadata, difficulty, questions: cleanQuestions })
+            .select("uuid,author,metadata,difficulty,created_on").single();
         if (error) throw error;
         return res.status(201).json({ quiz: data });
     } catch (error) {

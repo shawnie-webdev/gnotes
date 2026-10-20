@@ -5,14 +5,73 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Take quiz | GoldenNotes</title>
     <style>
-        .card {
+      :root {
+        --easy-bg: #dff7e8;
+        --easy-text: #186a3b;
+        --medium-bg: #fff3d6;
+        --medium-text: #8a5b00;
+        --hard-bg: #ffe3e2;
+        --hard-text: #9a2d2d;
+        --expert-bg: #e9e1ff;
+        --expert-text: #5632a8;
+      }
+
+      main {
+        max-width: 900px;
+        margin: auto;
+        padding: 24px;
+      }
+
+      .card {
         background: var(--panel);
         border: 1px solid var(--line);
         border-radius: 12px;
         padding: 16px;
         margin: 12px 0;
       }
-         input,
+
+      .difficulty-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: capitalize;
+        margin: 0 0 8px;
+      }
+
+      .topic-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        margin: 0 6px 8px 0;
+      }
+
+      .difficulty-easy {
+        background: var(--easy-bg);
+        color: var(--easy-text);
+      }
+
+      .difficulty-medium {
+        background: var(--medium-bg);
+        color: var(--medium-text);
+      }
+
+      .difficulty-hard {
+        background: var(--hard-bg);
+        color: var(--hard-text);
+      }
+
+      .difficulty-expert {
+        background: var(--expert-bg);
+        color: var(--expert-text);
+      }
+
+      input,
       textarea,
       select {
         width: 100%;
@@ -23,10 +82,12 @@
         background: #111a13;
         color: #fff;
       }
-       label.option {
+
+      label.option {
         display: block;
         padding: 6px;
       }
+
       input[type="text"],
       select {
         padding: 10px;
@@ -43,38 +104,58 @@
     <script src="/auth/config.js"></script>
     <script src="/auth/theme.js"></script>
     <script src="/auth/theme-experimental.js"></script>
-    </head>
+  </head>
   <body>
     <main>
       <p><a href="/quiz">← All quizzes</a></p>
       <h1 id="title">Loading quiz…</h1>
       <p id="description"></p>
+      <p id="topic" class="topic-badge">Loading topic…</p>
+      <p id="difficulty" class="difficulty-badge">Loading…</p>
       <form id="form"></form>
       <p id="status" role="status"></p>
     </main>
     <script>
+      function normalizeDifficulty(value) {
+        const safe = (value || "medium").toString().trim().toLowerCase();
+        const allowed = ["easy", "medium", "hard", "expert"];
+        return allowed.includes(safe) ? safe : "medium";
+      }
+
+      function difficultyClass(value) {
+        return "difficulty-" + normalizeDifficulty(value);
+      }
+
       const id =
         new URLSearchParams(location.search).get("uuid") ||
         location.search.replace(/^\?=/, "").split("&")[0];
       const form = document.querySelector("#form"),
         status = document.querySelector("#status");
+
       async function load() {
         try {
           if (!id) throw Error("Quiz ID is missing from the URL.");
           const r = await fetch("/api/quizzes/" + encodeURIComponent(id));
           const d = await r.json();
           if (!r.ok) throw Error(d.error || "Quiz not found");
+
           const qz = d.quiz;
-          document.querySelector("#title").textContent =
-            qz.metadata?.title || "Quiz";
-          document.querySelector("#description").textContent =
-            qz.metadata?.description || "";
+          document.querySelector("#title").textContent = qz.metadata?.title || "Quiz";
+          document.querySelector("#description").textContent = qz.metadata?.description || "";
+          document.querySelector("#topic").textContent = qz.metadata?.topic || "Topic not set";
+
+          const difficultyNode = document.querySelector("#difficulty");
+          const difficultyValue = normalizeDifficulty(qz.metadata?.difficulty || qz.difficulty);
+          difficultyNode.textContent = difficultyValue;
+          difficultyNode.className = "difficulty-badge " + difficultyClass(difficultyValue);
+
           qz.questions.forEach((q, i) => {
             const box = document.createElement("section");
             box.className = "card";
             const h = document.createElement("h2");
             h.textContent = i + 1 + ". " + q.prompt;
             box.append(h);
+
             if (q.type === "single" || q.type === "multiple") {
               (q.options || []).forEach((o) => {
                 const label = document.createElement("label");
@@ -103,8 +184,10 @@
               input.placeholder = "Your answer";
               box.append(input);
             }
+
             form.append(box);
           });
+
           const btn = document.createElement("button");
           btn.type = "submit";
           btn.textContent = "Submit answers";
@@ -115,9 +198,11 @@
           status.textContent = e.message;
         }
       }
+
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
         if (form.dataset.loaded !== "yes") return;
+
         const answers = [];
         for (let i = 0; i < Number(form.dataset.count); i++) {
           const els = [...form.querySelectorAll('[name="q' + i + '"]')];
@@ -127,6 +212,7 @@
               : (els.find((x) => x.checked)?.value ?? els[0]?.value ?? ""),
           );
         }
+
         try {
           const r = await fetch(
             "/api/quizzes/" + encodeURIComponent(id) + "/answer",
@@ -151,6 +237,7 @@
           status.textContent = err.message;
         }
       });
+
       load();
     </script>
   </body>

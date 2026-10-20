@@ -59,22 +59,37 @@
           required
           placeholder="e.g. Biology basics" /></label
       ><label
+        >Topic<input
+          id="topic"
+          maxlength="80"
+          required
+          placeholder="e.g. Cell biology" /></label
+      ><label
         >Description<textarea
           id="description"
           rows="2"
-          maxlength="500"
-        ></textarea>
+          maxlength="500"></textarea>
       </label>
+      <label>
+        Difficulty
+        <select id="difficulty-opt" required>
+          <option value="">Select difficulty</option>
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+          <option value="expert">Expert</option>
+        </select>
+      </label>
+
       <div id="questions"></div>
       <button id="add">+ Add question</button>
       <button id="publish">Publish quiz</button>
       <p id="status" role="status"></p>
     </main>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="/auth/config.js"></script>
-    <link rel="stylesheet" href="../../master-combined.css">
-    <link rel="stylesheet" href="../../master-experimental.css">
+
     <script>
+      const allowedDifficulties = ["easy", "medium", "hard", "expert"];
+
       const host = document.querySelector("#questions"),
         status = document.querySelector("#status");
       let seq = 0;
@@ -96,6 +111,8 @@
       document.querySelector("#publish").onclick = async () => {
         status.textContent = "";
         const title = document.querySelector("#title").value.trim();
+        const topic = document.querySelector("#topic").value.trim();
+        const difficulty = document.getElementById("difficulty-opt").value.trim().toLowerCase();
         const questions = [...host.children].map((c) => ({
           type: c.querySelector(".type").value,
           prompt: c.querySelector(".prompt").value.trim(),
@@ -110,11 +127,18 @@
             .map((x) => x.trim())
             .filter(Boolean),
         }));
-        if (!title || !questions.length || questions.some((q) => !q.prompt)) {
+
+        if (!title || !topic || !questions.length || questions.some((q) => !q.prompt)) {
           status.textContent =
-            "Add a title and at least one question with question text.";
+            "Add a title, topic, and at least one question with question text.";
           return;
         }
+
+        if (!allowedDifficulties.includes(difficulty)) {
+          status.textContent = "Choose a valid difficulty: easy, medium, hard, or expert.";
+          return;
+        }
+
         try {
           const client =
             window.supabaseClient || window.GoldenNotesConfig?.initClient?.();
@@ -135,7 +159,9 @@
             },
             body: JSON.stringify({
               title,
+              topic,
               description: document.querySelector("#description").value.trim(),
+              difficulty,
               questions,
             }),
           });
