@@ -200,7 +200,7 @@ app.post("/api/quizzes", async (req, res) => {
         if (authError || !user) return res.status(401).json({ error: "Your session expired. Please sign in again." });
         const [{ data: profile, error: profileError }, { data: editors, error: editorError }] = await Promise.all([
             supabaseAdmin.from("user-background").select("rank").eq("uuid", user.id).maybeSingle(),
-            supabaseAdmin.from("editors").select('"user-uuid"').eq("user-uuid", user.id).limit(1)
+            supabaseAdmin.from("editors").select("*").eq("user-uuid", user.id).limit(1)
         ]);
         if (profileError || editorError) return res.status(503).json({ error: "Could not verify editor permissions." });
         if (!["Admin", "Moderator"].includes(profile?.rank) && !(editors || []).length) {
