@@ -215,8 +215,9 @@
                     Object.assign(task, changes);
                     renderTasks();
                 } catch (error) {
-                    listStatus.textContent = `Could not update task: ${error.message}`;
+                    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred.';
                     await loadTasks();
+                    listStatus.textContent = `Could not update task: ${errorMessage}`;
                 }
             }
 
