@@ -1,1 +1,181 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Take quiz | GoldenNotes</title><style>:root{color-scheme:dark;--bg:#101510;--panel:#19221b;--line:#314433;--green:#8ee69a;--muted:#b5c4b6}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#edf5ee;font:16px system-ui,sans-serif}main{max-width:850px;margin:auto;padding:24px}a{color:var(--green)}.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin:12px 0}button{cursor:pointer;padding:10px 14px;border:1px solid var(--line);border-radius:9px;background:#223b28;color:#effff0}.muted,p{color:var(--muted)}label.option{display:block;padding:6px}input[type=text],select{padding:10px;background:#111a13;color:white;border:1px solid var(--line);border-radius:8px;width:100%}</style></head><body><main><p><a href="/quiz">← All quizzes</a></p><h1 id="title">Loading quiz…</h1><p id="description"></p><form id="form"></form><p id="status" role="status"></p></main><script>const id=new URLSearchParams(location.search).get('uuid')||location.search.replace(/^\?=/,'').split('&')[0];const form=document.querySelector('#form'),status=document.querySelector('#status');async function load(){try{if(!id)throw Error('Quiz ID is missing from the URL.');const r=await fetch('/api/quizzes/'+encodeURIComponent(id));const d=await r.json();if(!r.ok)throw Error(d.error||'Quiz not found');const qz=d.quiz;document.querySelector('#title').textContent=qz.metadata?.title||'Quiz';document.querySelector('#description').textContent=qz.metadata?.description||'';qz.questions.forEach((q,i)=>{const box=document.createElement('section');box.className='card';const h=document.createElement('h2');h.textContent=(i+1)+'. '+q.prompt;box.append(h);if(q.type==='single'||q.type==='multiple'){(q.options||[]).forEach(o=>{const label=document.createElement('label');label.className='option';const input=document.createElement('input');input.type=q.type==='multiple'?'checkbox':'radio';input.name='q'+i;input.value=o;label.append(input,document.createTextNode(' '+o));box.append(label)})}else if(q.type==='scale'){const sel=document.createElement('select');sel.name='q'+i;sel.innerHTML='<option value="">Choose 1–5</option>'+[1,2,3,4,5].map(n=>'<option value="'+n+'">'+n+'</option>').join('');box.append(sel)}else{const input=document.createElement('input');input.type='text';input.name='q'+i;input.maxLength=1000;input.placeholder='Your answer';box.append(input)}form.append(box)});const btn=document.createElement('button');btn.type='submit';btn.textContent='Submit answers';form.append(btn);form.dataset.loaded='yes';form.dataset.count=qz.questions.length}catch(e){status.textContent=e.message}}form.addEventListener('submit',async e=>{e.preventDefault();if(form.dataset.loaded!=='yes')return;const answers=[];for(let i=0;i<Number(form.dataset.count);i++){const els=[...form.querySelectorAll('[name="q'+i+'"]')];answers.push(els.length&&els[0].type==='checkbox'?els.filter(x=>x.checked).map(x=>x.value):(els.find(x=>x.checked)?.value??els[0]?.value??''))}try{const r=await fetch('/api/quizzes/'+encodeURIComponent(id)+'/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({answers})});const d=await r.json();if(!r.ok)throw Error(d.error||'Could not submit answers');status.textContent=d.gradable?('Score: '+d.correct+' / '+d.gradable+' automatically gradable questions. '+d.message):d.message;form.querySelector('button[type=submit]').disabled=true}catch(err){status.textContent=err.message}});load();</script></body></html>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Take quiz | GoldenNotes</title>
+    <link rel="stylesheet" href="../../master-combined.css">
+    <link rel="stylesheet" href="../../master-experimental.css">
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #101510;
+        --panel: #19221b;
+        --line: #314433;
+        --green: #8ee69a;
+        --muted: #b5c4b6;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: #edf5ee;
+        font:
+          16px system-ui,
+          sans-serif;
+      }
+      main {
+        max-width: 850px;
+        margin: auto;
+        padding: 24px;
+      }
+      a {
+        color: var(--green);
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 16px;
+        margin: 12px 0;
+      }
+      button {
+        cursor: pointer;
+        padding: 10px 14px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        background: #223b28;
+        color: #effff0;
+      }
+      .muted,
+      p {
+        color: var(--muted);
+      }
+      label.option {
+        display: block;
+        padding: 6px;
+      }
+      input[type="text"],
+      select {
+        padding: 10px;
+        background: #111a13;
+        color: white;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p><a href="/quiz">← All quizzes</a></p>
+      <h1 id="title">Loading quiz…</h1>
+      <p id="description"></p>
+      <form id="form"></form>
+      <p id="status" role="status"></p>
+    </main>
+    <script>
+      const id =
+        new URLSearchParams(location.search).get("uuid") ||
+        location.search.replace(/^\?=/, "").split("&")[0];
+      const form = document.querySelector("#form"),
+        status = document.querySelector("#status");
+      async function load() {
+        try {
+          if (!id) throw Error("Quiz ID is missing from the URL.");
+          const r = await fetch("/api/quizzes/" + encodeURIComponent(id));
+          const d = await r.json();
+          if (!r.ok) throw Error(d.error || "Quiz not found");
+          const qz = d.quiz;
+          document.querySelector("#title").textContent =
+            qz.metadata?.title || "Quiz";
+          document.querySelector("#description").textContent =
+            qz.metadata?.description || "";
+          qz.questions.forEach((q, i) => {
+            const box = document.createElement("section");
+            box.className = "card";
+            const h = document.createElement("h2");
+            h.textContent = i + 1 + ". " + q.prompt;
+            box.append(h);
+            if (q.type === "single" || q.type === "multiple") {
+              (q.options || []).forEach((o) => {
+                const label = document.createElement("label");
+                label.className = "option";
+                const input = document.createElement("input");
+                input.type = q.type === "multiple" ? "checkbox" : "radio";
+                input.name = "q" + i;
+                input.value = o;
+                label.append(input, document.createTextNode(" " + o));
+                box.append(label);
+              });
+            } else if (q.type === "scale") {
+              const sel = document.createElement("select");
+              sel.name = "q" + i;
+              sel.innerHTML =
+                '<option value="">Choose 1–5</option>' +
+                [1, 2, 3, 4, 5]
+                  .map((n) => '<option value="' + n + '">' + n + "</option>")
+                  .join("");
+              box.append(sel);
+            } else {
+              const input = document.createElement("input");
+              input.type = "text";
+              input.name = "q" + i;
+              input.maxLength = 1000;
+              input.placeholder = "Your answer";
+              box.append(input);
+            }
+            form.append(box);
+          });
+          const btn = document.createElement("button");
+          btn.type = "submit";
+          btn.textContent = "Submit answers";
+          form.append(btn);
+          form.dataset.loaded = "yes";
+          form.dataset.count = qz.questions.length;
+        } catch (e) {
+          status.textContent = e.message;
+        }
+      }
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (form.dataset.loaded !== "yes") return;
+        const answers = [];
+        for (let i = 0; i < Number(form.dataset.count); i++) {
+          const els = [...form.querySelectorAll('[name="q' + i + '"]')];
+          answers.push(
+            els.length && els[0].type === "checkbox"
+              ? els.filter((x) => x.checked).map((x) => x.value)
+              : (els.find((x) => x.checked)?.value ?? els[0]?.value ?? ""),
+          );
+        }
+        try {
+          const r = await fetch(
+            "/api/quizzes/" + encodeURIComponent(id) + "/answer",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ answers }),
+            },
+          );
+          const d = await r.json();
+          if (!r.ok) throw Error(d.error || "Could not submit answers");
+          status.textContent = d.gradable
+            ? "Score: " +
+              d.correct +
+              " / " +
+              d.gradable +
+              " automatically gradable questions. " +
+              d.message
+            : d.message;
+          form.querySelector("button[type=submit]").disabled = true;
+        } catch (err) {
+          status.textContent = err.message;
+        }
+      });
+      load();
+    </script>
+  </body>
+</html>
