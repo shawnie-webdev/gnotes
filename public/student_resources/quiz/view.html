@@ -5,36 +5,92 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Take quiz | GoldenNotes</title>
     <style>
-        .card {
-        background: var(--panel);
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        padding: 16px;
-        margin: 12px 0;
+      :root {
+        color-scheme: dark;
+        --quiz-panel: var(--panel, #17221a);
+        --quiz-line: var(--line, #304535);
+        --quiz-text: var(--text, #edf5ee);
+        --quiz-muted: var(--muted, #aebcaf);
       }
-         input,
-      textarea,
-      select {
+      body { color: var(--quiz-text); }
+      main {
+        width: min(100% - 32px, 860px);
+        margin: 28px auto 56px;
+      }
+      #title { margin: 12px 0 8px; line-height: 1.2; overflow-wrap: anywhere; }
+      #description { color: var(--quiz-muted); margin: 0 0 22px; line-height: 1.6; }
+      #form { display: flex; flex-direction: column; gap: 14px; }
+      #form .card {
+        box-sizing: border-box;
         width: 100%;
-        padding: 11px;
-        margin: 5px 0 14px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: #111a13;
-        color: #fff;
+        background: var(--quiz-panel);
+        border: 1px solid var(--quiz-line);
+        border-radius: 14px;
+        padding: clamp(16px, 3vw, 24px);
+        margin: 0;
+        box-shadow: 0 4px 16px rgb(0 0 0 / 10%);
       }
-       label.option {
+      #form .card h2 { font-size: clamp(1.05rem, 2.3vw, 1.35rem); line-height: 1.45; margin: 0 0 14px; overflow-wrap: anywhere; }
+      #form label.option {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 9px 10px;
+        margin: 2px 0;
+        border-radius: 8px;
+        line-height: 1.45;
+        cursor: pointer;
+      }
+      #form label.option:hover { background: rgb(120 180 130 / 8%); }
+      #form input[type="radio"],
+      #form input[type="checkbox"] {
+        flex: 0 0 auto;
+        width: auto;
+        margin: 4px 0 0;
+        accent-color: #80c98a;
+      }
+      #form input[type="text"],
+      #form textarea,
+      #form select {
         display: block;
-        padding: 6px;
-      }
-      input[type="text"],
-      select {
-        padding: 10px;
-        background: #111a13;
-        color: white;
-        border: 1px solid var(--line);
-        border-radius: 8px;
+        box-sizing: border-box;
         width: 100%;
+        max-width: 100%;
+        min-height: 42px;
+        margin: 8px 0 0;
+        padding: 10px 12px;
+        border: 1px solid var(--quiz-line);
+        border-radius: 9px;
+        background: #111a13;
+        color: var(--quiz-text);
+        font: inherit;
+        font-size: 0.96rem;
+        text-align: left;
+      }
+      #form select { appearance: auto; align-self: flex-start; }
+      #form input[type="text"]:focus,
+      #form textarea:focus,
+      #form select:focus { outline: 2px solid #80c98a; outline-offset: 2px; }
+      #form button[type="submit"] {
+        align-self: flex-start;
+        border: 1px solid #35583d;
+        border-radius: 10px;
+        padding: 11px 17px;
+        background: #24432c;
+        color: #f2fff3;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background .15s ease, transform .15s ease;
+      }
+      #form button[type="submit"]:hover { background: #2f5739; }
+      #form button[type="submit"]:active { transform: translateY(1px); }
+      #form button[type="submit"]:disabled { opacity: .65; cursor: wait; }
+      #status { min-height: 1.5em; margin-top: 16px; color: var(--quiz-muted); line-height: 1.6; }
+      #status:empty { display: none; }
+      @media (max-width: 600px) {
+        main { width: calc(100% - 24px); margin-top: 18px; }
+        #form .card { padding: 15px; }
       }
     </style>
     <link rel="stylesheet" href="../master-combined.css">
