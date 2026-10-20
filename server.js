@@ -1,5 +1,7 @@
 /* Project Goldenotes | Inspiration by Ram, Programmed by Roshaun */
 
+require("dotenv").config();
+
 const cookieParser = require('cookie-parser'); // <-- Add this
 const express = require("express");
 const fs = require("fs");
@@ -9,8 +11,21 @@ const { execSync } = require("child_process");
 const crypto = require("crypto");
 const { createClient } = require("@supabase/supabase-js"); // 1. Import createClient
 
-const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || '';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://cqxlnmvmfkylozcdffxf.supabase.co';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY?.trim();
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+
+const missingSupabaseConfig = [
+    !SUPABASE_ANON_KEY && "SUPABASE_ANON_KEY",
+    !SUPABASE_SERVICE_ROLE_KEY && "SUPABASE_SERVICE_ROLE_KEY"
+].filter(Boolean);
+
+if (missingSupabaseConfig.length > 0) {
+    throw new Error(
+        `[config] Missing required environment variable(s): ${missingSupabaseConfig.join(", ")}. ` +
+        "Copy .env.example to .env and fill in the values."
+    );
+}
 
 // Initialize inside block scope to avoid global collision
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -333,7 +348,7 @@ const ALLOWED_UUIDS = [
 // Initialize Supabase Admin Client using the SERVICE ROLE KEY
 const supabaseAdmin = createClient(
     SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+    SUPABASE_SERVICE_ROLE_KEY
 );
 /**
  * Profanity moderation: APILayer when configured, local bad-words fallback otherwise.
