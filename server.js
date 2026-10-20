@@ -154,7 +154,117 @@ app.use((req, res, next) => {
     next(); // Pass control to the next route handler
 });
 
-/* ===---===---=== ENDPOINTS ===---===---=== */
+
+/* === QUIZZES === */
+app.get("/quiz", (req, res) => sendFileOrError(res, "/quiz", "student-resources/quiz/index.html"));
+app.get("/quiz/make", (req, res) => sendFileOrError(res, "/quiz/make", "student-resources/quiz/make.html"));
+app.get("/quiz/answer", (req, res) => {
+    if (!req.query.uuid && req.url.includes("?=")) {
+        const id = req.url.split("?=")[1]?.split("&")[0];
+        if (id) return res.redirect(302, "/quiz/answer?uuid=" + encodeURIComponent(id));
+    }
+    return sendFileOrError(res, "/quiz/answer", "student-resources/quiz/view.html");
+});
+app.get("/api/quizzes", async (req, res) => {
+    try {
+        const { data, error } = await supabaseAdmin.from("quizzes")
+            .select("uuid,author,metadata,created_on").order("created_on", { ascending: false }).limit(200);
+        if (error) throw error;
+        res.set("Cache-Control", "no-store");
+        return res.json({ quizzes: data || [] });
+    } catch (error) {
+        console.error("[quiz] list failed:", error.message);
+        return res.status(503).json({ error: "Quizzes are temporarily unavailable." });
+    }
+});
+app.get("/api/quizzes/:uuid", async (req, res) => {
+    try {
+        const { data, error } = await supabaseAdmin.from("quizzes").select("uuid,author,metadata,questions,created_on")
+            .eq("uuid", req.params.uuid).maybeSingle();
+        if (error) throw error;
+        if (!data) return res.status(404).json({ error: "Quiz not found." });
+        const questions = (Array.isArray(data.questions) ? data.questions : []).map(({ answer, correct, ...q }) => q);
+        res.set("Cache-Control", "no-store");
+        return res.json({ quiz: { ...data, questions } });
+    } catch (error) {
+        console.error("[quiz] read failed:", error.message);
+        return res.status(503).json({ error: "Could not load this quiz." });
+    }
+});
+app.post("/api/quizzes", async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization || "";
+        const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+        if (!token) return res.status(401).json({ error: "Sign in to publish a quiz." });
+        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+        if (authError || !user) return res.status(401).json({ error: "Your session expired. Please sign in again." });
+        const [{ data: profile, error: profileError }, { data: editors, error: editorError }] = await Promise.all([
+            supabaseAdmin.from("user-background").select("rank").eq("uuid", user.id).maybeSingle(),
+            supabaseAdmin.from("editors").select('"user-uuid"').eq("user-uuid", user.id).limit(1)
+        ]);
+        if (profileError || editorError) return res.status(503).json({ error: "Could not verify editor permissions." });
+        if (!["Admin", "Moderator"].includes(profile?.rank) && !(editors || []).length) {
+            return res.status(403).json({ error: "Editor, Moderator, or Admin access required." });
+        }
+        const title = typeof req.body?.title === "string" ? req.body.title.trim().slice(0, 150) : "";
+        const description = typeof req.body?.description === "string" ? req.body.description.trim().slice(0, 2000) : "";
+        const questions = req.body?.questions;
+        if (!title || !Array.isArray(questions) || questions.length < 1 || questions.length > 100)
+            return res.status(400).json({ error: "Add a title and between 1 and 100 questions." });
+        const allowed = new Set(["single", "text", "scale", "multiple"]);
+        for (const q of questions) {
+            if (!q || typeof q.prompt !== "string" || !q.prompt.trim() || !allowed.has(q.type))
+                return res.status(400).json({ error: "Every question needs text and a supported question type." });
+            if (["single", "multiple"].includes(q.type) && (!Array.isArray(q.options) || q.options.length < 2 || q.options.length > 20))
+                return res.status(400).json({ error: "Choice questions need 2–20 options." });
+            if (q.type === "scale" && (!Number.isFinite(Number(q.min)) || !Number.isFinite(Number(q.max)) || Number(q.max) <= Number(q.min)))
+                return res.status(400).json({ error: "Scale questions need a valid minimum and maximum." });
+        }
+        const metadata = { title, description };
+        const cleanQuestions = questions.map(q => ({
+            prompt: q.prompt.trim().slice(0, 1000), type: q.type,
+            ...(q.type === "single" || q.type === "multiple" ? {
+                options: q.options.map(v => String(v).trim().slice(0, 300)).filter(Boolean),
+                answer: Array.isArray(q.answer) ? q.answer.map(String) : [String(q.answer ?? "")]
+            } : {}),
+            ...(q.type === "scale" ? { min: Number(q.min), max: Number(q.max), minLabel: String(q.minLabel || "").slice(0, 80), maxLabel: String(q.maxLabel || "").slice(0, 80) } : {}),
+            ...(q.type === "text" ? { answer: String(q.answer || "").trim().slice(0, 500) } : {})
+        }));
+        const { data, error } = await supabaseAdmin.from("quizzes")
+            .insert({ author: user.id, metadata, questions: cleanQuestions })
+            .select("uuid,author,metadata,created_on").single();
+        if (error) throw error;
+        return res.status(201).json({ quiz: data });
+    } catch (error) {
+        console.error("[quiz] publish failed:", error.message);
+        return res.status(500).json({ error: "Could not publish quiz." });
+    }
+});
+app.post("/api/quizzes/:uuid/answer", async (req, res) => {
+    try {
+        const { data: quiz, error } = await supabaseAdmin.from("quizzes").select("questions").eq("uuid", req.params.uuid).maybeSingle();
+        if (error) throw error;
+        if (!quiz) return res.status(404).json({ error: "Quiz not found." });
+        const submitted = req.body?.answers || {};
+        let correct = 0, gradable = 0;
+        for (let i = 0; i < quiz.questions.length; i++) {
+            const q = quiz.questions[i];
+            if (q.type === "text" && !String(q.answer || "").trim()) continue;
+            if (!["single", "multiple", "text"].includes(q.type) || !q.answer?.length) continue;
+            gradable++;
+            const expected = q.answer.map(v => String(v).trim().toLowerCase()).sort();
+            const actualValue = submitted[i];
+            const actual = (Array.isArray(actualValue) ? actualValue : [actualValue ?? ""]).map(v => String(v).trim().toLowerCase()).filter(Boolean).sort();
+            if (expected.length === actual.length && expected.every((v, n) => v === actual[n])) correct++;
+        }
+        return res.json({ correct, gradable, total: quiz.questions.length, message: gradable ? "Your answers have been checked." : "Answers submitted. This quiz has no automatically gradable questions." });
+    } catch (error) {
+        console.error("[quiz] answer failed:", error.message);
+        return res.status(500).json({ error: "Could not check your answers." });
+    }
+});
+
+\n/* ===---===---=== ENDPOINTS ===---===---=== */
 
 app.get("/", (req, res) => sendFileOrError(res, '/', 'homepage/index.html'));
 app.get("/credits", (req, res) => sendFileOrError(res, '/credits', 'credits.html'));
