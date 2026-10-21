@@ -190,6 +190,7 @@
           const btn = document.createElement("button");
           btn.type = "submit";
           btn.textContent = "Submit answers";
+          btn.class = "btn btn-primary";
           form.append(btn);
           form.dataset.loaded = "yes";
           form.dataset.count = qz.questions.length;
