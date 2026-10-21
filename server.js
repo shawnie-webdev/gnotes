@@ -1037,6 +1037,60 @@ app.post('/auth/moderator/actionpost', async (req, res) => {
 
         const { action, targetUuid, hours, rank, reason, sentence, contentType, itemId, moderationStatus } = req.body || {};
 
+        // Admin-only tools; every request is authenticated above and checked against the current database rank.
+        if (["audit-list", "reports-list", "report-update", "quiz-list", "quiz-delete", "settings-list", "settings-update"].includes(action) && actorRank !== "Admin") {
+            return res.status(403).json({ error: "Admin rank required for this action." });
+        }
+        const writeAudit = async (actionName, details = {}) => {
+            const { error } = await supabaseAdmin.from("admin_audit_log").insert({ actor_uuid: user.id, actor_rank: actorRank, action: actionName, target_uuid: targetUuid || null, details });
+            if (error) console.error("[admin/audit] insert failed:", error.message);
+        };
+        if (action === "audit-list") {
+            const { data, error } = await supabaseAdmin.from("admin_audit_log").select("id,actor_uuid,actor_rank,action,target_uuid,details,created_at").order("created_at", { ascending: false }).limit(200);
+            if (error) return res.status(500).json({ error: "Could not load audit log." });
+            return res.json({ success: true, entries: data || [] });
+        }
+        if (action === "reports-list") {
+            const { data, error } = await supabaseAdmin.from("user_reports").select("*").order("created_at", { ascending: false }).limit(200);
+            if (error) return res.status(500).json({ error: "Could not load reports." });
+            return res.json({ success: true, reports: data || [] });
+        }
+        if (action === "report-update") {
+            if (typeof itemId !== "string" || !["open", "reviewing", "resolved", "dismissed"].includes(moderationStatus)) return res.status(400).json({ error: "Report ID and valid status required." });
+            const { error } = await supabaseAdmin.from("user_reports").update({ status: moderationStatus, moderator_note: String(reason || "").trim().slice(0, 2000) || null, reviewed_by: user.id, reviewed_at: new Date().toISOString() }).eq("id", itemId);
+            if (error) return res.status(500).json({ error: "Could not update report." });
+            await writeAudit("report-update", { report_id: itemId, status: moderationStatus });
+            return res.json({ success: true, message: "Report updated." });
+        }
+        if (action === "quiz-list") {
+            const { data, error } = await supabaseAdmin.from("quizzes").select("uuid,author,metadata,difficulty,created_on").order("created_on", { ascending: false }).limit(200);
+            if (error) return res.status(500).json({ error: "Could not load quizzes." });
+            return res.json({ success: true, quizzes: data || [] });
+        }
+        if (action === "quiz-delete") {
+            if (typeof itemId !== "string") return res.status(400).json({ error: "Quiz UUID required." });
+            const { data, error } = await supabaseAdmin.from("quizzes").delete().eq("uuid", itemId).select("uuid").maybeSingle();
+            if (error) return res.status(500).json({ error: "Could not delete quiz." });
+            if (!data) return res.status(404).json({ error: "Quiz not found." });
+            await writeAudit("quiz-delete", { quiz_uuid: itemId });
+            return res.json({ success: true, message: "Quiz deleted." });
+        }
+        if (action === "settings-list") {
+            const { data, error } = await supabaseAdmin.from("site_settings").select("key,value,updated_by,updated_at").order("key");
+            if (error) return res.status(500).json({ error: "Could not load site settings." });
+            return res.json({ success: true, settings: data || [] });
+        }
+        if (action === "settings-update") {
+            const key = typeof req.body?.key === "string" ? req.body.key.trim() : "";
+            if (!/^[a-z][a-z0-9_-]{1,63}$/.test(key)) return res.status(400).json({ error: "Setting key must be 2–64 lowercase letters, numbers, hyphens, or underscores." });
+            const value = req.body?.value ?? null;
+            if (JSON.stringify(value).length > 5000) return res.status(400).json({ error: "Setting value is too large." });
+            const { data, error } = await supabaseAdmin.from("site_settings").upsert({ key, value, updated_by: user.id, updated_at: new Date().toISOString() }, { onConflict: "key" }).select("key,value,updated_by,updated_at").single();
+            if (error) return res.status(500).json({ error: "Could not save site setting." });
+            await writeAudit("settings-update", { key });
+            return res.json({ success: true, message: "Site setting saved.", setting: data });
+        }
+
         if (action === "whoami") {
             return res.json({ success: true, userId: user.id, rank: actorRank });
         }
