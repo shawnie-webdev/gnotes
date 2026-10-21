@@ -9,8 +9,8 @@
   <script src="/auth/config.js"></script>
   <script src="/auth/theme.js"></script>
   <script src="/auth/theme-experimental.js"></script>
-  <link rel="stylesheet" href="/master-combined.css">
-  <link rel="stylesheet" href="/master-experimental.css">
+  <link rel="stylesheet" href="../../master-combined.css">
+  <link rel="stylesheet" href="../../master-experimental.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -128,9 +128,15 @@
       <section class="panel-controller" id="user-info-panel" hidden>
         <div class="title-card"><h2>User Background</h2><p>Visible to authorized moderators and admins only.</p></div>
         <pre id="user-info-output" style="white-space:pre-wrap;overflow-wrap:anywhere;"></pre>
+        <div class="container">
       </section>
 
-
+      <section class="panel-controller card" id="admin-tools">
+        <div class="title-card"><h2>Others</h2><p>Test Admin Page</p></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <a href="/auth/admin/admin-test.html" class="btn btn-secondary">Page Layout Maker</a>
+        </div>
+      </section>
     </main>
   </div>
 <script>
