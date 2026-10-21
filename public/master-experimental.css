@@ -193,6 +193,7 @@ a:hover {
     margin-bottom: 20px;
 }
 
+
 .card:hover {
     border-color: var(--main-gold);
     box-shadow: var(--shadow-lg);

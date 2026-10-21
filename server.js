@@ -357,6 +357,8 @@ app.get("/student_resources/task.html", (req, res) => sendFileOrError(res, '/stu
 app.get("/student_resources/index.html", (req, res) => sendFileOrError(res, '/student_resources/index', 'student_resources/index.html'));
 app.get("/student_resources/make.html", (req, res) => sendFileOrError(res, '/student_resources/make', 'student_resources/make.html'));
 app.get("/student_resources/view.html", (req, res) => sendFileOrError(res, '/student_resources/view', 'student_resources/view.html'));
+app.get("/student_resources/user.html", (req, res) => sendFileOrError(res, '/student_resources/user_feature/user', 'student_resources/user_feature/user.html'));
+
 
 app.get('/auth/admin/admin-dashboard.html', (req, res) => {
     // The HTML shell contains no privileged data. The dashboard client obtains a
