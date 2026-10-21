@@ -108,6 +108,23 @@
         <div id="user-list" aria-live="polite"></div>
       </section>
 
+      <section class="panel-controller card" id="admin-tools">
+        <div class="title-card"><h2>Advanced Admin Tools</h2><p>Admin-only controls. Every request is re-authorized by the server.</p></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-secondary" id="load-audit" type="button">Audit log</button>
+          <button class="btn btn-secondary" id="load-reports" type="button">User reports</button>
+          <button class="btn btn-secondary" id="load-quizzes" type="button">Manage quizzes</button>
+          <button class="btn btn-secondary" id="load-site-settings" type="button">Site settings</button>
+        </div>
+        <div id="advanced-admin-output" class="card" aria-live="polite">Choose a tool to load its data.</div>
+        <div id="site-settings-editor" class="card" hidden>
+          <h3>Update a site setting</h3>
+          <label for="site-setting-key">Setting key <input class="form-input" id="site-setting-key" maxlength="64" placeholder="maintenance_notice"></label>
+          <label for="site-setting-value">Value (JSON) <textarea class="form-textarea" id="site-setting-value" rows="3" placeholder="Enter valid JSON"></textarea></label>
+          <button class="btn btn-primary" id="save-site-setting" type="button">Save setting</button>
+        </div>
+      </section>
+
       <section class="panel-controller" id="user-info-panel" hidden>
         <div class="title-card"><h2>User Background</h2><p>Visible to authorized moderators and admins only.</p></div>
         <pre id="user-info-output" style="white-space:pre-wrap;overflow-wrap:anywhere;"></pre>
@@ -404,7 +421,8 @@
   $('show-info').addEventListener('click', async () => {
     try {
       const result = await api('show-info', { targetUuid: targetUuid() });
-      $('user-info-output').textContent = JSON.stringify(result.background, null, 2);
+      const { success, ...expandedInfo } = result;
+      $('user-info-output').textContent = JSON.stringify(expandedInfo, null, 2);
       $('user-info-panel').hidden = false;
       $('user-info-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
       setStatus('Loaded user background.');
@@ -466,6 +484,15 @@
   $('delete-users').addEventListener('click', () => {
     setStatus('Permanent account deletion is disabled to avoid orphaning user content. Use Ban User to restrict access.');
   });
+
+  const advancedOutput = $('advanced-admin-output');
+  function showAdminJson(value) { advancedOutput.replaceChildren(); const pre = document.createElement('pre'); pre.style.whiteSpace = 'pre-wrap'; pre.style.overflowWrap = 'anywhere'; pre.textContent = JSON.stringify(value, null, 2); advancedOutput.appendChild(pre); }
+  $('load-audit').addEventListener('click', async () => { try { showAdminJson((await api('audit-list')).entries || []); } catch (e) { setStatus(e.message, true); } });
+  $('load-reports').addEventListener('click', async () => { try { showAdminJson((await api('reports-list')).reports || []); } catch (e) { setStatus(e.message, true); } });
+  $('load-quizzes').addEventListener('click', async () => { try { const quizzes = (await api('quiz-list')).quizzes || []; advancedOutput.replaceChildren(); quizzes.forEach(q => { const row = document.createElement('div'); row.className = 'content-management-row'; const label = document.createElement('span'); label.textContent = (q.metadata?.title || 'Untitled quiz') + ' · ' + q.uuid + ' · ' + (q.difficulty || 'medium'); const del = document.createElement('button'); del.className = 'btn btn-danger'; del.type = 'button'; del.textContent = 'Delete'; del.addEventListener('click', async () => { if (!confirm('Delete this quiz permanently?')) return; try { const result = await api('quiz-delete', { itemId: q.uuid }); setStatus(result.message); $('load-quizzes').click(); } catch (e) { setStatus(e.message, true); } }); row.append(label, del); advancedOutput.appendChild(row); }); if (!quizzes.length) advancedOutput.textContent = 'No quizzes found.'; } catch (e) { setStatus(e.message, true); } });
+  $('load-site-settings').addEventListener('click', async () => { try { const settings = (await api('settings-list')).settings || []; $('site-settings-editor').hidden = false; showAdminJson(settings); } catch (e) { setStatus(e.message, true); } });
+  $('save-site-setting').addEventListener('click', async () => { try { const key = $('site-setting-key').value.trim(); const value = JSON.parse($('site-setting-value').value || 'null'); const result = await api('settings-update', { key, value }); setStatus(result.message); $('load-site-settings').click(); } catch (e) { setStatus(e.message || 'Value must be valid JSON.', true); } });
+
   $('lists-see').addEventListener('click', loadUsers);
   $('refresh-content').addEventListener('click', loadContent);
   $('badge').addEventListener('click', () => setStatus('Badge management is not implemented yet.'));
