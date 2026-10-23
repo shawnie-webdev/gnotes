@@ -14,7 +14,169 @@
   <link rel="stylesheet" href="../../master-combined.css">
   <link rel="stylesheet" href="../../master-experimental.css">
   <link rel="stylesheet" href="style.css">
-
+  <style>
+    #designer-layout {
+      display: grid;
+      grid-template-columns: minmax(190px, 230px) minmax(0, 1fr) minmax(190px, 230px);
+      gap: 16px;
+      align-items: start;
+      padding: 16px;
+    }
+    #designer-layout > .side-panel,
+    #designer-layout > .side_panel_2 {
+      position: static;
+      width: auto;
+      height: auto;
+      max-height: calc(100vh - 120px);
+      overflow: auto;
+      margin: 0;
+    }
+    #designer-layout .square-button {
+      max-width: 100%;
+      cursor: grab;
+    }
+    #designer-workspace { min-width: 0; }
+    #designer-coordinate-readout {
+      display: block;
+      min-height: 1.5em;
+      margin-bottom: 8px;
+      font-variant-numeric: tabular-nums;
+    }
+    #designer-trash {
+      display: block;
+      width: 100%;
+      min-height: 44px;
+      margin-bottom: 8px;
+      border: 1px dashed var(--border-color);
+      border-radius: 6px;
+      color: var(--main-text);
+      background: var(--bg-card);
+      cursor: pointer;
+    }
+    #designer-trash.drag-over {
+      border-color: var(--main-gold);
+      background: var(--bg-card-hover);
+    }
+    #designer-canvas {
+      position: relative;
+      height: 720px;
+      min-height: 70vh;
+      padding: 0;
+      overflow: hidden;
+      border: 2px dashed var(--border-color);
+      border-radius: var(--radius-lg);
+      background-color: var(--bg-card);
+      background-image:
+        linear-gradient(to right, color-mix(in srgb, var(--border-color) 40%, transparent) 1px, transparent 1px),
+        linear-gradient(to bottom, color-mix(in srgb, var(--border-color) 40%, transparent) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    #designer-canvas.drag-over { outline: 2px solid var(--main-text); }
+    #camera-projection {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      object-fit: contain;
+      pointer-events: none;
+    }
+    #camera-projection[hidden] { display: none; }
+    #designer-canvas [data-design-item] {
+      position: absolute;
+      z-index: 2;
+      margin: 0;
+      cursor: grab;
+    }
+    #designer-canvas [data-design-item]:active,
+    #designer-layout .square-button:active { cursor: grabbing; }
+    #designer-canvas .canvas-hint {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      z-index: 1;
+      margin: 0;
+      opacity: 0.7;
+      pointer-events: none;
+    }
+    .camera-controls { display: grid; gap: 10px; }
+    .camera-controls label { display: grid; gap: 5px; }
+    .camera-controls select {
+      width: 100%;
+      min-width: 0;
+      padding: 8px;
+      color: var(--main-text);
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+    }
+    #camera-preview {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: #000;
+      object-fit: contain;
+    }
+    #camera-preview[hidden] { display: none; }
+    #camera-status { min-height: 3em; margin: 0; overflow-wrap: anywhere; }
+    .designer-component { margin: 12px 0; }
+    .designer-button {
+      padding: 10px 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      color: var(--main-text);
+      background: var(--bg-card);
+      cursor: pointer;
+    }
+    .designer-button.primary {
+      background: var(--bg-card-hover);
+      border-color: var(--main-gold);
+    }
+    .designer-button.secondary { background: var(--bg-card); }
+    .designer-button[aria-pressed="true"] { outline: 2px solid var(--main-text); }
+    .designer-button:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--main-gold);
+    }
+    .designer-card {
+      max-width: 360px;
+      padding: 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background: var(--bg-card);
+    }
+    .designer-card h3,
+    .designer-card p { margin: 0 0 8px; }
+    .designer-badge {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+    }
+    .designer-list { padding-left: 24px; }
+    .designer-select { display: grid; gap: 6px; width: fit-content; }
+    .designer-select select {
+      min-width: 180px;
+      padding: 8px;
+      color: var(--main-text);
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+    }
+    @media (max-width: 900px) {
+      #designer-layout { grid-template-columns: minmax(160px, 1fr) minmax(0, 2fr); }
+      #designer-layout > .side_panel_2 { grid-column: 1 / -1; }
+    }
+    @media (max-width: 600px) {
+      #designer-layout { grid-template-columns: 1fr; }
+      #designer-layout > .side_panel_2 { grid-column: auto; }
+      #designer-canvas { height: 600px; min-height: 60vh; }
+    }
+  </style>
 </head>
 <body>
 
@@ -43,7 +205,7 @@
   </div>
 </header>
 
-<main>
+<main id="designer-layout">
     <div class="side-panel">
         <h1>OBJECTS</h1>
         <button class="square-button" id="button">
@@ -51,7 +213,7 @@
         <img src="images/Button.png" alt="Primary Golden Button" width="158" height="68" class="img">
         </button>
 
-        <button class="square-button" id="button">
+        <button class="square-button" id="button2">
         <span><strong>Normal Button (Secondary Button)</strong></span>
         <img src="images/Button2.png" alt="Secondary  Button" width="120" height="64" class="img">
         </button>
@@ -79,24 +241,317 @@
          <button class="square-button" id="function">
         <span><strong>Insert Function</strong></span>
         <select class="form-select">
-          <option id="SupabaseRetrieveTable">Supabase Table Retriever</option>
-          <option id="SupabaseInsertRow">Insert Row in Table</option>
-          <option id="SupabaseDeleteRow">Delete Row in Table</option>
-          <option id="RetrieveUserInfo">Retrieve User's Info</option>
+          <option id="SupabaseRetrieveTable" id="ret">Supabase Table Retriever</option>
+          <option id="SupabaseInsertRow" id="ins">Insert Row in Table</option>
+          <option id="SupabaseDeleteRow" id="del">Delete Row in Table</option>
+          <option id="RetrieveUserInfo" id="retU">Retrieve User's Info</option>
         </select>
       </button>
     </div>
 
+    <div id="designer-workspace">
+      <output id="designer-coordinate-readout" aria-live="polite">X: 0 px | Y: 0 px</output>
+      <button id="designer-trash" type="button" aria-label="Drop a placed item here to delete it">Drop an item here to delete it</button>
+      <section id="designer-canvas" aria-label="Page design canvas">
+        <video id="camera-projection" autoplay muted playsinline hidden aria-hidden="true"></video>
+        <p class="canvas-hint">Drag an object here. Items snap to the 20 px grid.</p>
+      </section>
+    </div>
     <div class="side_panel_2">
-      <h2>Remote Device Controls</h2>
-      <button class="square-button" id="connect-device">Connect to a Device</button>
-      <button class="square-button" id="abort-device">Abort the Device</button>
-      <button class="square-button" id="device-controls">Create Device Controls</button>
+      <h2>Camera Projector</h2>
+      <div class="camera-controls">
+        <label for="camera-select">Camera</label>
+        <select id="camera-select">
+          <option value="">System default camera</option>
+        </select>
+        <video id="camera-preview" autoplay muted playsinline hidden aria-label="Live camera preview"></video>
+        <p id="camera-status" role="status" aria-live="polite">Choose a camera, then connect to preview it.</p>
+        <button class="square-button" id="connect-device" type="button">Connect camera</button>
+        <button class="square-button" id="abort-device" type="button" disabled>Stop projection</button>
+        <button class="square-button" id="device-controls" type="button">Refresh camera list</button>
+      </div>
     </div>
 </main>
 
 <script>
+    const SUPABASE_URL = 'https://cqxlnmvmfkylozcdffxf.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxeGxubXZtZmt5bG96Y2RmZnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3NDc4OTMsImV4cCI6MjEwNDMyMzg5M30.mpxEjcWdD9Vy0WsHRL7O8n1fWfnKInsBmOgaYsiv_38';
 
+    // Section of Code
+
+    const designer_canvas = document.getElementById("designer-canvas");
+    const coordinate_readout = document.getElementById("designer-coordinate-readout");
+    const object_palette = document.querySelector(".side-panel");
+    const grid_size = 20;
+    let drag_offset_x = 0;
+    let drag_offset_y = 0;
+    let next_design_item = 0;
+
+    function placeOnGrid(item, event) {
+      const bounds = designer_canvas.getBoundingClientRect();
+      const max_x = Math.floor(Math.max(0, designer_canvas.clientWidth - item.offsetWidth) / grid_size) * grid_size;
+      const max_y = Math.floor(Math.max(0, designer_canvas.clientHeight - item.offsetHeight) / grid_size) * grid_size;
+      const pointer_x = event.clientX - bounds.left - designer_canvas.clientLeft - drag_offset_x;
+      const pointer_y = event.clientY - bounds.top - designer_canvas.clientTop - drag_offset_y;
+      const x = Math.min(Math.max(0, Math.round(pointer_x / grid_size) * grid_size), max_x);
+      const y = Math.min(Math.max(0, Math.round(pointer_y / grid_size) * grid_size), max_y);
+
+      item.style.left = `${x}px`;
+      item.style.top = `${y}px`;
+      coordinate_readout.textContent = `X: ${x} px | Y: ${y} px`;
+    }
+
+    function createDesignerButton(label, variant) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `designer-component designer-button ${variant}`;
+      button.textContent = label;
+      button.setAttribute("aria-pressed", "false");
+      button.addEventListener("click", () => {
+        button.setAttribute("aria-pressed", button.getAttribute("aria-pressed") !== "true");
+      });
+      return button;
+    }
+
+    function createDesignerSelect(label, choices) {
+      const wrapper = document.createElement("label");
+      const caption = document.createElement("span");
+      const select = document.createElement("select");
+      wrapper.className = "designer-component designer-select";
+      caption.textContent = label;
+      choices.forEach((choice) => select.add(new Option(choice, choice)));
+      wrapper.append(caption, select);
+      return wrapper;
+    }
+
+    function createDesignerComponent(kind) {
+      if (kind === "button") return createDesignerButton("Primary Button", "primary");
+      if (kind === "button2") return createDesignerButton("Secondary Button", "secondary");
+      if (kind === "dropdown") return createDesignerSelect("Choose an option", ["Option 1", "Option 2", "Option 3"]);
+      if (kind === "function") {
+        return createDesignerSelect("Choose a function", [
+          "Supabase Table Retriever",
+          "Insert Row in Table",
+          "Delete Row in Table",
+          "Retrieve User Info"
+        ]);
+      }
+      if (kind === "badge") {
+        const badge = document.createElement("span");
+        badge.className = "designer-component designer-badge";
+        badge.textContent = "Beta tester";
+        return badge;
+      }
+      if (kind === "card") {
+        const card = document.createElement("article");
+        const heading = document.createElement("h3");
+        const text = document.createElement("p");
+        card.className = "designer-component designer-card";
+        heading.textContent = "Card heading";
+        text.textContent = "Select this text to edit the card content.";
+        heading.contentEditable = "true";
+        text.contentEditable = "true";
+        card.append(heading, text);
+        return card;
+      }
+      if (kind === "lists") {
+        const list = document.createElement("ul");
+        list.className = "designer-component designer-list";
+        ["First item", "Second item", "Third item"].forEach((text) => {
+          const item = document.createElement("li");
+          item.textContent = text;
+          item.contentEditable = "true";
+          list.append(item);
+        });
+        return list;
+      }
+      return null;
+    }
+
+    object_palette.querySelectorAll(".square-button").forEach((item) => {
+      item.draggable = true;
+    });
+
+    document.addEventListener("dragstart", (event) => {
+      const item = event.target.closest(".side-panel .square-button, #designer-canvas [data-design-item]");
+      if (!item) return;
+
+      const is_canvas_item = designer_canvas.contains(item);
+      event.dataTransfer.setData("text/plain", is_canvas_item ? item.dataset.designItem : item.id);
+      event.dataTransfer.setData("application/x-designer-source", is_canvas_item ? "canvas" : "palette");
+      event.dataTransfer.effectAllowed = "move";
+      drag_offset_x = item.offsetWidth / 2;
+      drag_offset_y = item.offsetHeight / 2;
+    });
+
+    designer_canvas.addEventListener("dragover", (event) => {
+      event.preventDefault();
+      designer_canvas.classList.add("drag-over");
+    });
+
+    designer_canvas.addEventListener("dragleave", (event) => {
+      if (!designer_canvas.contains(event.relatedTarget)) {
+        designer_canvas.classList.remove("drag-over");
+      }
+    });
+
+    const designer_trash = document.getElementById("designer-trash");
+    const camera_select = document.getElementById("camera-select");
+    const camera_preview = document.getElementById("camera-preview");
+    const camera_projection = document.getElementById("camera-projection");
+    const camera_status = document.getElementById("camera-status");
+    const connect_camera_button = document.getElementById("connect-device");
+    const stop_camera_button = document.getElementById("abort-device");
+    const refresh_camera_button = document.getElementById("device-controls");
+    let camera_stream = null;
+
+    async function refreshCameraList() {
+      if (!navigator.mediaDevices?.enumerateDevices) {
+        camera_status.textContent = "Camera access requires a supported browser on HTTPS or localhost.";
+        return;
+      }
+
+      const selected_device = camera_select.value;
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const cameras = devices.filter((device) => device.kind === "videoinput");
+        camera_select.replaceChildren(new Option("System default camera", ""));
+
+        cameras.forEach((camera, index) => {
+          camera_select.add(new Option(camera.label || `Camera ${index + 1}`, camera.deviceId));
+        });
+
+        if (cameras.some((camera) => camera.deviceId === selected_device)) {
+          camera_select.value = selected_device;
+        }
+
+        if (!camera_stream) {
+          camera_status.textContent = cameras.length
+            ? "Choose a camera, then connect to preview it."
+            : "No camera listed. Try the system default or connect a camera and refresh.";
+        }
+      } catch (error) {
+        camera_status.textContent = `Could not list cameras: ${error.message}`;
+      }
+    }
+
+    function stopCamera(message = "Projection stopped.") {
+      if (camera_stream) {
+        camera_stream.getTracks().forEach((track) => track.stop());
+        camera_stream = null;
+      }
+
+      camera_preview.srcObject = null;
+      camera_preview.hidden = true;
+      camera_projection.srcObject = null;
+      camera_projection.hidden = true;
+      stop_camera_button.disabled = true;
+      camera_status.textContent = message;
+    }
+
+    async function connectCamera() {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        camera_status.textContent = "Camera access requires a supported browser on HTTPS or localhost.";
+        return;
+      }
+
+      stopCamera("Connecting to camera...");
+      connect_camera_button.disabled = true;
+
+      try {
+        const device_id = camera_select.value;
+        camera_stream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: device_id ? { deviceId: { exact: device_id } } : true
+        });
+
+        camera_preview.srcObject = camera_stream;
+        camera_preview.hidden = false;
+        camera_projection.srcObject = camera_stream;
+        camera_projection.hidden = false;
+        await Promise.all([camera_preview.play(), camera_projection.play()]);
+        stop_camera_button.disabled = false;
+        camera_status.textContent = "Camera connected. Live preview is on.";
+
+        camera_stream.getVideoTracks()[0]?.addEventListener("ended", () => {
+          stopCamera("Camera disconnected.");
+        }, { once: true });
+        await refreshCameraList();
+        camera_status.textContent = "Camera connected. Live preview is on.";
+      } catch (error) {
+        stopCamera(error.name === "NotAllowedError"
+          ? "Camera permission was denied. Allow camera access and try again."
+          : `Could not start camera: ${error.message}`);
+      } finally {
+        connect_camera_button.disabled = false;
+      }
+    }
+
+    connect_camera_button.addEventListener("click", connectCamera);
+    stop_camera_button.addEventListener("click", () => stopCamera());
+    refresh_camera_button.addEventListener("click", refreshCameraList);
+    camera_select.addEventListener("change", () => {
+      if (camera_stream) connectCamera();
+    });
+    navigator.mediaDevices?.addEventListener("devicechange", refreshCameraList);
+    window.addEventListener("pagehide", () => stopCamera("Camera stopped when the page closed."));
+    refreshCameraList();
+
+    designer_trash.addEventListener("dragover", (event) => {
+      if (event.dataTransfer.types.includes("application/x-designer-source")) {
+        event.preventDefault();
+        designer_trash.classList.add("drag-over");
+      }
+    });
+
+    designer_trash.addEventListener("dragleave", () => {
+      designer_trash.classList.remove("drag-over");
+    });
+
+    designer_trash.addEventListener("drop", (event) => {
+      event.preventDefault();
+      designer_trash.classList.remove("drag-over");
+
+      if (event.dataTransfer.getData("application/x-designer-source") !== "canvas") return;
+      const item_key = event.dataTransfer.getData("text/plain");
+      const item = [...designer_canvas.querySelectorAll("[data-design-item]")]
+        .find((candidate) => candidate.dataset.designItem === item_key);
+      if (!item) return;
+
+      item.remove();
+      coordinate_readout.textContent = "Item deleted";
+    });
+
+    designer_canvas.addEventListener("drop", (event) => {
+      event.preventDefault();
+      designer_canvas.classList.remove("drag-over");
+
+      const item_key = event.dataTransfer.getData("text/plain");
+      const source = event.dataTransfer.getData("application/x-designer-source");
+      if (!source) return;
+      let item;
+
+      if (source === "canvas") {
+        item = [...designer_canvas.querySelectorAll("[data-design-item]")]
+          .find((candidate) => candidate.dataset.designItem === item_key);
+      } else if (source === "palette") {
+        item = createDesignerComponent(item_key);
+        if (item) {
+          item.dataset.designItem = String(++next_design_item);
+          item.draggable = true;
+        }
+      }
+
+      if (!item) return;
+      designer_canvas.querySelector(".canvas-hint")?.remove();
+      designer_canvas.append(item);
+      if (source === "palette") {
+        drag_offset_x = item.offsetWidth / 2;
+        drag_offset_y = item.offsetHeight / 2;
+      }
+      placeOnGrid(item, event);
+    });
+  
 </script>
 </body>
 </html>
