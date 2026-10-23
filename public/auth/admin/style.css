@@ -88,6 +88,22 @@ table tbody button { color: #172033; }
   transition: var(--transition);
   margin: 10px;
   padding: 24px;
+  align-items: center;
+}
+.side_panel_2 {
+  gap: 10px;
+  width: 17%;
+  height : 50%;
+  position: fixed;
+  overflow-x: hidden;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  transition: var(--transition);
+  margin: 10px;
+  padding: 24px;
+  margin-left: 80%;
 }
 .square-button {
     display: inline-flex;
