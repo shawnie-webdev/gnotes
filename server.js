@@ -340,7 +340,7 @@ app.get("/study/view", (req, res) => sendFileOrError(res, '/study/view', 'study/
 app.get("/study/advanced-topics", (req, res) => sendFileOrError(res, '/study/advanced-topics', 'study/courses/advanced-topics.html'));
 app.get("/study/new-advanced", (req, res) => sendFileOrError(res, '/study/new-advanced', 'study/courses/new-advanced.html'));
 
-// Serve PDFs inline so browsers preview them instead of treating them as downloads.
+// Serve PDFs inline and support HTTP byte ranges used by browser PDF viewers.
 app.get("/documents/view/:id", async (req, res) => {
     try {
         const { data: document, error } = await supabaseAdmin
@@ -348,23 +348,58 @@ app.get("/documents/view/:id", async (req, res) => {
             .select("id,file_url,name,moderation_status")
             .eq("id", req.params.id)
             .maybeSingle();
+
         if (error) throw error;
-        if (!document) {
-            return res.status(404).send("Document not found or not approved.");
-        }
+        if (!document) return res.status(404).send("Document not found.");
         if (!document.file_url) return res.status(404).send("Document file is unavailable.");
-        const upstream = await fetch(document.file_url);
-        if (!upstream.ok || !upstream.body) return res.status(502).send("Could not retrieve document.");
+
+        // Only proxy files from this project's Supabase Storage host.
+        let fileUrl;
+        try {
+            fileUrl = new URL(document.file_url);
+        } catch {
+            return res.status(502).send("The stored document URL is invalid.");
+        }
+        if (fileUrl.protocol !== "https:" || fileUrl.hostname !== "cqxlnmvmfkylozcdffxf.supabase.co") {
+            return res.status(502).send("The stored document URL is not an approved storage URL.");
+        }
+
+        const upstream = await fetch(fileUrl, {
+            headers: req.headers.range ? { Range: req.headers.range } : {}
+        });
+        if (![200, 206].includes(upstream.status) || !upstream.body) {
+            console.error("[documents/view] Storage returned:", upstream.status);
+            return res.status(502).send("Supabase Storage could not retrieve this document.");
+        }
+
+        const contentType = (upstream.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
+        if (contentType && contentType !== "application/pdf" && contentType !== "application/octet-stream") {
+            return res.status(415).send("This file is not stored as a PDF.");
+        }
+
+        const fileBuffer = Buffer.from(await upstream.arrayBuffer());
+        // A full response must begin with the PDF signature. Partial responses may not.
+        if (upstream.status === 200 && !fileBuffer.subarray(0, 5).equals(Buffer.from("%PDF-"))) {
+            console.error("[documents/view] Stored object is not a PDF:", document.id);
+            return res.status(415).send("The stored file is not a valid PDF.");
+        }
+
         res.setHeader("Content-Type", "application/pdf");
         res.setHeader("Content-Disposition", 'inline; filename="document.pdf"');
         res.setHeader("X-Content-Type-Options", "nosniff");
         res.setHeader("Cache-Control", "private, max-age=300");
-        res.status(200);
-        const { Readable } = require("stream");
-        Readable.fromWeb(upstream.body).pipe(res);
+        res.setHeader("Accept-Ranges", "bytes");
+
+        const contentRange = upstream.headers.get("content-range");
+        if (contentRange) res.setHeader("Content-Range", contentRange);
+        const contentLength = upstream.headers.get("content-length");
+        if (contentLength) res.setHeader("Content-Length", contentLength);
+
+        return res.status(upstream.status).end(fileBuffer);
     } catch (error) {
         console.error("[documents/view] Failed:", error.message);
-        if (!res.headersSent) res.status(500).send("Unable to open this document.");
+        if (!res.headersSent) return res.status(500).send("Unable to open this document.");
+        return res.end();
     }
 });
 
