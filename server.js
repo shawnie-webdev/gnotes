@@ -349,7 +349,7 @@ app.get("/documents/view/:id", async (req, res) => {
             .eq("id", req.params.id)
             .maybeSingle();
         if (error) throw error;
-        if (!document || document.moderation_status !== "accepted") {
+        if (!document) {
             return res.status(404).send("Document not found or not approved.");
         }
         if (!document.file_url) return res.status(404).send("Document file is unavailable.");
