@@ -360,7 +360,7 @@
             actions.style.flexWrap = 'wrap';
             if (item.file_url) {
               const view = document.createElement('a');
-              view.href = item.file_url;
+              view.href = "/documents/view/" + encodeURIComponent(item.id);
               view.target = '_blank';
               view.rel = 'noopener noreferrer';
               view.className = 'generic_button';
