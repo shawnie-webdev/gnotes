@@ -340,6 +340,34 @@ app.get("/study/view", (req, res) => sendFileOrError(res, '/study/view', 'study/
 app.get("/study/advanced-topics", (req, res) => sendFileOrError(res, '/study/advanced-topics', 'study/courses/advanced-topics.html'));
 app.get("/study/new-advanced", (req, res) => sendFileOrError(res, '/study/new-advanced', 'study/courses/new-advanced.html'));
 
+// Serve PDFs inline so browsers preview them instead of treating them as downloads.
+app.get("/documents/view/:id", async (req, res) => {
+    try {
+        const { data: document, error } = await supabaseAdmin
+            .from("documents")
+            .select("id,file_url,name,moderation_status")
+            .eq("id", req.params.id)
+            .maybeSingle();
+        if (error) throw error;
+        if (!document || document.moderation_status !== "accepted") {
+            return res.status(404).send("Document not found or not approved.");
+        }
+        if (!document.file_url) return res.status(404).send("Document file is unavailable.");
+        const upstream = await fetch(document.file_url);
+        if (!upstream.ok || !upstream.body) return res.status(502).send("Could not retrieve document.");
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Disposition", 'inline; filename="document.pdf"');
+        res.setHeader("X-Content-Type-Options", "nosniff");
+        res.setHeader("Cache-Control", "private, max-age=300");
+        res.status(200);
+        const { Readable } = require("stream");
+        Readable.fromWeb(upstream.body).pipe(res);
+    } catch (error) {
+        console.error("[documents/view] Failed:", error.message);
+        if (!res.headersSent) res.status(500).send("Unable to open this document.");
+    }
+});
+
 app.get("/documents", (req, res) => sendFileOrError(res, '/documents', 'documents/viewer.html'));
 app.get("/documents/add", (req, res) => sendFileOrError(res, '/documents/add', 'documents/filesupload.html'));
 app.get("/calendar", (req, res) => sendFileOrError(res, '/calendar', 'calendar/index.html'));
