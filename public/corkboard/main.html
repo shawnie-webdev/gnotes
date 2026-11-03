@@ -353,7 +353,7 @@
                             'Content-Type': 'application/json',
                             'Authorization': 'Bearer ' + session.access_token
                         },
-                        body: JSON.stringify({ text: textToSave })
+                        body: JSON.stringify({ text: textToSave, recordViolation: false })
                     });
                     const moderation = await response.json();
                     if (!response.ok) throw new Error(moderation.error || 'Moderation check failed');
@@ -362,6 +362,19 @@
                     if (body.innerText !== textToSave) return;
 
                     if (moderation.flagged) {
+                        // The initial check is read-only. Record a violation only after the
+                        // unchanged text has been checked and confirmed as still current.
+                        const recordResponse = await fetch('/api/moderate-text', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer ' + session.access_token
+                            },
+                            body: JSON.stringify({ text: textToSave, recordViolation: true })
+                        });
+                        const recordedModeration = await recordResponse.json();
+                        if (!recordResponse.ok) throw new Error(recordedModeration.error || 'Could not record moderation result');
+                        if (body.innerText !== textToSave) return;
                         window.location.assign('/auth/cursing.html');
                         return;
                     }
