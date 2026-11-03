@@ -466,22 +466,36 @@ if (typeof BadWordsFilter === "function") {
 // Minimal fallback keeps startup alive if the dependency's export shape changes.
 const fallbackProfanityPattern = /\b(fuck(?:er|ing|ed|s)?|shit(?:ty|s)?|bitch(?:es)?|asshole|bastard|damn|hell|crap)\b/i;
 
+// URLs are data, not prose. Exclude domains, paths, query strings, and encoded
+// redirect targets from profanity detection (e.g. Messenger links to Google Drive).
+const moderationUrlPattern = /(?:https?:\/\/|www\.)[^\s<>]+|\b(?:[a-z0-9-]+\.)+(?:com|net|org|edu|gov|io|co|ly|me|app|dev|ph)(?:\/[^\s<>]*)?/gi;
+
 async function checkProfanity(text) {
     const input = String(text ?? "");
     if (!input.trim()) return { bad_words_total: 0, bad_words_list: [], censored_content: input, provider: "none" };
+
+    const moderationInput = input.replace(moderationUrlPattern, " ").trim();
+    // A post consisting only of links should never be flagged or recorded as profanity.
+    if (!moderationInput) {
+        return { bad_words_total: 0, bad_words_list: [], censored_content: input, provider: "url-excluded" };
+    }
 
     if (process.env.APILAYER_API_KEY) {
         try {
             const response = await fetch("https://api.apilayer.com/bad_words?censor_character=*", {
                 method: "POST",
                 headers: { apikey: process.env.APILAYER_API_KEY, "Content-Type": "text/plain" },
-                body: input,
+                body: moderationInput,
                 signal: AbortSignal.timeout(5000)
             });
             if (!response.ok) throw new Error("APILayer returned HTTP " + response.status);
             const result = await response.json();
             if (typeof result.censored_content === "string" && Number.isFinite(Number(result.bad_words_total))) {
-                return { ...result, provider: "apilayer" };
+                return {
+                    ...result,
+                    censored_content: Number(result.bad_words_total) > 0 ? result.censored_content : input,
+                    provider: "apilayer"
+                };
             }
             throw new Error("APILayer returned an unexpected response format");
         } catch (error) {
@@ -490,8 +504,8 @@ async function checkProfanity(text) {
     }
 
     const flagged = localProfanityFilter
-        ? localProfanityFilter.isProfane(input)
-        : fallbackProfanityPattern.test(input);
+        ? localProfanityFilter.isProfane(moderationInput)
+        : fallbackProfanityPattern.test(moderationInput);
     return {
         bad_words_total: flagged ? 1 : 0,
         bad_words_list: flagged ? ["profanity"] : [],
@@ -690,7 +704,12 @@ app.post("/api/moderate-text", async (req, res) => {
 
         const result = await checkProfanity(req.body.text);
         const flagged = Number(result.bad_words_total || 0) > 0;
-        if (flagged) await incrementProfanityCount(user.id, Number(result.bad_words_total) || 1, req.body.text);
+
+        // Editing checks are read-only. Only record a violation after the client
+        // confirms the exact same text is still current.
+        if (flagged && req.body.recordViolation === true) {
+            await incrementProfanityCount(user.id, Number(result.bad_words_total) || 1, req.body.text);
+        }
         return res.status(200).json({ flagged, censoredText: result.censored_content, provider: result.provider || "unknown" });
     } catch (error) {
         console.error("[moderation] Text check failed:", error);
