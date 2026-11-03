@@ -357,6 +357,10 @@
                     });
                     const moderation = await response.json();
                     if (!response.ok) throw new Error(moderation.error || 'Moderation check failed');
+
+                    // Ignore stale responses if the user has resumed typing while moderation was in flight.
+                    if (body.innerText !== textToSave) return;
+
                     if (moderation.flagged) {
                         window.location.assign('/auth/cursing.html');
                         return;
@@ -383,7 +387,7 @@
                     showStatus('Failed to save note text: ' + error.message, 'error');
                     return;
                 }
-            }, 400));
+            }, 1000));
         }
 
         note.style.left = `${Number(noteData.x) || 0}px`;
