@@ -340,7 +340,7 @@
 
             const body = note.querySelector('.note-body');
             body.addEventListener('input', debounce(async () => {
-                const textToSave = body.innerText;
+                const textToSave = body.innerHTML;
                 const { data: { session } } = await supabaseClient.auth.getSession();
                 if (!session?.access_token) {
                     showStatus('Please sign in again before editing notes.', 'error');
@@ -409,7 +409,7 @@
 
         const body = note.querySelector('.note-body');
         if (document.activeElement !== body) {
-            body.innerText = noteData.text || '';
+            body.innerHTML = noteData.text || '';
         }
     }
 
