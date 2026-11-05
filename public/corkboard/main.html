@@ -199,6 +199,42 @@
             border-radius: 4px; filter: drop-shadow(0 5px 8px rgba(0,0,0,.3));
         }
         .sticker-file-input { display: none; }
+        #sticker-library-dialog {
+            width: min(780px, 94vw); max-height: 86vh; padding: 20px;
+            border: 1px solid var(--strong-line); border-radius: 12px;
+            background: var(--deepest-background); color: var(--text-color);
+        }
+        #sticker-library-dialog::backdrop { background: rgba(0,0,0,.68); }
+        .sticker-library-header, .sticker-library-create {
+            display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+            justify-content: space-between; margin-bottom: 14px;
+        }
+        .sticker-library-create input[type="text"] {
+            flex: 1 1 180px; min-width: 0; padding: 10px;
+            border: 1px solid var(--strong-line); border-radius: 6px;
+            background: var(--primary-navy); color: var(--text-color);
+        }
+        #sticker-library-status { min-height: 1.4em; color: var(--muted-text); }
+        #sticker-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+            gap: 12px; max-height: 52vh; overflow-y: auto; padding: 4px;
+        }
+        .sticker-card {
+            display: flex; flex-direction: column; gap: 8px; min-width: 0;
+            padding: 9px; border: 1px solid var(--strong-line); border-radius: 8px;
+            background: var(--primary-navy); color: var(--text-color);
+            cursor: pointer; text-align: center;
+        }
+        .sticker-card:hover { border-color: var(--main-gold); transform: translateY(-1px); }
+        .sticker-card img {
+            width: 100%; aspect-ratio: 1; object-fit: contain;
+            border-radius: 5px; background: rgba(0,0,0,.12);
+        }
+        .sticker-card span { overflow-wrap: anywhere; font-size: .9rem; }
+        @media (max-width: 520px) {
+            #sticker-library-dialog { padding: 14px; }
+            #sticker-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.3.1/dist/purify.min.js"></script>
@@ -234,13 +270,26 @@
 
 <div class="controls">
     <button id="add-note-btn" class="btn btn-primary">+ Add Sticky Note</button>
-    <button id="add-sticker-btn" class="btn btn-primary">+ Add Sticky Sticker</button>
-    <input id="sticker-file-input" class="sticker-file-input" type="file" accept="image/png,image/jpeg,image/gif,image/webp">
+    <button id="sticker-library-btn" class="btn btn-primary">Sticker Library</button>
     <button id="back" class="btn btn-secondary">Go back</button>
     <div id="room-display" class="room-tag">Room: main-room</div>
 </div>
 
 <div id="status-msg" role="status"></div>
+<dialog id="sticker-library-dialog" aria-labelledby="sticker-library-title">
+    <div class="sticker-library-header">
+        <h2 id="sticker-library-title">GoldenNotes Sticker Library</h2>
+        <button type="button" id="close-sticker-library" class="btn btn-secondary">Close</button>
+    </div>
+    <div class="sticker-library-create">
+        <input id="sticker-name-input" type="text" maxlength="80" placeholder="Sticker name" aria-label="Sticker name">
+        <input id="sticker-file-input" class="sticker-file-input" type="file" accept="image/png,image/jpeg,image/gif,image/webp">
+        <button type="button" id="choose-sticker-file" class="btn btn-secondary">Choose image</button>
+        <button type="button" id="upload-sticker-btn" class="btn btn-primary">Save to library</button>
+    </div>
+    <p id="sticker-library-status" role="status">Choose a sticker to post it on this corkboard.</p>
+    <div id="sticker-grid"></div>
+</dialog>
 <div id="corkboard"></div>
 
 <script>
@@ -254,8 +303,16 @@
 
     const corkboard = document.getElementById('corkboard');
     const addNoteBtn = document.getElementById('add-note-btn');
-    const addStickerBtn = document.getElementById('add-sticker-btn');
+    const stickerLibraryBtn = document.getElementById('sticker-library-btn');
+    const stickerLibraryDialog = document.getElementById('sticker-library-dialog');
     const stickerFileInput = document.getElementById('sticker-file-input');
+    const stickerNameInput = document.getElementById('sticker-name-input');
+    const chooseStickerFileBtn = document.getElementById('choose-sticker-file');
+    const uploadStickerBtn = document.getElementById('upload-sticker-btn');
+    const closeStickerLibraryBtn = document.getElementById('close-sticker-library');
+    const stickerLibraryStatus = document.getElementById('sticker-library-status');
+    const stickerGrid = document.getElementById('sticker-grid');
+    const STICKER_BUCKET = 'corkboard-stickers';
     const statusMsg = document.getElementById('status-msg');
     const noteColors = ['#feff9c', '#ff7eb9', '#7afcff', '#69ff94', '#fff740', '#ffb346'];
     let zIndexCounter = 10;
@@ -274,7 +331,7 @@
     }
 
     // HTML is allowed in notes only through a strict allowlist.
-    // Images are restricted to HTTPS Imgur image URLs.
+    // Legacy Imgur images remain supported; new stickers use this project's public Storage bucket.
     function sanitizeNoteHtml(value) {
         const clean = DOMPurify.sanitize(String(value || ''), {
             ALLOWED_TAGS: ['a', 'b', 'strong', 'i', 'em', 'u', 's', 'p', 'br', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'span', 'img'],
@@ -290,7 +347,11 @@
             let valid = false;
             try {
                 const parsed = new URL(src, window.location.origin);
-                valid = parsed.protocol === 'https:' && parsed.hostname === 'i.imgur.com';
+                const projectHost = new URL(SUPABASE_URL).hostname;
+                const isLegacyImgur = parsed.hostname === 'i.imgur.com';
+                const isLibrarySticker = parsed.hostname === projectHost &&
+                    parsed.pathname.startsWith('/storage/v1/object/public/' + STICKER_BUCKET + '/');
+                valid = parsed.protocol === 'https:' && (isLegacyImgur || isLibrarySticker);
             } catch (_) {}
             if (!valid) img.remove();
             else {
@@ -637,57 +698,145 @@
 
         subscribeToRoomChanges();
         addNoteBtn.addEventListener('click', createStickyNote);
-        addStickerBtn.addEventListener('click', () => stickerFileInput.click());
-        stickerFileInput.addEventListener('change', uploadAndPostSticker);
+        stickerLibraryBtn.addEventListener('click', openStickerLibrary);
+        closeStickerLibraryBtn.addEventListener('click', () => stickerLibraryDialog.close());
+        chooseStickerFileBtn.addEventListener('click', () => stickerFileInput.click());
+        uploadStickerBtn.addEventListener('click', uploadStickerToLibrary);
     });
 
-    async function uploadAndPostSticker() {
-        const file = stickerFileInput.files?.[0];
-        if (!file) return;
-        stickerFileInput.value = '';
+    function openStickerLibrary() {
+        stickerLibraryDialog.showModal();
+        loadStickerLibrary();
+    }
 
+    async function loadStickerLibrary() {
+        stickerGrid.replaceChildren();
+        stickerLibraryStatus.textContent = 'Loading stickers…';
+        const { data, error } = await supabaseClient
+            .from('stickers')
+            .select('id, name, image_path, created_by, created_at')
+            .order('created_at', { ascending: false })
+            .limit(200);
+
+        if (error) {
+            console.error('[corkboard] Sticker library load failed:', error);
+            stickerLibraryStatus.textContent = 'Could not load the sticker library: ' + error.message;
+            return;
+        }
+
+        if (!data?.length) {
+            stickerLibraryStatus.textContent = 'No stickers yet. Add the first one above!';
+            return;
+        }
+
+        stickerLibraryStatus.textContent = data.length === 200
+            ? 'Showing the 200 newest stickers. Select one to post it.'
+            : 'Select a sticker to post it on this corkboard.';
+        data.forEach((sticker) => {
+            const { data: publicData } = supabaseClient.storage
+                .from(STICKER_BUCKET)
+                .getPublicUrl(sticker.image_path);
+            const card = document.createElement('button');
+            card.type = 'button';
+            card.className = 'sticker-card';
+            card.title = 'Post ' + sticker.name + ' to this corkboard';
+            const image = document.createElement('img');
+            image.src = publicData.publicUrl;
+            image.alt = sticker.name;
+            image.loading = 'lazy';
+            const label = document.createElement('span');
+            label.textContent = sticker.name;
+            card.append(image, label);
+            card.addEventListener('click', () => postStickerToBoard(sticker, publicData.publicUrl));
+            stickerGrid.appendChild(card);
+        });
+    }
+
+    async function uploadStickerToLibrary() {
+        const file = stickerFileInput.files?.[0];
+        const name = stickerNameInput.value.trim();
+        if (!file) {
+            stickerLibraryStatus.textContent = 'Choose an image first.';
+            return;
+        }
+        if (!name || name.length > 80) {
+            stickerLibraryStatus.textContent = 'Enter a sticker name (1–80 characters).';
+            stickerNameInput.focus();
+            return;
+        }
         if (!['image/png', 'image/jpeg', 'image/gif', 'image/webp'].includes(file.type)) {
-            showStatus('Choose a PNG, JPG, GIF, or WebP image.', 'error');
+            stickerLibraryStatus.textContent = 'Choose a PNG, JPG, GIF, or WebP image.';
             return;
         }
         if (file.size > 3.5 * 1024 * 1024) {
-            showStatus('Sticker images must be 3.5 MB or smaller.', 'error');
+            stickerLibraryStatus.textContent = 'Sticker images must be 3.5 MB or smaller.';
             return;
         }
 
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (!session?.access_token) {
-            showStatus('Sign in before posting a sticker.', 'error');
+        const userId = await getUserUuid();
+        if (!userId) {
+            stickerLibraryStatus.textContent = 'Sign in before adding stickers.';
             return;
         }
 
-        addStickerBtn.disabled = true;
-        showStatus('Uploading sticker to Imgur…', 'info');
+        const extension = ({ 'image/png': 'png', 'image/jpeg': 'jpg', 'image/gif': 'gif', 'image/webp': 'webp' })[file.type];
+        const path = userId + '/' + crypto.randomUUID() + '.' + extension;
+        uploadStickerBtn.disabled = true;
+        stickerLibraryStatus.textContent = 'Uploading sticker…';
+
         try {
-            const imageData = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = () => reject(new Error('Could not read the selected image.'));
-                reader.readAsDataURL(file);
-            });
-            const response = await fetch('/api/corkboard/sticker', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + session.access_token
-                },
-                body: JSON.stringify({ image: imageData })
-            });
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.error || 'Sticker upload failed.');
+            const { error: uploadError } = await supabaseClient.storage
+                .from(STICKER_BUCKET)
+                .upload(path, file, {
+                    cacheControl: '3600',
+                    contentType: file.type,
+                    upsert: false
+                });
+            if (uploadError) throw new Error(uploadError.message);
 
-            const userId = await getUserUuid();
-            if (!userId) throw new Error('Your session expired. Please sign in again.');
-            const safeUrl = new URL(result.link);
-            if (safeUrl.protocol !== 'https:' || safeUrl.hostname !== 'i.imgur.com') {
-                throw new Error('Imgur returned an unexpected image URL.');
+            const { error: insertError } = await supabaseClient.from('stickers').insert({
+                name,
+                image_path: path,
+                created_by: userId
+            });
+            if (insertError) {
+                await supabaseClient.storage.from(STICKER_BUCKET).remove([path]);
+                throw new Error(insertError.message);
             }
-            const stickerHtml = '<img src="' + safeUrl.href.replace(/&/g, '&amp;').replace(/"/g, '&quot;') + '" alt="Corkboard sticker">';
+
+            stickerFileInput.value = '';
+            stickerNameInput.value = '';
+            stickerLibraryStatus.textContent = 'Sticker saved! Select it below to post it.';
+            await loadStickerLibrary();
+        } catch (error) {
+            console.error('[corkboard] Sticker save failed:', error);
+            stickerLibraryStatus.textContent = 'Could not save sticker: ' + error.message;
+        } finally {
+            uploadStickerBtn.disabled = false;
+        }
+    }
+
+    async function postStickerToBoard(sticker, imageUrl) {
+        const userId = await getUserUuid();
+        if (!userId) {
+            stickerLibraryStatus.textContent = 'Sign in before posting a sticker.';
+            return;
+        }
+        const safeUrl = new URL(imageUrl);
+        const expectedHost = new URL(SUPABASE_URL).hostname;
+        if (safeUrl.protocol !== 'https:' || safeUrl.hostname !== expectedHost ||
+            !safeUrl.pathname.startsWith('/storage/v1/object/public/' + STICKER_BUCKET + '/')) {
+            stickerLibraryStatus.textContent = 'This sticker has an invalid image address.';
+            return;
+        }
+
+        const escapedUrl = safeUrl.href.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+        const escapedName = String(sticker.name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+            .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const stickerHtml = '<img src="' + escapedUrl + '" alt="' + escapedName + '">';
+        stickerLibraryStatus.textContent = 'Posting sticker…';
+
+        try {
             const { data, error } = await supabaseClient.from('notes').insert([{
                 room: CURRENT_ROOM,
                 x: Math.floor(Math.random() * Math.max(corkboard.clientWidth - 260, 20)) + 20,
@@ -697,15 +846,14 @@
                 userid: userId
             }]).select().single();
 
-            if (error) throw new Error('Imgur upload worked, but the sticker could not be posted: ' + error.message);
+            if (error) throw new Error(error.message);
             pendingLocalIds.add(data.id);
             renderNoteUI(data);
+            stickerLibraryDialog.close();
             showStatus('Sticker posted to the corkboard.');
         } catch (error) {
-            console.error('[corkboard] Sticker upload failed:', error);
-            showStatus(error.message || 'Could not post this sticker.', 'error');
-        } finally {
-            addStickerBtn.disabled = false;
+            console.error('[corkboard] Sticker post failed:', error);
+            stickerLibraryStatus.textContent = 'Could not post sticker: ' + error.message;
         }
     }
 
