@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GoldenNotes v1.2</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+
+  <!-- Supabase JS Client via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/auth/config.js"></script>
+  <script src="/auth/theme.js"></script>
+  <script src="/auth/theme-experimental.js"></script>
+  <link rel="stylesheet" href="/master-combined.css">
+  <link rel="stylesheet" href="/master-experimental.css">
+
+</head>
+<body>
+
+<header class="top-header">
+  <div class="nav-actions">
+    <div class="header-left">
+      <img src="/favicon.jpeg" alt="logo" id="logo">
+    </div>
+    <a href="/credits.html" class="btn btn-primary" id="credits">Credits</a>
+    <a href="/" class="btn btn-secondary" id="dashboard">Homepage</a>
+    <a href="/man-page/index.html" class="btn btn-secondary">Manual</a>
+    <div class="dropdown btn btn-secondary">
+      Study
+      <div class="dropdown-content">
+        <a href="/corkboard" class="btn btn-secondary" id="cb">Corkboard</a>
+        <a href="/study" class="btn btn-secondary" id="study">Study Guides</a>
+        <a href="/documents" class="btn btn-secondary" id="documents">Documents</a>
+        <a href="/calendar" class="btn btn-secondary" id="calendar">Calendar</a>
+        <a href="/quiz" class="btn btn-secondary" id="calendar">Quiz</a>
+  
+      </div>
+    </div>
+
+    <a href="/dashboard/settings" class="btn btn-secondary" id="settings-nav">Settings</a>
+    <a href="/dashboard" class="btn btn-secondary" id="d-nav">Dashboard</a>
+  </div>
+</header>
+
+<main>
+<div id="chatbox"></div>
+    <input type="text" id="userInput" placeholder="Type a message..." style="width: 75%; padding: 8px;">
+    <button onclick="sendMessage()" style="padding: 8px 15px;">Send</button>
+</main>
+    <script>
+    function appendMessage(role, text, isError = false) {
+      const chatbox = document.getElementById('chatbox');
+      const messageElement = document.createElement('div');
+      const label = document.createElement('b');
+
+      messageElement.className = role === 'You' ? 'user' : 'ai';
+      if (isError) messageElement.style.color = 'red';
+      label.textContent = `${role}:`;
+      messageElement.append(label, document.createTextNode(` ${text}`));
+      chatbox.appendChild(messageElement);
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+        async function sendMessage() {
+            const inputField = document.getElementById('userInput');
+            const message = inputField.value.trim();
+            if (!message) return;
+
+      appendMessage('You', message);
+            inputField.value = '';
+
+            try {
+                // Post the user's message to our secure Node.js backend
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message })
+                });
+
+                  const data = await response.json().catch(() => ({}));
+                  if (!response.ok) {
+                    throw new Error(data.error || `Request failed (${response.status}).`);
+                  }
+                  if (typeof data.reply !== 'string' || !data.reply.trim()) {
+                    throw new Error('The server returned an empty reply.');
+                  }
+
+                  appendMessage('AI', data.reply);
+            } catch (error) {
+                  const errorMessage = error instanceof TypeError
+                    ? 'Cannot reach the chat server. Run `npm start` and open http://localhost:3000/openai/index.html.'
+                    : error.message || 'Could not connect to server.';
+                  appendMessage('Error', errorMessage, true);
+            }
+        }
+    </script>
+</body>
+</html>

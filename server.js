@@ -10,10 +10,14 @@ const os = require("os");
 const { execSync } = require("child_process");
 const crypto = require("crypto");
 const { createClient } = require("@supabase/supabase-js"); // 1. Import createClient
+const OpenAI = require("openai");
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://cqxlnmvmfkylozcdffxf.supabase.co';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY?.trim();
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+const openai = process.env.OPENAI_API_KEY
+    ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY.trim() })
+    : null;
 
 const missingSupabaseConfig = [
     !SUPABASE_ANON_KEY && "SUPABASE_ANON_KEY",
@@ -1427,6 +1431,39 @@ app.post('/auth/moderator/actionpost', async (req, res) => {
         console.error("[moderator/actionpost] Unexpected error:", err);
         return res.status(500).json({ error: "Internal server error." });
     }
+});
+
+app.post('/api/chat', async (req, res) => {
+    if (!openai) {
+        return res.status(503).json({ error: "Chat is not configured on this server." });
+    }
+
+  try {
+    const { message } = req.body;
+        if (typeof message !== "string" || !message.trim()) {
+            return res.status(400).json({ error: "A message is required." });
+        }
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+            messages: [{ role: "user", content: message.trim() }],
+    });
+
+        return res.json({ reply: completion.choices[0].message.content });
+  } catch (error) {
+    console.error("[chat] OpenAI request failed:", error);
+
+    let message = "OpenAI request failed. Check the server terminal for details.";
+    if (error?.status === 401 || error?.status === 403) {
+        message = "OpenAI rejected the API key or its permissions. Check OPENAI_API_KEY.";
+    } else if (error?.status === 429) {
+        message = "OpenAI rate limit or usage quota reached. Check the OpenAI account and try again.";
+    } else if (error?.status) {
+        message = `OpenAI request failed (HTTP ${error.status}). Check the server terminal for details.`;
+    }
+
+    return res.status(502).json({ error: message });
+  }
 });
 
 /* DEBBUGER ENDPOINT -- DO NOT EDIT SECTION */

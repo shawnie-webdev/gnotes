@@ -11,9 +11,10 @@
     "@supabase/supabase-js": "^2.115.0",
     "bad-words": "^4.1.5",
     "cookie-parser": "^1.4.7",
-    "dotenv": "^18.0.8",
+    "dotenv": "^18.0.9",
     "express": "^5.2.1",
     "fs": "^0.0.1-security",
+    "openai": "^7.51.0",
     "tinymce": "^8.9.1"
   }
 }

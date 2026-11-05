@@ -22,7 +22,7 @@
             flex-wrap: wrap;
             justify-content: center;
         }
-
+/*
         .btn-add, #add-note-btn.btn, #back.btn {
             background-color: var(--main-gold);
             color: var(--deepest-background);
@@ -51,7 +51,7 @@
             box-shadow: none;
             opacity: 0.7;
         }
-
+*/
         .room-tag {
             background-color: var(--primary-navy);
             padding: 8px 16px;
@@ -215,6 +215,7 @@
 
 <div class="controls">
     <button id="add-note-btn" class="btn btn-primary">+ Add Sticky Note</button>
+    <button id="add-sticker-btn" class="btn btn-primary">+ Add Sticky Sticker</button>
     <button id="back" class="btn btn-secondary">Go back</button>
     <div id="room-display" class="room-tag">Room: main-room</div>
 </div>
@@ -234,7 +235,7 @@
     const corkboard = document.getElementById('corkboard');
     const addNoteBtn = document.getElementById('add-note-btn');
     const statusMsg = document.getElementById('status-msg');
-    const noteColors = ['#feff9c', '#ff7eb9', '#7afcff', '#69ff94', '#fff740'];
+    const noteColors = ['#feff9c', '#ff7eb9', '#7afcff', '#69ff94', '#fff740', '#ffb346'];
     let zIndexCounter = 10;
     const pendingLocalIds = new Set();
 
