@@ -1465,7 +1465,7 @@ app.post('/auth/moderator/actionpost', async (req, res) => {
     }
 });
 
-app.post('/api/chat', async (req, res) => {
+app.post('/openai/index.html', async (req, res) => {
     if (!openai) {
         return res.status(503).json({ error: "Chat is not configured on this server." });
     }
