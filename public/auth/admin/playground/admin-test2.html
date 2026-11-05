@@ -23,7 +23,6 @@
 }
 
 body {
-  background-color: var(--bg-dark);
   margin: 0;
   height: 100vh;
   display: flex;
@@ -31,6 +30,31 @@ body {
   align-items: center;
   overflow: hidden;
   font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+body.dark-liquid-glass {
+  background-color: #050609 !important;
+  background-image:
+    radial-gradient(ellipse at 50% 38%, rgba(47, 76, 125, 0.13), transparent 68%),
+    linear-gradient(135deg, #050609 0%, #252933 54%, #090b11 100%) !important;
+}
+
+body.dark-liquid-glass::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(235, 243, 255, 0.19) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(235, 243, 255, 0.19) 1px, transparent 1px);
+  background-size: 64px 64px;
+  filter: drop-shadow(0 0 3px rgba(210, 230, 255, 0.38));
+}
+
+body > main {
+  position: relative;
+  z-index: 1;
 }
 
 /* Container for Absolute Tree Layout */
@@ -66,6 +90,26 @@ body {
 .mindmap-controls input { width: 220px; }
 .mindmap-controls button { cursor: pointer; }
 .mindmap-controls button:hover { background: #282c3a; }
+
+.theme-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  color: #fff;
+  background: rgba(23, 25, 35, 0.75);
+  backdrop-filter: blur(12px);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.theme-toggle input { accent-color: #8ebcff; }
 
 /* Base Node Styling & Performance Tuning */
 .mindmap-node {
@@ -148,7 +192,7 @@ body {
 
   </style>
 </head>
-<body>
+<body class="dark-liquid-glass">
 
 
 <main>
@@ -164,6 +208,10 @@ body {
   <input id="new-node-label" type="text" maxlength="30" placeholder="New node name" aria-label="New node name" required>
   <button type="submit">Add node</button>
 </form>
+<label class="theme-toggle">
+  <input id="dark-glass-toggle" type="checkbox" checked>
+  <span>Dark glass override</span>
+</label>
 </main>
 
 <script>
@@ -174,8 +222,23 @@ body {
   const branches = mindmap.querySelector('.branch-lines');
   const form = document.querySelector('#add-node-form');
   const input = document.querySelector('#new-node-label');
+  const darkGlassToggle = document.querySelector('#dark-glass-toggle');
   const colors = ['#ff3366', '#33ff66', '#3366ff', '#ffd633', '#d633ff', '#33ddff'];
   const branchNodes = [];
+
+  try {
+    const savedPreference = localStorage.getItem('gn-dark-liquid-glass');
+    darkGlassToggle.checked = savedPreference === null || savedPreference === 'true';
+  } catch (_) {
+    darkGlassToggle.checked = true;
+  }
+  document.body.classList.toggle('dark-liquid-glass', darkGlassToggle.checked);
+  darkGlassToggle.addEventListener('change', () => {
+    document.body.classList.toggle('dark-liquid-glass', darkGlassToggle.checked);
+    try {
+      localStorage.setItem('gn-dark-liquid-glass', String(darkGlassToggle.checked));
+    } catch (_) { /* ignore unavailable storage */ }
+  });
 
   function arrangeNodes() {
     const center = 300;
