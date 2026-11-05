@@ -11,9 +11,9 @@
   <script src="/auth/config.js"></script>
   <script src="/auth/theme.js"></script>
   <script src="/auth/theme-experimental.js"></script>
-  <link rel="stylesheet" href="../../master-combined.css">
-  <link rel="stylesheet" href="../../master-experimental.css">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../../../master-combined.css">
+  <link rel="stylesheet" href="../../../master-experimental.css">
+  <link rel="stylesheet" href="../style.css">
   <style>
     #designer-layout {
       display: grid;
@@ -72,17 +72,6 @@
       background-size: 20px 20px;
     }
     #designer-canvas.drag-over { outline: 2px solid var(--main-text); }
-    #camera-projection {
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-      width: 100%;
-      height: 100%;
-      background: #000;
-      object-fit: contain;
-      pointer-events: none;
-    }
-    #camera-projection[hidden] { display: none; }
     #designer-canvas [data-design-item] {
       position: absolute;
       z-index: 2;
@@ -100,28 +89,6 @@
       opacity: 0.7;
       pointer-events: none;
     }
-    .camera-controls { display: grid; gap: 10px; }
-    .camera-controls label { display: grid; gap: 5px; }
-    .camera-controls select {
-      width: 100%;
-      min-width: 0;
-      padding: 8px;
-      color: var(--main-text);
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-    }
-    #camera-preview {
-      display: block;
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      background: #000;
-      object-fit: contain;
-    }
-    #camera-preview[hidden] { display: none; }
-    #camera-status { min-height: 3em; margin: 0; overflow-wrap: anywhere; }
     .designer-component { margin: 12px 0; }
     .designer-button {
       padding: 10px 16px;
@@ -210,22 +177,22 @@
         <h1>OBJECTS</h1>
         <button class="square-button" id="button">
         <span><strong>Normal Button (Primary Button)</strong></span>
-        <img src="images/Button.png" alt="Primary Golden Button" width="158" height="68" class="img">
+        <img src="../images/Button.png" alt="Primary Golden Button" width="158" height="68" class="img">
         </button>
 
         <button class="square-button" id="button2">
         <span><strong>Normal Button (Secondary Button)</strong></span>
-        <img src="images/Button2.png" alt="Secondary  Button" width="120" height="64" class="img">
+        <img src="../images/Button2.png" alt="Secondary  Button" width="120" height="64" class="img">
         </button>
 
         <button class="square-button" id="card">
         <span><strong>Normal Card</strong></span>
-        <img src="images/Card.png" alt="Primary Card" width="126" height="92" class="img">
+        <img src="../images/Card.png" alt="Primary Card" width="126" height="92" class="img">
         </button>
 
         <button class="square-button" id="dropdown">
         <span><strong>Normal Dropdown</strong></span>
-        <img src="images/Dropdown.png" alt="Primary Dropdown" width="92" height="125" class="img">
+        <img src="../images/Dropdown.png" alt="Primary Dropdown" width="92" height="125" class="img">
         </button>
 
         <button class="square-button" id="badge">
@@ -235,7 +202,7 @@
 
         <button class="square-button" id="lists">
         <span><strong>Lists</strong></span>
-        <img src="images/list.png" alt="Lists" width="106" height="85" class="img">
+        <img src="../images/list.png" alt="Lists" width="106" height="85" class="img">
         </button>
 
          <button class="square-button" id="function">
@@ -253,23 +220,11 @@
       <output id="designer-coordinate-readout" aria-live="polite">X: 0 px | Y: 0 px</output>
       <button id="designer-trash" type="button" aria-label="Drop a placed item here to delete it">Drop an item here to delete it</button>
       <section id="designer-canvas" aria-label="Page design canvas">
-        <video id="camera-projection" autoplay muted playsinline hidden aria-hidden="true"></video>
         <p class="canvas-hint">Drag an object here. Items snap to the 20 px grid.</p>
       </section>
     </div>
     <div class="side_panel_2">
-      <h2>Camera Projector</h2>
-      <div class="camera-controls">
-        <label for="camera-select">Camera</label>
-        <select id="camera-select">
-          <option value="">System default camera</option>
-        </select>
-        <video id="camera-preview" autoplay muted playsinline hidden aria-label="Live camera preview"></video>
-        <p id="camera-status" role="status" aria-live="polite">Choose a camera, then connect to preview it.</p>
-        <button class="square-button" id="connect-device" type="button">Connect camera</button>
-        <button class="square-button" id="abort-device" type="button" disabled>Stop projection</button>
-        <button class="square-button" id="device-controls" type="button">Refresh camera list</button>
-      </div>
+      <h2>Inspector</h2>
     </div>
 </main>
 
@@ -396,106 +351,7 @@
     });
 
     const designer_trash = document.getElementById("designer-trash");
-    const camera_select = document.getElementById("camera-select");
-    const camera_preview = document.getElementById("camera-preview");
-    const camera_projection = document.getElementById("camera-projection");
-    const camera_status = document.getElementById("camera-status");
-    const connect_camera_button = document.getElementById("connect-device");
-    const stop_camera_button = document.getElementById("abort-device");
-    const refresh_camera_button = document.getElementById("device-controls");
-    let camera_stream = null;
 
-    async function refreshCameraList() {
-      if (!navigator.mediaDevices?.enumerateDevices) {
-        camera_status.textContent = "Camera access requires a supported browser on HTTPS or localhost.";
-        return;
-      }
-
-      const selected_device = camera_select.value;
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const cameras = devices.filter((device) => device.kind === "videoinput");
-        camera_select.replaceChildren(new Option("System default camera", ""));
-
-        cameras.forEach((camera, index) => {
-          camera_select.add(new Option(camera.label || `Camera ${index + 1}`, camera.deviceId));
-        });
-
-        if (cameras.some((camera) => camera.deviceId === selected_device)) {
-          camera_select.value = selected_device;
-        }
-
-        if (!camera_stream) {
-          camera_status.textContent = cameras.length
-            ? "Choose a camera, then connect to preview it."
-            : "No camera listed. Try the system default or connect a camera and refresh.";
-        }
-      } catch (error) {
-        camera_status.textContent = `Could not list cameras: ${error.message}`;
-      }
-    }
-
-    function stopCamera(message = "Projection stopped.") {
-      if (camera_stream) {
-        camera_stream.getTracks().forEach((track) => track.stop());
-        camera_stream = null;
-      }
-
-      camera_preview.srcObject = null;
-      camera_preview.hidden = true;
-      camera_projection.srcObject = null;
-      camera_projection.hidden = true;
-      stop_camera_button.disabled = true;
-      camera_status.textContent = message;
-    }
-
-    async function connectCamera() {
-      if (!navigator.mediaDevices?.getUserMedia) {
-        camera_status.textContent = "Camera access requires a supported browser on HTTPS or localhost.";
-        return;
-      }
-
-      stopCamera("Connecting to camera...");
-      connect_camera_button.disabled = true;
-
-      try {
-        const device_id = camera_select.value;
-        camera_stream = await navigator.mediaDevices.getUserMedia({
-          audio: false,
-          video: device_id ? { deviceId: { exact: device_id } } : true
-        });
-
-        camera_preview.srcObject = camera_stream;
-        camera_preview.hidden = false;
-        camera_projection.srcObject = camera_stream;
-        camera_projection.hidden = false;
-        await Promise.all([camera_preview.play(), camera_projection.play()]);
-        stop_camera_button.disabled = false;
-        camera_status.textContent = "Camera connected. Live preview is on.";
-
-        camera_stream.getVideoTracks()[0]?.addEventListener("ended", () => {
-          stopCamera("Camera disconnected.");
-        }, { once: true });
-        await refreshCameraList();
-        camera_status.textContent = "Camera connected. Live preview is on.";
-      } catch (error) {
-        stopCamera(error.name === "NotAllowedError"
-          ? "Camera permission was denied. Allow camera access and try again."
-          : `Could not start camera: ${error.message}`);
-      } finally {
-        connect_camera_button.disabled = false;
-      }
-    }
-
-    connect_camera_button.addEventListener("click", connectCamera);
-    stop_camera_button.addEventListener("click", () => stopCamera());
-    refresh_camera_button.addEventListener("click", refreshCameraList);
-    camera_select.addEventListener("change", () => {
-      if (camera_stream) connectCamera();
-    });
-    navigator.mediaDevices?.addEventListener("devicechange", refreshCameraList);
-    window.addEventListener("pagehide", () => stopCamera("Camera stopped when the page closed."));
-    refreshCameraList();
 
     designer_trash.addEventListener("dragover", (event) => {
       if (event.dataTransfer.types.includes("application/x-designer-source")) {
