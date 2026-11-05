@@ -93,7 +93,7 @@
             } catch (error) {
                   const errorMessage = error instanceof TypeError
                     ? 'Cannot reach the chat server. Run `npm start` and open http://localhost:3000/openai/index.html.'
-                    : error.message || 'Could not connect to server.';
+                    : (error?.message || 'Could not connect to server.');
                   appendMessage('Error', errorMessage, true);
             }
         }

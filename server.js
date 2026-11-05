@@ -1488,7 +1488,10 @@ app.post('/api/chat', async (req, res) => {
 
         const completion = await chatClient.chat.completions.create({
             model: "gemini-3.8-flash",
-            messages: [{ role: "user", content: prompt }]
+            messages: [{ role: "user", content: prompt.slice(0, 1000) }],
+            stream: false
+        }, {
+            signal: AbortSignal.timeout(25000)
         });
 
         const reply = completion.choices?.[0]?.message?.content;
@@ -1506,11 +1509,15 @@ app.post('/api/chat', async (req, res) => {
             errorMessage = "The AI provider rejected the token. Verify your API key configuration.";
         } else if (error?.status === 429) {
             errorMessage = "The AI service rate limit was reached. Please try again in a moment.";
+        } else if (error?.status === 503) {
+            errorMessage = "The AI service is temporarily busy. Please try again in a moment.";
+        } else if (error?.name === "TimeoutError") {
+            errorMessage = "The AI service took too long to respond. Please try again in a moment.";
         } else if (error?.status) {
             errorMessage = `AI request failed (HTTP Status ${error.status}). Check the server terminal for details.`;
         }
 
-        return res.status(502).json({ error: errorMessage });
+        return res.status(503).json({ error: errorMessage });
     }
 });
 
