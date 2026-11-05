@@ -407,6 +407,16 @@
             });
 
             const body = note.querySelector('.note-body');
+            body.addEventListener('paste', (event) => {
+                event.preventDefault();
+                const pastedHtml = event.clipboardData?.getData('text/html');
+                const pastedText = event.clipboardData?.getData('text/plain') || '';
+                if (pastedHtml) {
+                    document.execCommand('insertHTML', false, sanitizeNoteHtml(pastedHtml));
+                } else {
+                    document.execCommand('insertText', false, pastedText);
+                }
+            });
             body.addEventListener('input', debounce(async () => {
                 const textToSave = sanitizeNoteHtml(body.innerHTML);
                 const plainText = noteHtmlToText(textToSave);
