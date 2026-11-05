@@ -42,6 +42,31 @@ body {
   will-change: transform;
 }
 
+.mindmap-controls {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  z-index: 20;
+  display: flex;
+  gap: 8px;
+  transform: translateX(-50%);
+}
+
+.mindmap-controls input,
+.mindmap-controls button {
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 8px;
+  color: #fff;
+  background: #171923;
+  font: inherit;
+}
+
+.mindmap-controls input { width: 220px; }
+.mindmap-controls button { cursor: pointer; }
+.mindmap-controls button:hover { background: #282c3a; }
+
 /* Base Node Styling & Performance Tuning */
 .mindmap-node {
   position: absolute;
@@ -87,34 +112,14 @@ body {
 .child-node {
   width: 90px;
   height: 90px;
+  box-sizing: border-box;
   background: rgba(0, 0, 0, 0.6);
   font-size: 0.8rem;
   text-align: center;
-  padding: 10px;
-}
-
-.node-red {
-  top: 15%;
-  left: 15%;
-  border: 2px solid var(--rgb-red);
-  box-shadow: 0 0 20px rgba(255, 51, 102, 0.2);
-  animation: floatAmbient 6s ease-in-out infinite 1s;
-}
-
-.node-green {
-  top: 15%;
-  right: 15%;
-  border: 2px solid var(--rgb-green);
-  box-shadow: 0 0 20px rgba(51, 255, 102, 0.2);
-  animation: floatAmbient 8s ease-in-out infinite 2s;
-}
-
-.node-blue {
-  bottom: 12%;
-  left: calc(50% - 45px);
-  border: 2px solid var(--rgb-blue);
-  box-shadow: 0 0 20px rgba(51, 102, 255, 0.2);
-  animation: floatAmbient 5s ease-in-out infinite 0.5s;
+  padding: 8px;
+  border: 2px solid var(--node-color, var(--rgb-red));
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.12);
+  animation: floatAmbient 7s ease-in-out infinite;
 }
 
 /* 2. Dynamic Hover Size Growth & Intense RGB Explosion */
@@ -124,38 +129,22 @@ body {
   animation-play-state: paused; /* Locks position while interacting */
 }
 
-.node-red:hover {
+.child-node:hover {
   transform: scale(1.3);
-  box-shadow: 0 0 40px var(--rgb-red), 0 0 15px var(--rgb-red) inset;
-  background: rgba(255, 51, 102, 0.15);
+  box-shadow: 0 0 40px var(--node-color, var(--rgb-red)), 0 0 15px var(--node-color, var(--rgb-red)) inset;
+  background: rgba(255, 255, 255, 0.1);
   animation-play-state: paused;
 }
 
-.node-green:hover {
-  transform: scale(1.3);
-  box-shadow: 0 0 40px var(--rgb-green), 0 0 15px var(--rgb-green) inset;
-  background: rgba(51, 255, 102, 0.15);
-  animation-play-state: paused;
-}
-
-.node-blue:hover {
-  transform: scale(1.3);
-  box-shadow: 0 0 40px var(--rgb-blue), 0 0 15px var(--rgb-blue) inset;
-  background: rgba(51, 102, 255, 0.15);
-  animation-play-state: paused;
-}
-/* Static Connector Lines (Can be spiced up with SVGs) */
-.branch-line {
+.branch-lines {
   position: absolute;
-  background: linear-gradient(90deg, rgba(255,255,255,0.4), rgba(255,255,255,0.05));
-  height: 2px;
-  transform-origin: left center;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
   z-index: 1;
 }
-
-.line-1 { width: 160px; top: 50%; left: 50%; transform: rotate(215deg); }
-.line-2 { width: 160px; top: 50%; left: 50%; transform: rotate(325deg); }
-.line-3 { width: 150px; top: 50%; left: 50%; transform: rotate(90deg); }
+.branch-lines line { stroke: rgba(255, 255, 255, 0.35); stroke-width: 2; }
 
   </style>
 </head>
@@ -166,36 +155,70 @@ body {
 <div class="mindmap-container">
   <!-- Central Node -->
   <div class="mindmap-node central-node">
-    <span>RGB Core</span>
+    <span>SELECTION</span>
   </div>
 
-  <!-- Branch Connections (CSS Lines) -->
-  <div class="branch-line line-1"></div>
-  <div class="branch-line line-2"></div>
-  <div class="branch-line line-3"></div>
-
-  <!-- Child Nodes -->
-  <div class="mindmap-node child-node node-red">
-    <span>Red Branch</span>
-  </div>
-  
-  <div class="mindmap-node child-node node-green">
-    <span>Green Branch</span>
-  </div>
-  
-  <div class="mindmap-node child-node node-blue">
-    <span>Blue Branch</span>
-  </div>
+  <svg class="branch-lines" viewBox="0 0 600 600" aria-hidden="true"></svg>
 </div>
+<form class="mindmap-controls" id="add-node-form">
+  <input id="new-node-label" type="text" maxlength="30" placeholder="New node name" aria-label="New node name" required>
+  <button type="submit">Add node</button>
+</form>
 </main>
 
 <script>
 (() => {
   const mindmap = document.querySelector('.mindmap-container');
   if (!mindmap) return;
+  const centralLabel = mindmap.querySelector('.central-node > span');
+  const branches = mindmap.querySelector('.branch-lines');
+  const form = document.querySelector('#add-node-form');
+  const input = document.querySelector('#new-node-label');
+  const colors = ['#ff3366', '#33ff66', '#3366ff', '#ffd633', '#d633ff', '#33ddff'];
+  const branchNodes = [];
 
-  const degreesPerSecond = 3; // One clockwise revolution every two minutes.
-  const response = 1.6; // Higher values ease the speed change more quickly.
+  function arrangeNodes() {
+    const center = 300;
+    const radius = 215;
+    const nodeSize = 90;
+    const count = branchNodes.length;
+
+    branchNodes.forEach(({ node, line }, index) => {
+      const radians = -Math.PI / 2 + (2 * Math.PI * index) / count;
+      const x = center + Math.cos(radians) * radius;
+      const y = center + Math.sin(radians) * radius;
+      node.style.left = `${x - nodeSize / 2}px`;
+      node.style.top = `${y - nodeSize / 2}px`;
+      line.setAttribute('x1', center);
+      line.setAttribute('y1', center);
+      line.setAttribute('x2', center + Math.cos(radians) * (radius - nodeSize / 2));
+      line.setAttribute('y2', center + Math.sin(radians) * (radius - nodeSize / 2));
+    });
+  }
+
+  form.addEventListener('submit', event => {
+    event.preventDefault();
+    const labelText = input.value.trim();
+    if (!labelText) return;
+
+    const node = document.createElement('div');
+    node.className = 'mindmap-node child-node';
+    node.style.setProperty('--node-color', colors[branchNodes.length % colors.length]);
+    const label = document.createElement('span');
+    label.textContent = labelText;
+    node.append(label);
+    mindmap.append(node);
+
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    branches.append(line);
+    branchNodes.push({ node, label, line });
+    input.value = '';
+    arrangeNodes();
+    input.focus();
+  });
+
+  const degreesPerSecond = 15; 
+  const response = 1.6;
   const pauseThreshold = 0.02;
   let hovered = false;
   let angle = 0;
@@ -214,6 +237,10 @@ body {
       if (hovered && speed < pauseThreshold) speed = 0;
       angle = (angle + speed * deltaSeconds) % 360;
       mindmap.style.transform = `rotate(${angle}deg)`;
+      centralLabel.style.transform = `rotate(${-angle}deg)`;
+      branchNodes.forEach(({ label }) => {
+        label.style.transform = `rotate(${-angle}deg)`;
+      });
     }
 
     previousTime = time;
