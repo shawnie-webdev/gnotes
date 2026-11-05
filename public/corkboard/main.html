@@ -340,7 +340,7 @@
 
             const body = note.querySelector('.note-body');
             body.addEventListener('input', debounce(async () => {
-                const textToSave = body.innerText;
+                const textToSave = body.innerHTML;
                 const { data: { session } } = await supabaseClient.auth.getSession();
                 if (!session?.access_token) {
                     showStatus('Please sign in again before editing notes.', 'error');
@@ -353,11 +353,28 @@
                             'Content-Type': 'application/json',
                             'Authorization': 'Bearer ' + session.access_token
                         },
-                        body: JSON.stringify({ text: textToSave })
+                        body: JSON.stringify({ text: textToSave, recordViolation: false })
                     });
                     const moderation = await response.json();
                     if (!response.ok) throw new Error(moderation.error || 'Moderation check failed');
+
+                    // Ignore stale responses if the user has resumed typing while moderation was in flight.
+                    if (body.innerText !== textToSave) return;
+
                     if (moderation.flagged) {
+                        // The initial check is read-only. Record a violation only after the
+                        // unchanged text has been checked and confirmed as still current.
+                        const recordResponse = await fetch('/api/moderate-text', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer ' + session.access_token
+                            },
+                            body: JSON.stringify({ text: textToSave, recordViolation: true })
+                        });
+                        const recordedModeration = await recordResponse.json();
+                        if (!recordResponse.ok) throw new Error(recordedModeration.error || 'Could not record moderation result');
+                        if (body.innerText !== textToSave) return;
                         window.location.assign('/auth/cursing.html');
                         return;
                     }
@@ -383,7 +400,7 @@
                     showStatus('Failed to save note text: ' + error.message, 'error');
                     return;
                 }
-            }, 400));
+            }, 1000));
         }
 
         note.style.left = `${Number(noteData.x) || 0}px`;
@@ -392,7 +409,7 @@
 
         const body = note.querySelector('.note-body');
         if (document.activeElement !== body) {
-            body.innerText = noteData.text || '';
+            body.innerHTML = noteData.text || '';
         }
     }
 
