@@ -1470,32 +1470,43 @@ app.post('/api/chat', async (req, res) => {
         return res.status(503).json({ error: "Chat is not configured on this server." });
     }
 
-  try {
-    const { message } = req.body;
+    try {
+        const { message } = req.body || {};
         if (typeof message !== "string" || !message.trim()) {
             return res.status(400).json({ error: "A message is required." });
         }
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-            messages: [{ role: "user", content: message.trim() }],
-    });
+        const prompt = message.trim();
+        if (prompt.length > 4000) {
+            return res.status(413).json({ error: "Messages must be 4,000 characters or fewer." });
+        }
 
-        return res.json({ reply: completion.choices[0].message.content });
-  } catch (error) {
-    console.error("[chat] OpenAI request failed:", error);
+        const completion = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [{ role: "user", content: prompt }]
+        });
 
-    let message = "OpenAI request failed. Check the server terminal for details.";
-    if (error?.status === 401 || error?.status === 403) {
-        message = "OpenAI rejected the API key or its permissions. Check OPENAI_API_KEY.";
-    } else if (error?.status === 429) {
-        message = "OpenAI rate limit or usage quota reached. Check the OpenAI account and try again.";
-    } else if (error?.status) {
-        message = `OpenAI request failed (HTTP ${error.status}). Check the server terminal for details.`;
+        const reply = completion.choices?.[0]?.message?.content;
+        if (typeof reply !== "string" || !reply.trim()) {
+            console.error("[chat] OpenAI returned an empty or malformed response.");
+            return res.status(502).json({ error: "The chat service returned an empty response. Please try again." });
+        }
+
+        return res.json({ reply: reply.trim() });
+    } catch (error) {
+        console.error("[chat] OpenAI request failed:", error);
+
+        let errorMessage = "OpenAI request failed. Check the server terminal for details.";
+        if (error?.status === 401 || error?.status === 403) {
+            errorMessage = "OpenAI rejected the API key or its permissions. Check OPENAI_API_KEY.";
+        } else if (error?.status === 429) {
+            errorMessage = "OpenAI rate limit or usage quota reached. Check the OpenAI account and try again.";
+        } else if (error?.status) {
+            errorMessage = `OpenAI request failed (HTTP ${error.status}). Check the server terminal for details.`;
+        }
+
+        return res.status(502).json({ error: errorMessage });
     }
-
-    return res.status(502).json({ error: message });
-  }
 });
 
 /* DEBBUGER ENDPOINT -- DO NOT EDIT SECTION */
