@@ -697,6 +697,54 @@ app.post("/api/tasks/manage", async (req, res) => {
     }
 });
 
+// Upload a user-selected image to Imgur without exposing the Imgur Client-ID to browsers.
+app.post("/api/corkboard/sticker", async (req, res) => {
+    try {
+        const authorization = req.headers.authorization || "";
+        const token = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
+        if (!token) return res.status(401).json({ error: "Sign in to post a sticker." });
+        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+        if (authError || !user) return res.status(401).json({ error: "Your session expired. Please sign in again." });
+
+        const imgurClientId = process.env.IMGUR_CLIENT_ID?.trim();
+        if (!imgurClientId) return res.status(503).json({ error: "Sticker uploads are not configured yet. The site administrator must set IMGUR_CLIENT_ID." });
+
+        const image = typeof req.body?.image === "string" ? req.body.image : "";
+        const match = image.match(/^data:(image\/(?:png|jpeg|gif|webp));base64,([A-Za-z0-9+/]+=*)$/);
+        if (!match) return res.status(400).json({ error: "Choose a valid PNG, JPG, GIF, or WebP image." });
+
+        const mimeType = match[1];
+        const imageBuffer = Buffer.from(match[2], "base64");
+        if (!imageBuffer.length || imageBuffer.length > 3.5 * 1024 * 1024) {
+            return res.status(413).json({ error: "Sticker images must be 3.5 MB or smaller." });
+        }
+
+        const extension = ({ "image/png": "png", "image/jpeg": "jpg", "image/gif": "gif", "image/webp": "webp" })[mimeType];
+        const form = new FormData();
+        form.append("image", new Blob([imageBuffer], { type: mimeType }), "goldennotes-sticker." + extension);
+        const imgurResponse = await fetch("https://api.imgur.com/3/image", {
+            method: "POST",
+            headers: { Authorization: "Client-ID " + imgurClientId },
+            body: form
+        });
+        const imgurResult = await imgurResponse.json().catch(() => ({}));
+        if (!imgurResponse.ok || !imgurResult?.success || typeof imgurResult?.data?.link !== "string") {
+            console.error("[corkboard] Imgur upload failed:", imgurResult?.data?.error || imgurResponse.status);
+            return res.status(502).json({ error: "Imgur could not upload this sticker. Please try again later." });
+        }
+
+        let uploadedUrl;
+        try { uploadedUrl = new URL(imgurResult.data.link); } catch (_) {}
+        if (!uploadedUrl || uploadedUrl.protocol !== "https:" || uploadedUrl.hostname !== "i.imgur.com") {
+            return res.status(502).json({ error: "Imgur returned an invalid image URL." });
+        }
+        return res.status(201).json({ success: true, link: uploadedUrl.href });
+    } catch (error) {
+        console.error("[corkboard] Sticker endpoint failed:", error);
+        return res.status(500).json({ error: "Could not upload this sticker." });
+    }
+});
+
 app.post("/api/moderate-text", async (req, res) => {
     try {
         const authorization = req.headers.authorization || "";
