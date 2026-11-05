@@ -1497,8 +1497,6 @@ app.post('/api/chat', async (req, res) => {
             model: geminiClient ? "gemini-3.8-flash" : "gpt-4o-mini",
             messages: [{ role: "user", content: prompt }],
             stream: false
-        }, {
-            signal: AbortSignal.timeout(25000)
         });
 
         const rawContent = completion?.choices?.[0]?.message?.content;
