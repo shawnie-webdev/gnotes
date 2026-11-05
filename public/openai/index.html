@@ -74,8 +74,8 @@
             inputField.value = '';
 
             try {
-                // Post the user's message to our secure Node.js backend
-                const response = await fetch('/openai/index.html', {
+                // Post the user's message to the backend chat endpoint.
+                const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: message })
