@@ -1487,15 +1487,21 @@ app.post('/api/chat', async (req, res) => {
         }
 
         const completion = await chatClient.chat.completions.create({
-            model: "gemini-3.8-flash",
-            messages: [{ role: "user", content: prompt.slice(0, 1000) }],
+            model: "gemini-2.5-flash",
+            messages: [{ role: "user", content: prompt }],
             stream: false
         }, {
             signal: AbortSignal.timeout(25000)
         });
 
-        const reply = completion.choices?.[0]?.message?.content;
-        if (typeof reply !== "string" || !reply.trim()) {
+        const rawContent = completion?.choices?.[0]?.message?.content;
+        const reply = typeof rawContent === "string"
+            ? rawContent
+            : Array.isArray(rawContent)
+                ? rawContent.map(part => typeof part?.text === "string" ? part.text : "").join("")
+                : "";
+
+        if (!reply.trim()) {
             console.error("[chat] AI returned an empty or malformed response.");
             return res.status(502).json({ error: "The chat service returned an empty response. Please try again." });
         }
