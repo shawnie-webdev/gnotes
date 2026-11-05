@@ -181,8 +181,27 @@
             color: #ef4444;
             background-color: rgba(0, 0, 0, 0.05);
         }
+
+        .sticky-sticker {
+            width: auto; min-width: 0; min-height: 0; max-height: none;
+            padding: 8px; background: transparent !important;
+            box-shadow: none; transform: rotate(0deg);
+        }
+        .sticky-sticker::before { display: none; }
+        .sticky-sticker .note-header { cursor: move; }
+        .sticky-sticker .note-body {
+            width: auto; height: auto; flex: 0 0 auto;
+            overflow: visible; line-height: 0;
+        }
+        .sticky-sticker .note-body img {
+            display: block; max-width: 240px; max-height: 240px;
+            width: auto; height: auto; object-fit: contain;
+            border-radius: 4px; filter: drop-shadow(0 5px 8px rgba(0,0,0,.3));
+        }
+        .sticker-file-input { display: none; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.3.1/dist/purify.min.js"></script>
     <script src="../auth/theme.js"></script>
     <script src="../auth/theme-experimental.js"></script>
 
@@ -216,6 +235,7 @@
 <div class="controls">
     <button id="add-note-btn" class="btn btn-primary">+ Add Sticky Note</button>
     <button id="add-sticker-btn" class="btn btn-primary">+ Add Sticky Sticker</button>
+    <input id="sticker-file-input" class="sticker-file-input" type="file" accept="image/png,image/jpeg,image/gif,image/webp">
     <button id="back" class="btn btn-secondary">Go back</button>
     <div id="room-display" class="room-tag">Room: main-room</div>
 </div>
@@ -234,6 +254,8 @@
 
     const corkboard = document.getElementById('corkboard');
     const addNoteBtn = document.getElementById('add-note-btn');
+    const addStickerBtn = document.getElementById('add-sticker-btn');
+    const stickerFileInput = document.getElementById('sticker-file-input');
     const statusMsg = document.getElementById('status-msg');
     const noteColors = ['#feff9c', '#ff7eb9', '#7afcff', '#69ff94', '#fff740', '#ffb346'];
     let zIndexCounter = 10;
@@ -249,6 +271,51 @@
 
         statusMsg.textContent = message;
         statusMsg.className = type || 'info';
+    }
+
+    // HTML is allowed in notes only through a strict allowlist.
+    // Images are restricted to HTTPS Imgur image URLs.
+    function sanitizeNoteHtml(value) {
+        const clean = DOMPurify.sanitize(String(value || ''), {
+            ALLOWED_TAGS: ['a', 'b', 'strong', 'i', 'em', 'u', 's', 'p', 'br', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre', 'span', 'img'],
+            ALLOWED_ATTR: ['href', 'title', 'target', 'rel', 'src', 'alt', 'width', 'height'],
+            ALLOW_DATA_ATTR: false,
+            FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'svg', 'math'],
+            FORBID_ATTR: ['style']
+        });
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = clean;
+        wrapper.querySelectorAll('img').forEach((img) => {
+            const src = img.getAttribute('src') || '';
+            let valid = false;
+            try {
+                const parsed = new URL(src, window.location.origin);
+                valid = parsed.protocol === 'https:' && parsed.hostname === 'i.imgur.com';
+            } catch (_) {}
+            if (!valid) img.remove();
+            else {
+                img.setAttribute('loading', 'lazy');
+                img.setAttribute('referrerpolicy', 'no-referrer');
+            }
+        });
+        wrapper.querySelectorAll('a').forEach((anchor) => {
+            const href = anchor.getAttribute('href') || '';
+            try {
+                const parsed = new URL(href, window.location.origin);
+                if (!['https:', 'http:'].includes(parsed.protocol)) anchor.removeAttribute('href');
+                else {
+                    anchor.setAttribute('target', '_blank');
+                    anchor.setAttribute('rel', 'noopener noreferrer');
+                }
+            } catch (_) { anchor.removeAttribute('href'); }
+        });
+        return wrapper.innerHTML;
+    }
+
+    function noteHtmlToText(value) {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = sanitizeNoteHtml(value);
+        return wrapper.textContent || '';
     }
 
     function debounce(func, wait) {
@@ -341,65 +408,56 @@
 
             const body = note.querySelector('.note-body');
             body.addEventListener('input', debounce(async () => {
-                const textToSave = body.innerHTML;
+                const textToSave = sanitizeNoteHtml(body.innerHTML);
+                const plainText = noteHtmlToText(textToSave);
                 const { data: { session } } = await supabaseClient.auth.getSession();
                 if (!session?.access_token) {
                     showStatus('Please sign in again before editing notes.', 'error');
                     return;
                 }
-                try {
-                    const response = await fetch('/api/moderate-text', {
-                        method: 'POST',
-                        headers: {
+
+                // Moderation receives readable text only, never HTML or image attributes.
+                if (plainText.trim()) {
+                    try {
+                        const headers = {
                             'Content-Type': 'application/json',
                             'Authorization': 'Bearer ' + session.access_token
-                        },
-                        body: JSON.stringify({ text: textToSave, recordViolation: false })
-                    });
-                    const moderation = await response.json();
-                    if (!response.ok) throw new Error(moderation.error || 'Moderation check failed');
-
-                    // Ignore stale responses if the user has resumed typing while moderation was in flight.
-                    if (body.innerText !== textToSave) return;
-
-                    if (moderation.flagged) {
-                        // The initial check is read-only. Record a violation only after the
-                        // unchanged text has been checked and confirmed as still current.
-                        const recordResponse = await fetch('/api/moderate-text', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': 'Bearer ' + session.access_token
-                            },
-                            body: JSON.stringify({ text: textToSave, recordViolation: true })
+                        };
+                        const response = await fetch('/api/moderate-text', {
+                            method: 'POST', headers,
+                            body: JSON.stringify({ text: plainText, recordViolation: false })
                         });
-                        const recordedModeration = await recordResponse.json();
-                        if (!recordResponse.ok) throw new Error(recordedModeration.error || 'Could not record moderation result');
-                        if (body.innerText !== textToSave) return;
-                        window.location.assign('/auth/cursing.html');
+                        const moderation = await response.json();
+                        if (!response.ok) throw new Error(moderation.error || 'Moderation check failed');
+                        if (sanitizeNoteHtml(body.innerHTML) !== textToSave) return;
+
+                        if (moderation.flagged) {
+                            const recordResponse = await fetch('/api/moderate-text', {
+                                method: 'POST', headers,
+                                body: JSON.stringify({ text: plainText, recordViolation: true })
+                            });
+                            const recordedModeration = await recordResponse.json();
+                            if (!recordResponse.ok) throw new Error(recordedModeration.error || 'Could not record moderation result');
+                            if (sanitizeNoteHtml(body.innerHTML) !== textToSave) return;
+                            window.location.assign('/auth/cursing.html');
+                            return;
+                        }
+                    } catch (moderationError) {
+                        console.error('Moderation check failed:', moderationError);
+                        showStatus(moderationError.message || 'Could not check this note. Please try again.', 'error');
                         return;
                     }
-                } catch (moderationError) {
-                    console.error('Moderation check failed:', moderationError);
-                    showStatus(moderationError.message || 'Could not check this note. Please try again.', 'error');
-                    return;
                 }
 
+                if (sanitizeNoteHtml(body.innerHTML) !== textToSave) return;
                 const userId = await getUserUuid();
                 const updatePayload = { text: textToSave };
-                if (userId) {
-                    updatePayload.userid = userId;
-                }
-
+                if (userId) updatePayload.userid = userId;
                 const { error } = await supabaseClient
-                    .from('notes')
-                    .update(updatePayload)
-                    .eq('id', noteData.id);
-
+                    .from('notes').update(updatePayload).eq('id', noteData.id);
                 if (error) {
                     console.error('Update text failed:', error.message);
                     showStatus('Failed to save note text: ' + error.message, 'error');
-                    return;
                 }
             }, 1000));
         }
@@ -409,8 +467,9 @@
         note.style.backgroundColor = noteData.color || '#feff9c';
 
         const body = note.querySelector('.note-body');
+        note.classList.toggle('sticky-sticker', /<img\b/i.test(noteData.text || '') && !noteHtmlToText(noteData.text).trim());
         if (document.activeElement !== body) {
-            body.innerHTML = noteData.text || '';
+            body.innerHTML = sanitizeNoteHtml(noteData.text || '');
         }
     }
 
@@ -568,7 +627,77 @@
 
         subscribeToRoomChanges();
         addNoteBtn.addEventListener('click', createStickyNote);
+        addStickerBtn.addEventListener('click', () => stickerFileInput.click());
+        stickerFileInput.addEventListener('change', uploadAndPostSticker);
     });
+
+    async function uploadAndPostSticker() {
+        const file = stickerFileInput.files?.[0];
+        if (!file) return;
+        stickerFileInput.value = '';
+
+        if (!['image/png', 'image/jpeg', 'image/gif', 'image/webp'].includes(file.type)) {
+            showStatus('Choose a PNG, JPG, GIF, or WebP image.', 'error');
+            return;
+        }
+        if (file.size > 3.5 * 1024 * 1024) {
+            showStatus('Sticker images must be 3.5 MB or smaller.', 'error');
+            return;
+        }
+
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session?.access_token) {
+            showStatus('Sign in before posting a sticker.', 'error');
+            return;
+        }
+
+        addStickerBtn.disabled = true;
+        showStatus('Uploading sticker to Imgur…', 'info');
+        try {
+            const imageData = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(new Error('Could not read the selected image.'));
+                reader.readAsDataURL(file);
+            });
+            const response = await fetch('/api/corkboard/sticker', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + session.access_token
+                },
+                body: JSON.stringify({ image: imageData })
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'Sticker upload failed.');
+
+            const userId = await getUserUuid();
+            if (!userId) throw new Error('Your session expired. Please sign in again.');
+            const safeUrl = new URL(result.link);
+            if (safeUrl.protocol !== 'https:' || safeUrl.hostname !== 'i.imgur.com') {
+                throw new Error('Imgur returned an unexpected image URL.');
+            }
+            const stickerHtml = '<img src="' + safeUrl.href.replace(/&/g, '&amp;').replace(/"/g, '&quot;') + '" alt="Corkboard sticker">';
+            const { data, error } = await supabaseClient.from('notes').insert([{
+                room: CURRENT_ROOM,
+                x: Math.floor(Math.random() * Math.max(corkboard.clientWidth - 260, 20)) + 20,
+                y: Math.floor(Math.random() * Math.max(corkboard.clientHeight - 260, 20)) + 20,
+                text: stickerHtml,
+                color: '#ffffff',
+                userid: userId
+            }]).select().single();
+
+            if (error) throw new Error('Imgur upload worked, but the sticker could not be posted: ' + error.message);
+            pendingLocalIds.add(data.id);
+            renderNoteUI(data);
+            showStatus('Sticker posted to the corkboard.');
+        } catch (error) {
+            console.error('[corkboard] Sticker upload failed:', error);
+            showStatus(error.message || 'Could not post this sticker.', 'error');
+        } finally {
+            addStickerBtn.disabled = false;
+        }
+    }
 
     document.getElementById('back').addEventListener('click', () => {
         window.location.href = '/corkboard';
