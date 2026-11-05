@@ -18,6 +18,13 @@ const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 const openai = process.env.OPENAI_API_KEY
     ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY.trim() })
     : null;
+const geminiClient = process.env.GEMINI_API_KEY
+    ? new OpenAI({
+        apiKey: process.env.GEMINI_API_KEY.trim(),
+        baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/"
+    })
+    : null;
+const chatClient = geminiClient || openai;
 
 const missingSupabaseConfig = [
     !SUPABASE_ANON_KEY && "SUPABASE_ANON_KEY",
@@ -1465,9 +1472,9 @@ app.post('/auth/moderator/actionpost', async (req, res) => {
     }
 });
 
-app.post('/openai/index.html', async (req, res) => {
-    if (!openai) {
-        return res.status(503).json({ error: "Chat is not configured on this server." });
+app.post('/api/chat', async (req, res) => {
+    if (!chatClient) {
+        return res.status(503).json({ error: "Chat is not configured on this server. Add OPENAI_API_KEY or GEMINI_API_KEY." });
     }
 
     try {
@@ -1481,28 +1488,28 @@ app.post('/openai/index.html', async (req, res) => {
             return res.status(413).json({ error: "Messages must be 4,000 characters or fewer." });
         }
 
-        const completion = await openai.chat.completions.create({
-            model: "gpt-4o-mini",
+        const completion = await chatClient.chat.completions.create({
+            model: geminiClient ? "gemini-2.5-flash" : "gpt-4o-mini",
             messages: [{ role: "user", content: prompt }]
         });
 
         const reply = completion.choices?.[0]?.message?.content;
         if (typeof reply !== "string" || !reply.trim()) {
-            console.error("[chat] OpenAI returned an empty or malformed response.");
+            console.error("[chat] AI returned an empty or malformed response.");
             return res.status(502).json({ error: "The chat service returned an empty response. Please try again." });
         }
 
-        return res.json({ reply: reply.trim() });
+        return res.status(200).json({ reply: reply.trim() });
     } catch (error) {
-        console.error("[chat] OpenAI request failed:", error);
+        console.error("[chat] AI request failed:", error);
 
-        let errorMessage = "OpenAI request failed. Check the server terminal for details.";
+        let errorMessage = "AI request failed. Check the server terminal logs for details.";
         if (error?.status === 401 || error?.status === 403) {
-            errorMessage = "OpenAI rejected the API key or its permissions. Check OPENAI_API_KEY.";
+            errorMessage = "The AI provider rejected the token. Verify your API key configuration.";
         } else if (error?.status === 429) {
-            errorMessage = "OpenAI rate limit or usage quota reached. Check the OpenAI account and try again.";
+            errorMessage = "The AI service rate limit was reached. Please try again in a moment.";
         } else if (error?.status) {
-            errorMessage = `OpenAI request failed (HTTP ${error.status}). Check the server terminal for details.`;
+            errorMessage = `AI request failed (HTTP Status ${error.status}). Check the server terminal for details.`;
         }
 
         return res.status(502).json({ error: errorMessage });
