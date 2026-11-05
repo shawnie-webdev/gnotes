@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GoldenNotes v1.2</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+
+  <!-- Supabase JS Client via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/auth/config.js"></script>
+  <script src="/auth/theme.js"></script>
+  <script src="/auth/theme-experimental.js"></script>
+  <link rel="stylesheet" href="/master-combined.css">
+  <link rel="stylesheet" href="/master-experimental.css">
+
+  <style>
+    :root {
+  --rgb-red: #ff3366;
+  --rgb-green: #33ff66;
+  --rgb-blue: #3366ff;
+  --bg-dark: #0a0b10;
+}
+
+body {
+  background-color: var(--bg-dark);
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+/* Container for Absolute Tree Layout */
+.mindmap-container {
+  position: relative;
+  width: 600px;
+  height: 600px;
+  transform-origin: center;
+  will-change: transform;
+}
+
+/* Base Node Styling & Performance Tuning */
+.mindmap-node {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+  
+  /* GPU Acceleration Hints */
+  will-change: transform, box-shadow;
+  transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), 
+              box-shadow 0.4s ease, 
+              border-color 0.4s ease;
+}
+
+/* 1. Ambient Floating Movement */
+@keyframes floatAmbient {
+  0% { transform: translate(0, 0); }
+  33% { transform: translate(6px, -8px); }
+  66% { transform: translate(-5px, 5px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* Node Positioning & RGB Glow Profiles */
+.central-node {
+  width: 120px;
+  height: 120px;
+  top: calc(50% - 60px);
+  left: calc(50% - 60px);
+  background: rgba(255, 255, 255, 0.05);
+  border: 3px solid #fff;
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.3), inset 0 0 15px rgba(255, 255, 255, 0.2);
+  animation: floatAmbient 7s ease-in-out infinite;
+  z-index: 10;
+}
+
+.child-node {
+  width: 90px;
+  height: 90px;
+  background: rgba(0, 0, 0, 0.6);
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 10px;
+}
+
+.node-red {
+  top: 15%;
+  left: 15%;
+  border: 2px solid var(--rgb-red);
+  box-shadow: 0 0 20px rgba(255, 51, 102, 0.2);
+  animation: floatAmbient 6s ease-in-out infinite 1s;
+}
+
+.node-green {
+  top: 15%;
+  right: 15%;
+  border: 2px solid var(--rgb-green);
+  box-shadow: 0 0 20px rgba(51, 255, 102, 0.2);
+  animation: floatAmbient 8s ease-in-out infinite 2s;
+}
+
+.node-blue {
+  bottom: 12%;
+  left: calc(50% - 45px);
+  border: 2px solid var(--rgb-blue);
+  box-shadow: 0 0 20px rgba(51, 102, 255, 0.2);
+  animation: floatAmbient 5s ease-in-out infinite 0.5s;
+}
+
+/* 2. Dynamic Hover Size Growth & Intense RGB Explosion */
+.central-node:hover {
+  transform: scale(1.25); /* CSS transforms preserve performance */
+  box-shadow: 0 0 50px rgba(255, 255, 255, 0.8), inset 0 0 25px rgba(255, 255, 255, 0.5);
+  animation-play-state: paused; /* Locks position while interacting */
+}
+
+.node-red:hover {
+  transform: scale(1.3);
+  box-shadow: 0 0 40px var(--rgb-red), 0 0 15px var(--rgb-red) inset;
+  background: rgba(255, 51, 102, 0.15);
+  animation-play-state: paused;
+}
+
+.node-green:hover {
+  transform: scale(1.3);
+  box-shadow: 0 0 40px var(--rgb-green), 0 0 15px var(--rgb-green) inset;
+  background: rgba(51, 255, 102, 0.15);
+  animation-play-state: paused;
+}
+
+.node-blue:hover {
+  transform: scale(1.3);
+  box-shadow: 0 0 40px var(--rgb-blue), 0 0 15px var(--rgb-blue) inset;
+  background: rgba(51, 102, 255, 0.15);
+  animation-play-state: paused;
+}
+/* Static Connector Lines (Can be spiced up with SVGs) */
+.branch-line {
+  position: absolute;
+  background: linear-gradient(90deg, rgba(255,255,255,0.4), rgba(255,255,255,0.05));
+  height: 2px;
+  transform-origin: left center;
+  z-index: 1;
+}
+
+.line-1 { width: 160px; top: 50%; left: 50%; transform: rotate(215deg); }
+.line-2 { width: 160px; top: 50%; left: 50%; transform: rotate(325deg); }
+.line-3 { width: 150px; top: 50%; left: 50%; transform: rotate(90deg); }
+
+  </style>
+</head>
+<body>
+
+
+<main>
+<div class="mindmap-container">
+  <!-- Central Node -->
+  <div class="mindmap-node central-node">
+    <span>RGB Core</span>
+  </div>
+
+  <!-- Branch Connections (CSS Lines) -->
+  <div class="branch-line line-1"></div>
+  <div class="branch-line line-2"></div>
+  <div class="branch-line line-3"></div>
+
+  <!-- Child Nodes -->
+  <div class="mindmap-node child-node node-red">
+    <span>Red Branch</span>
+  </div>
+  
+  <div class="mindmap-node child-node node-green">
+    <span>Green Branch</span>
+  </div>
+  
+  <div class="mindmap-node child-node node-blue">
+    <span>Blue Branch</span>
+  </div>
+</div>
+</main>
+
+<script>
+(() => {
+  const mindmap = document.querySelector('.mindmap-container');
+  if (!mindmap) return;
+
+  const degreesPerSecond = 3; // One clockwise revolution every two minutes.
+  const response = 1.6; // Higher values ease the speed change more quickly.
+  const pauseThreshold = 0.02;
+  let hovered = false;
+  let angle = 0;
+  let speed = degreesPerSecond;
+  let previousTime;
+
+  mindmap.addEventListener('pointerenter', () => { hovered = true; });
+  mindmap.addEventListener('pointerleave', () => { hovered = false; });
+
+  function rotateMindmap(time) {
+    if (previousTime !== undefined) {
+      const deltaSeconds = Math.min((time - previousTime) / 1000, 0.05);
+      const targetSpeed = hovered ? 0 : degreesPerSecond;
+      speed += (targetSpeed - speed) * Math.min(1, response * deltaSeconds);
+
+      if (hovered && speed < pauseThreshold) speed = 0;
+      angle = (angle + speed * deltaSeconds) % 360;
+      mindmap.style.transform = `rotate(${angle}deg)`;
+    }
+
+    previousTime = time;
+    requestAnimationFrame(rotateMindmap);
+  }
+
+  requestAnimationFrame(rotateMindmap);
+})();
+</script>
+</body>
+</html>
