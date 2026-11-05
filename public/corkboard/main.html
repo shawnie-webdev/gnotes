@@ -731,6 +731,7 @@
             .from('stickers')
             .select('id, name, image_path, created_by, created_at')
             .order('created_at', { ascending: false })
+            .order('id', { ascending: false })
             .range(stickerLibraryOffset, stickerLibraryOffset + STICKER_PAGE_SIZE - 1);
 
         if (error) {
