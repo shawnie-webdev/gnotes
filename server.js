@@ -15,14 +15,21 @@ const OpenAI = require("openai");
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://cqxlnmvmfkylozcdffxf.supabase.co';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY?.trim();
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+const OPENAI_API_KEY = (process.env.OPENAI_API_KEY || "").trim();
 const GEMINI_API_KEY = (process.env.GEMINI_API_KEY || process.env.GEMENI_API_KEY || "").trim();
+
 const geminiClient = GEMINI_API_KEY
     ? new OpenAI({
         apiKey: GEMINI_API_KEY,
         baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/"
     })
     : null;
-const chatClient = geminiClient;
+
+const openAiClient = OPENAI_API_KEY
+    ? new OpenAI({ apiKey: OPENAI_API_KEY })
+    : null;
+
+const chatClient = geminiClient || openAiClient;
 
 const missingSupabaseConfig = [
     !SUPABASE_ANON_KEY && "SUPABASE_ANON_KEY",
@@ -1472,7 +1479,7 @@ app.post('/auth/moderator/actionpost', async (req, res) => {
 
 app.post('/api/chat', async (req, res) => {
     if (!chatClient) {
-        return res.status(503).json({ error: "Chat is not configured on this server. Add GEMINI_API_KEY." });
+        return res.status(503).json({ error: "Chat is not configured on this server. Add GEMINI_API_KEY or OPENAI_API_KEY." });
     }
 
     try {
@@ -1487,7 +1494,7 @@ app.post('/api/chat', async (req, res) => {
         }
 
         const completion = await chatClient.chat.completions.create({
-            model: "gemini-2.5-flash",
+            model: geminiClient ? "gemini-2.5-flash" : "gpt-4o-mini",
             messages: [{ role: "user", content: prompt }],
             stream: false
         }, {
