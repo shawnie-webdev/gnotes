@@ -1494,7 +1494,7 @@ app.post('/api/chat', async (req, res) => {
         }
 
         const completion = await chatClient.chat.completions.create({
-            model: geminiClient ? "gemini-2.5-flash" : "gpt-4o-mini",
+            model: geminiClient ? "gemini-3.8-flash" : "gpt-4o-mini",
             messages: [{ role: "user", content: prompt }],
             stream: false
         }, {
