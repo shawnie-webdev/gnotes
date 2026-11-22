@@ -168,7 +168,9 @@
             background-color: #d5d5d5;
         }
 
-    </style>
+    
+        .gn-badge-grid{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}.gn-badge-card{display:flex;align-items:center;gap:12px;background:var(--secondary-navy);border:1px solid var(--border-color);border-radius:12px;padding:12px;min-width:210px;max-width:100%}.gn-badge-card img{width:68px;height:68px;object-fit:contain;flex-shrink:0}.gn-badge-card strong{display:block}.gn-badge-card small{display:block;color:var(--muted-text);font-size:12px}.gn-badge-empty{color:var(--muted-text)}.gn-award-popup .popup-card{background:var(--bg-card);color:var(--main-text);border:1px solid var(--main-gold);}.gn-award-popup img{width:110px;height:110px;object-fit:contain;margin:0 auto 12px}.gn-award-popup h2{color:var(--main-text)}.gn-award-popup p{color:var(--secondary-text)}
+</style>
 </head>
 <body>
 
@@ -211,6 +213,11 @@
         <p>User ID (UUID): <span id="display-id" style="font-size: 12px; color: #64748b;">Loading...</span></p>
     </div>
 
+    <section class="card" id="my-badges" style="margin-top:22px">
+        <h2>Badges</h2>
+        <p>Recognition awarded by GoldenNotes admins.</p>
+        <div id="my-badges-list" class="gn-badge-grid" aria-live="polite">Loading badges…</div>
+    </section>
     <div class="dashboard-actions">
         <a href="/dashboard/settings" class="btn btn-primary">Open Settings</a>
         <button type="button" class="btn btn-secondary" id="change-password-btn">Change Password</button>
@@ -235,6 +242,16 @@
         <h2>Admin</h2>
         <a id="adminBtn" class="btn btn-secondary">Dashboard</a>
     </div>
+</div>
+
+<!-- Badge-award notification popup -->
+<div id="badgeAwardPopup" class="popup-overlay gn-award-popup" role="dialog" aria-modal="true" aria-labelledby="badge-award-title">
+  <div class="popup-card">
+    <img id="badge-award-icon" src="" alt="Badge icon">
+    <h2 id="badge-award-title">New Badge!</h2>
+    <p id="badge-award-description"></p>
+    <div class="popup-buttons"><button type="button" class="btn btn-primary" id="badge-award-close">Awesome!</button></div>
+  </div>
 </div>
 
 <!-- The GoldenNotes Welcome Popup -->
@@ -340,6 +357,46 @@
       showText($('display-email'), user.email || 'Not available');
       showText($('display-id'), user.id || 'Not available');
       showText($('display-username'), user.user_metadata?.username || user.email?.split('@')[0] || 'No username set');
+
+      // Load awarded badges and show one-time congratulations for newly awarded badges.
+      async function loadBadges(userId) {
+        const list = $('my-badges-list');
+        const awardPopup = $('badgeAwardPopup');
+        const awardClose = $('badge-award-close');
+        if (!list) return;
+        try {
+          const { data, error } = await supabaseClient.from('user_badges')
+            .select('id,badge_slug,awarded_at,note,badge_catalog(slug,name,description,icon_path)')
+            .eq('user_uuid', userId).order('awarded_at', { ascending: false });
+          if (error) throw error;
+          const rows = (data || []).map(row => ({...row.badge_catalog, id:row.id, awarded_at:row.awarded_at, note:row.note})).filter(row=>row.slug);
+          list.replaceChildren();
+          if (!rows.length) { const empty=document.createElement('p'); empty.className='gn-badge-empty'; empty.textContent='No badges yet. Keep contributing and learning!'; list.appendChild(empty); return; }
+          rows.forEach(badge=>{
+            const card=document.createElement('div'); card.className='gn-badge-card';
+            const img=document.createElement('img'); img.src=badge.icon_path; img.alt=badge.name+' badge'; img.loading='lazy';
+            const text=document.createElement('div'); const title=document.createElement('strong'); title.textContent=badge.name||'Badge';
+            const desc=document.createElement('small'); desc.textContent=badge.description||'Recognition badge';
+            const date=document.createElement('small'); date.textContent='Awarded '+new Date(badge.awarded_at).toLocaleDateString();
+            text.append(title,desc,date); card.append(img,text); list.appendChild(card);
+          });
+          const seenKey='gnotes_badges_seen:'+userId;
+          let seen={}; try { seen=JSON.parse(localStorage.getItem(seenKey)||'{}')||{}; } catch(_) { seen={}; }
+          const unseen=rows.filter(b=>!seen[b.id]);
+          if(unseen.length && awardPopup) {
+            unseen.forEach(b=>seen[b.id]=true);
+            try{localStorage.setItem(seenKey,JSON.stringify(seen));}catch(_){}
+            const first=unseen[0]; $('badge-award-icon').src=first.icon_path; $('badge-award-icon').alt=first.name+' badge';
+            $('badge-award-title').textContent='Badge earned: '+first.name+'!';
+            $('badge-award-description').textContent=first.description||'An admin awarded you a badge.';
+            awardPopup.style.display='flex';
+            awardClose?.addEventListener('click',()=>awardPopup.style.display='none',{once:true});
+          }
+        } catch(error) {
+          list.textContent='Could not load badges: '+(error.message||String(error));
+        }
+      }
+      await loadBadges(user.id);
 
       // Keep first-time rules acknowledgement separate for each signed-in account.
       const acceptedKey = 'rules_accepted:' + user.id;
