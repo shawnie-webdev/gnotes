@@ -384,13 +384,19 @@
           let seen={}; try { seen=JSON.parse(localStorage.getItem(seenKey)||'{}')||{}; } catch(_) { seen={}; }
           const unseen=rows.filter(b=>!seen[b.id]);
           if(unseen.length && awardPopup) {
-            unseen.forEach(b=>seen[b.id]=true);
-            try{localStorage.setItem(seenKey,JSON.stringify(seen));}catch(_){}
-            const first=unseen[0]; $('badge-award-icon').src=first.icon_path; $('badge-award-icon').alt=first.name+' badge';
-            $('badge-award-title').textContent='Badge earned: '+first.name+'!';
-            $('badge-award-description').textContent=first.description||'An admin awarded you a badge.';
-            awardPopup.style.display='flex';
-            awardClose?.addEventListener('click',()=>awardPopup.style.display='none',{once:true});
+            let queue=unseen.slice();
+            const showNext=()=>{
+              const next=queue.shift();
+              if(!next){awardPopup.style.display='none';return;}
+              seen[next.id]=true;
+              try{localStorage.setItem(seenKey,JSON.stringify(seen));}catch(_){}
+              $('badge-award-icon').src=next.icon_path; $('badge-award-icon').alt=next.name+' badge';
+              $('badge-award-title').textContent='Badge earned: '+next.name+'!';
+              $('badge-award-description').textContent=next.description||'An admin awarded you a badge.';
+              awardPopup.style.display='flex';
+            };
+            awardClose?.addEventListener('click',showNext);
+            showNext();
           }
         } catch(error) {
           list.textContent='Could not load badges: '+(error.message||String(error));
