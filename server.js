@@ -860,14 +860,22 @@ app.post('/auth/getuser', async (req, res) => {
             return res.status(404).json({ error: 'User not found.' })
         }
 
-        // Return safe user information (avoid leaking sensitive metadata)
+        const { data: badgeRows, error: badgeError } = await supabaseAdmin
+            .from("user_badges")
+            .select("id,badge_slug,awarded_at,note,badge_catalog(slug,name,description,icon_path)")
+            .eq("user_uuid", userId)
+            .order("awarded_at", { ascending: false });
+        if (badgeError) console.error("[auth/getuser] Badge lookup failed:", badgeError.message);
+
+        // Return safe profile data plus public badge display information.
         return res.status(200).json({
             user: {
                 id: user.id,
                 email: user.email,
                 username: user.user_metadata?.username || user.email.split('@')[0],
                 user_metadata: user.user_metadata,
-                created_at: user.created_at
+                created_at: user.created_at,
+                badges: (badgeRows || []).map(row => ({ ...row.badge_catalog, awarded_at: row.awarded_at, note: row.note }))
             }
         })
     } catch (err) {
@@ -1167,7 +1175,7 @@ app.post('/auth/moderator/actionpost', async (req, res) => {
             return res.status(403).json({ error: "Admin or Moderator rank required." });
         }
 
-        const { action, targetUuid, hours, rank, reason, sentence, contentType, itemId, moderationStatus } = req.body || {};
+        const { action, targetUuid, hours, rank, reason, sentence, contentType, itemId, moderationStatus, badgeSlug } = req.body || {};
 
         // Admin-only tools; every request is authenticated above and checked against the current database rank.
         if (["audit-list", "reports-list", "report-update", "quiz-list", "quiz-delete", "settings-list", "settings-update"].includes(action) && actorRank !== "Admin") {
@@ -1221,6 +1229,30 @@ app.post('/auth/moderator/actionpost', async (req, res) => {
             if (error) return res.status(500).json({ error: "Could not save site setting." });
             await writeAudit("settings-update", { key });
             return res.json({ success: true, message: "Site setting saved.", setting: data });
+        }
+
+        if (action === "assign-badge") {
+            if (actorRank !== "Admin") return res.status(403).json({ error: "Only Admins can award badges." });
+            if (typeof targetUuid !== "string" || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(targetUuid)) {
+                return res.status(400).json({ error: "Enter a valid target user UUID." });
+            }
+            if (typeof badgeSlug !== "string" || !/^[a-z0-9-]{2,50}$/.test(badgeSlug)) return res.status(400).json({ error: "Select a valid badge." });
+            const { data: targetUser, error: targetLookupError } = await supabaseAdmin.auth.admin.getUserById(targetUuid);
+            if (targetLookupError || !targetUser?.user) return res.status(404).json({ error: "Target user not found." });
+            const { data: badge, error: badgeLookupError } = await supabaseAdmin.from("badge_catalog").select("slug,name,description,icon_path").eq("slug", badgeSlug).maybeSingle();
+            if (badgeLookupError) return res.status(500).json({ error: "Could not load badge catalog." });
+            if (!badge) return res.status(404).json({ error: "Badge not found." });
+            const badgeNote = typeof req.body?.badgeNote === "string" ? req.body.badgeNote.trim().slice(0, 500) : null;
+            const { data: award, error: awardError } = await supabaseAdmin.from("user_badges")
+                .insert({ user_uuid: targetUuid, badge_slug: badgeSlug, awarded_by: user.id, note: badgeNote || null })
+                .select("id,user_uuid,badge_slug,awarded_by,awarded_at,note").single();
+            if (awardError) {
+                if (awardError.code === "23505") return res.status(409).json({ error: "This user already has that badge." });
+                console.error("[moderator/actionpost] Badge award failed:", awardError.message);
+                return res.status(500).json({ error: "Could not award badge." });
+            }
+            await writeAudit("badge-award", { badge_slug: badgeSlug, award_id: award.id });
+            return res.json({ success: true, message: "Badge awarded to user.", badge: { ...badge, ...award } });
         }
 
         if (action === "whoami") {
