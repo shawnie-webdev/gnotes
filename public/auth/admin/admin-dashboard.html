@@ -99,6 +99,24 @@
         <p class="danger-note">Permanent account deletion is intentionally not enabled in this dashboard: it can be irreversible and may leave related content behind. Use a temporary ban to restrict access instead.</p>
       </section>
 
+
+      <section class="panel-controller card" id="badge-management" hidden>
+        <div class="title-card"><h2>Badge Management</h2><p>Only Admins can award badges. Select a user above and choose a badge.</p></div>
+        <label for="badge-choice">Badge</label>
+        <select class="form-input" id="badge-choice">
+          <option value="guide-giver">Study Guide Contributor — shared study guides</option>
+          <option value="quiz-maker">Quiz Creator — made quizzes</option>
+          <option value="study-streak">Study Streak — consistent contributions</option>
+          <option value="community-champion">Community Champion — helped the community</option>
+          <option value="quick-learner">Quick Learner — learning spirit</option>
+          <option value="golden-notes">GoldenNotes Star — special recognition</option>
+        </select>
+        <label for="badge-note">Optional note</label>
+        <textarea class="form-textarea" id="badge-note" rows="2" maxlength="500" placeholder="Why this badge is being awarded"></textarea>
+        <button class="generic_button" id="award-badge" type="button">Award Badge</button>
+        <div id="badge-admin-status" aria-live="polite"></div>
+      </section>
+
       <section class="panel-controller" id="management-tools">
         <div class="title-card"><h2>Management Tools</h2><p>Load the available user profiles and their ranks.</p></div>
         <div>
@@ -502,12 +520,32 @@
 
   $('lists-see').addEventListener('click', loadUsers);
   $('refresh-content').addEventListener('click', loadContent);
-  $('badge').addEventListener('click', () => setStatus('Badge management is not implemented yet.'));
+  $('badge').addEventListener('click', () => {
+    if (currentRank !== 'Admin') { setStatus('Only Admins can award badges.', true); return; }
+    $('badge-management').hidden = false;
+    $('badge-management').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    $('badge-choice').focus();
+  });
+  $('award-badge').addEventListener('click', async () => {
+    const note = $('badge-note').value.trim();
+    const badgeSlug = $('badge-choice').value;
+    try {
+      const result = await api('assign-badge', { targetUuid: targetUuid(), badgeSlug, badgeNote: note });
+      $('badge-admin-status').textContent = result.message || 'Badge awarded.';
+      $('badge-admin-status').style.color = 'var(--success)';
+      $('badge-note').value = '';
+    } catch (error) {
+      $('badge-admin-status').textContent = error.message || String(error);
+      $('badge-admin-status').style.color = 'var(--danger)';
+    }
+  });
 
   initClient().then(async () => {
     try {
       const result = await api('whoami');
       currentRank = result.rank;
+      if (currentRank === 'Admin') $('badge-management').hidden = false;
+      $('badge').disabled = currentRank !== 'Admin';
       if (currentRank !== 'Admin') {
         $('change-user-rank').disabled = true;
         $('target-rank').disabled = true;
