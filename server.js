@@ -1310,17 +1310,22 @@ app.post('/auth/moderator/actionpost', async (req, res) => {
             const expiresAt = typeof req.body?.expiresAt === "string" ? new Date(req.body.expiresAt) : new Date(NaN);
             if (!Number.isFinite(expiresAt.getTime()) || expiresAt.getTime() <= Date.now()) return res.status(400).json({ error: "Expiry must be a valid future date and time." });
             if (expiresAt.getTime() > Date.now() + 366 * 24 * 60 * 60 * 1000) return res.status(400).json({ error: "Codes can expire at most one year from now." });
-            const code = "GN-" + crypto.randomBytes(6).toString("hex").toUpperCase() + "-" + crypto.randomBytes(6).toString("hex").toUpperCase();
+            const customCode = typeof req.body?.customCode === "string" ? req.body.customCode.trim().toUpperCase().replace(/\\s+/g, "") : "";
+            if (customCode.length < 4 || customCode.length > 32 || !/^[A-Z0-9-]+$/.test(customCode)) {
+                return res.status(400).json({ error: "Your code must be 4–32 characters and use only letters, numbers, and hyphens." });
+            }
+            const code = customCode;
             const codeHash = crypto.createHash("sha256").update(code).digest("hex");
             const { error: createError } = await supabaseAdmin.from("scavenger_hunt_codes").insert({
                 code_hash: codeHash, badge_slug: slug, expires_at: expiresAt.toISOString(), created_by: user.id
             });
             if (createError) {
+                if (createError.code === "23505") return res.status(409).json({ error: "That code is already in use. Choose another one." });
                 console.error("[moderator/actionpost] Scavenger code creation failed:", createError.message);
                 return res.status(500).json({ error: "Could not create scavenger hunt code." });
             }
-            await writeAudit("scavenger-code-create", { badge_slug: slug, expires_at: expiresAt.toISOString() });
-            return res.json({ success: true, message: "Scavenger hunt code created. Copy it now; it will not be shown again.", code, badgeSlug: slug, expiresAt: expiresAt.toISOString() });
+            await writeAudit("scavenger-code-create", { badge_slug: slug, expires_at: expiresAt.toISOString(), code_hash: codeHash });
+            return res.json({ success: true, message: "Your custom scavenger hunt code is ready. Copy and save it now; it will not be shown again.", code, badgeSlug: slug, expiresAt: expiresAt.toISOString() });
         }
 
         if (action === "whoami") {
