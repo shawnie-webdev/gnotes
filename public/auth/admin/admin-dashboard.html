@@ -123,6 +123,9 @@
         <select class="form-input" id="scavenger-badge-choice">
           <option value="scavenger-hunt-1">Scavenger Hunt 1</option><option value="scavenger-hunt-2">Scavenger Hunt 2</option><option value="scavenger-hunt-3">Scavenger Hunt 3</option><option value="scavenger-hunt-4">Scavenger Hunt 4</option><option value="scavenger-hunt-5">Scavenger Hunt 5</option>
         </select>
+        <label for="scavenger-custom-code">Your custom redemption code</label>
+        <input class="form-input" id="scavenger-custom-code" type="text" minlength="4" maxlength="32" pattern="[A-Za-z0-9-]+" autocomplete="off" placeholder="e.g. GOLDEN-QUEST-2026" style="max-width:400px;text-transform:uppercase">
+        <small>4–32 characters. Letters, numbers, and hyphens only. Codes are not case-sensitive.</small>
         <label for="scavenger-code-expiry">Expires on (local time)</label>
         <input class="form-input" id="scavenger-code-expiry" type="datetime-local" style="max-width:320px">
         <button class="generic_button" id="create-scavenger-code" type="button">Create Code</button>
@@ -537,6 +540,8 @@
   // Scavenger hunt code creator (admin-only server validation is authoritative).
   $('create-scavenger-code')?.addEventListener('click', async () => {
     const badgeSlug = $('scavenger-badge-choice').value;
+    const customCode = $('scavenger-custom-code').value.trim().toUpperCase();
+    if (!/^[A-Z0-9-]{4,32}$/.test(customCode)) { $('scavenger-admin-status').textContent = 'Use 4–32 letters, numbers, or hyphens for your code.'; return; }
     const localExpiry = $('scavenger-code-expiry').value;
     if (!localExpiry) { $('scavenger-admin-status').textContent = 'Set an expiry date and time first.'; return; }
     const expiresAt = new Date(localExpiry);
@@ -544,7 +549,7 @@
     const button = $('create-scavenger-code'); button.disabled = true;
     $('scavenger-admin-status').textContent = 'Creating code…'; $('scavenger-code-result').hidden = true;
     try {
-      const result = await api('create-scavenger-code', { badgeSlug, expiresAt: expiresAt.toISOString() });
+      const result = await api('create-scavenger-code', { badgeSlug, customCode, expiresAt: expiresAt.toISOString() });
       $('scavenger-created-code').value = result.code;
       $('scavenger-code-meta').textContent = 'Badge: ' + badgeSlug.replace('scavenger-hunt-', 'Scavenger Hunt ') + ' · Expires: ' + new Date(result.expiresAt).toLocaleString();
       $('scavenger-code-result').hidden = false;
