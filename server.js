@@ -1144,6 +1144,54 @@ app.post('/auth/ban-status', async (req, res) => {
     }
 });
 
+
+// Redeem Scavenger Hunt codes. Codes are hashed server-side and are never stored in plaintext.
+app.post('/api/scavenger/redeem', async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization || "";
+        const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+        if (!token) return res.status(401).json({ error: "Sign in to redeem a scavenger hunt badge." });
+        const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+        if (authError || !user) return res.status(401).json({ error: "Your session expired. Please sign in again." });
+
+        const code = typeof req.body?.code === "string" ? req.body.code.trim().toUpperCase().replace(/\\s+/g, "") : "";
+        if (!/^GN-[A-F0-9]{6}-[A-F0-9]{6}$/.test(code)) return res.status(400).json({ error: "Enter a valid scavenger hunt code." });
+        const codeHash = crypto.createHash("sha256").update(code).digest("hex");
+        const { data: hunt, error: huntError } = await supabaseAdmin.from("scavenger_hunt_codes")
+            .select("id,badge_slug,expires_at,active").eq("code_hash", codeHash).maybeSingle();
+        if (huntError) return res.status(503).json({ error: "Could not verify this code." });
+        if (!hunt || !hunt.active) return res.status(404).json({ error: "That scavenger hunt code is not valid." });
+        if (new Date(hunt.expires_at).getTime() <= Date.now()) return res.status(410).json({ error: "That scavenger hunt code has expired." });
+
+        const { data: redemption, error: redemptionError } = await supabaseAdmin.from("scavenger_redemptions")
+            .insert({ code_id: hunt.id, user_uuid: user.id }).select("id").single();
+        if (redemptionError) {
+            if (redemptionError.code === "23505") return res.status(409).json({ error: "You have already redeemed this code." });
+            console.error("[scavenger/redeem] redemption record failed:", redemptionError.message);
+            return res.status(500).json({ error: "Could not record your redemption." });
+        }
+
+        const { data: badge, error: badgeError } = await supabaseAdmin.from("badge_catalog")
+            .select("slug,name,description,icon_path").eq("slug", hunt.badge_slug).maybeSingle();
+        if (badgeError || !badge) {
+            await supabaseAdmin.from("scavenger_redemptions").delete().eq("id", redemption.id);
+            return res.status(500).json({ error: "Scavenger badge is unavailable." });
+        }
+        const { error: awardError } = await supabaseAdmin.from("user_badges")
+            .insert({ user_uuid: user.id, badge_slug: hunt.badge_slug, awarded_by: hunt.created_by || user.id, note: "Scavenger hunt code redeemed" });
+        if (awardError) {
+            await supabaseAdmin.from("scavenger_redemptions").delete().eq("id", redemption.id);
+            if (awardError.code === "23505") return res.status(409).json({ error: "You already have this scavenger hunt badge." });
+            console.error("[scavenger/redeem] badge award failed:", awardError.message);
+            return res.status(500).json({ error: "Could not award the scavenger badge." });
+        }
+        return res.json({ success: true, message: "Scavenger hunt badge redeemed!", badge });
+    } catch (error) {
+        console.error("[scavenger/redeem] unexpected error:", error.message);
+        return res.status(500).json({ error: "Could not redeem code." });
+    }
+});
+
 app.post('/auth/moderator/actionpost', async (req, res) => {
     try {
         // The browser sends the Supabase access token as a Bearer token.
@@ -1253,6 +1301,26 @@ app.post('/auth/moderator/actionpost', async (req, res) => {
             }
             await writeAudit("badge-award", { badge_slug: badgeSlug, award_id: award.id });
             return res.json({ success: true, message: "Badge awarded to user.", badge: { ...badge, ...award } });
+        }
+
+        if (action === "create-scavenger-code") {
+            if (actorRank !== "Admin") return res.status(403).json({ error: "Only Admins can create scavenger hunt codes." });
+            const slug = typeof req.body?.badgeSlug === "string" ? req.body.badgeSlug : "";
+            if (!/^scavenger-hunt-[1-5]$/.test(slug)) return res.status(400).json({ error: "Choose Scavenger Hunt badge 1–5." });
+            const expiresAt = typeof req.body?.expiresAt === "string" ? new Date(req.body.expiresAt) : new Date(NaN);
+            if (!Number.isFinite(expiresAt.getTime()) || expiresAt.getTime() <= Date.now()) return res.status(400).json({ error: "Expiry must be a valid future date and time." });
+            if (expiresAt.getTime() > Date.now() + 366 * 24 * 60 * 60 * 1000) return res.status(400).json({ error: "Codes can expire at most one year from now." });
+            const code = "GN-" + crypto.randomBytes(6).toString("hex").toUpperCase() + "-" + crypto.randomBytes(6).toString("hex").toUpperCase();
+            const codeHash = crypto.createHash("sha256").update(code).digest("hex");
+            const { error: createError } = await supabaseAdmin.from("scavenger_hunt_codes").insert({
+                code_hash: codeHash, badge_slug: slug, expires_at: expiresAt.toISOString(), created_by: user.id
+            });
+            if (createError) {
+                console.error("[moderator/actionpost] Scavenger code creation failed:", createError.message);
+                return res.status(500).json({ error: "Could not create scavenger hunt code." });
+            }
+            await writeAudit("scavenger-code-create", { badge_slug: slug, expires_at: expiresAt.toISOString() });
+            return res.json({ success: true, message: "Scavenger hunt code created. Copy it now; it will not be shown again.", code, badgeSlug: slug, expiresAt: expiresAt.toISOString() });
         }
 
         if (action === "whoami") {
