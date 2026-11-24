@@ -1310,7 +1310,7 @@ app.post('/auth/moderator/actionpost', async (req, res) => {
             const expiresAt = typeof req.body?.expiresAt === "string" ? new Date(req.body.expiresAt) : new Date(NaN);
             if (!Number.isFinite(expiresAt.getTime()) || expiresAt.getTime() <= Date.now()) return res.status(400).json({ error: "Expiry must be a valid future date and time." });
             if (expiresAt.getTime() > Date.now() + 366 * 24 * 60 * 60 * 1000) return res.status(400).json({ error: "Codes can expire at most one year from now." });
-            const customCode = typeof req.body?.customCode === "string" ? req.body.customCode.trim().toUpperCase().replace(/\\s+/g, "") : "";
+            const customCode = typeof req.body?.customCode === "string" ? req.body.customCode.trim().toUpperCase().replace(/\s+/g, "") : "";
             if (customCode.length < 4 || customCode.length > 32 || !/^[A-Z0-9-]+$/.test(customCode)) {
                 return res.status(400).json({ error: "Your code must be 4–32 characters and use only letters, numbers, and hyphens." });
             }
