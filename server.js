@@ -1158,7 +1158,7 @@ app.post('/api/scavenger/redeem', async (req, res) => {
         if (!/^GN-[A-F0-9]{6}-[A-F0-9]{6}$/.test(code)) return res.status(400).json({ error: "Enter a valid scavenger hunt code." });
         const codeHash = crypto.createHash("sha256").update(code).digest("hex");
         const { data: hunt, error: huntError } = await supabaseAdmin.from("scavenger_hunt_codes")
-            .select("id,badge_slug,expires_at,active").eq("code_hash", codeHash).maybeSingle();
+            .select("id,badge_slug,expires_at,active,created_by").eq("code_hash", codeHash).maybeSingle();
         if (huntError) return res.status(503).json({ error: "Could not verify this code." });
         if (!hunt || !hunt.active) return res.status(404).json({ error: "That scavenger hunt code is not valid." });
         if (new Date(hunt.expires_at).getTime() <= Date.now()) return res.status(410).json({ error: "That scavenger hunt code has expired." });
