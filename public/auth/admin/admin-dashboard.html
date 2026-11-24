@@ -110,11 +110,24 @@
           <option value="community-champion">Community Champion — helped the community</option>
           <option value="quick-learner">Quick Learner — learning spirit</option>
           <option value="golden-notes">GoldenNotes Star — special recognition</option>
+          <option value="scavenger-hunt-1">Scavenger Hunt 1</option><option value="scavenger-hunt-2">Scavenger Hunt 2</option><option value="scavenger-hunt-3">Scavenger Hunt 3</option><option value="scavenger-hunt-4">Scavenger Hunt 4</option><option value="scavenger-hunt-5">Scavenger Hunt 5</option>
         </select>
         <label for="badge-note">Optional note</label>
         <textarea class="form-textarea" id="badge-note" rows="2" maxlength="500" placeholder="Why this badge is being awarded"></textarea>
         <button class="generic_button" id="award-badge" type="button">Award Badge</button>
         <div id="badge-admin-status" aria-live="polite"></div>
+      
+      <section class="panel-controller card" id="scavenger-code-management" hidden>
+        <div class="title-card"><h2>Scavenger Hunt Codes</h2><p>Create secret codes that award Scavenger Hunt badges. Codes can be redeemed by multiple users, but each user can redeem a given code only once. Expired codes stop working.</p></div>
+        <label for="scavenger-badge-choice">Badge level</label>
+        <select class="form-input" id="scavenger-badge-choice">
+          <option value="scavenger-hunt-1">Scavenger Hunt 1</option><option value="scavenger-hunt-2">Scavenger Hunt 2</option><option value="scavenger-hunt-3">Scavenger Hunt 3</option><option value="scavenger-hunt-4">Scavenger Hunt 4</option><option value="scavenger-hunt-5">Scavenger Hunt 5</option>
+        </select>
+        <label for="scavenger-code-expiry">Expires on (local time)</label>
+        <input class="form-input" id="scavenger-code-expiry" type="datetime-local" style="max-width:320px">
+        <button class="generic_button" id="create-scavenger-code" type="button">Create Code</button>
+        <p id="scavenger-admin-status" aria-live="polite"></p>
+        <div id="scavenger-code-result" hidden><label for="scavenger-created-code">New code (copy and save now; not stored in plaintext)</label><input id="scavenger-created-code" class="form-input" type="text" readonly style="max-width:400px"><button class="generic_button" id="copy-scavenger-code" type="button">Copy Code</button><p id="scavenger-code-meta"></p></div>
       </section>
 
       <section class="panel-controller" id="management-tools">
@@ -520,6 +533,31 @@
 
   $('lists-see').addEventListener('click', loadUsers);
   $('refresh-content').addEventListener('click', loadContent);
+
+  // Scavenger hunt code creator (admin-only server validation is authoritative).
+  $('create-scavenger-code')?.addEventListener('click', async () => {
+    const badgeSlug = $('scavenger-badge-choice').value;
+    const localExpiry = $('scavenger-code-expiry').value;
+    if (!localExpiry) { $('scavenger-admin-status').textContent = 'Set an expiry date and time first.'; return; }
+    const expiresAt = new Date(localExpiry);
+    if (!Number.isFinite(expiresAt.getTime()) || expiresAt <= new Date()) { $('scavenger-admin-status').textContent = 'Expiry must be in the future.'; return; }
+    const button = $('create-scavenger-code'); button.disabled = true;
+    $('scavenger-admin-status').textContent = 'Creating code…'; $('scavenger-code-result').hidden = true;
+    try {
+      const result = await api('create-scavenger-code', { badgeSlug, expiresAt: expiresAt.toISOString() });
+      $('scavenger-created-code').value = result.code;
+      $('scavenger-code-meta').textContent = 'Badge: ' + badgeSlug.replace('scavenger-hunt-', 'Scavenger Hunt ') + ' · Expires: ' + new Date(result.expiresAt).toLocaleString();
+      $('scavenger-code-result').hidden = false;
+      $('scavenger-admin-status').textContent = result.message || 'Code created.';
+    } catch (error) { $('scavenger-admin-status').textContent = error.message || String(error); }
+    finally { button.disabled = false; }
+  });
+  $('copy-scavenger-code')?.addEventListener('click', async () => {
+    const code = $('scavenger-created-code').value;
+    try { await navigator.clipboard.writeText(code); $('scavenger-admin-status').textContent = 'Code copied.'; }
+    catch (_) { $('scavenger-created-code').select(); $('scavenger-admin-status').textContent = 'Select and copy the code manually.'; }
+  });
+
   $('badge').addEventListener('click', () => {
     if (currentRank !== 'Admin') { setStatus('Only Admins can award badges.', true); return; }
     $('badge-management').hidden = false;
@@ -544,7 +582,7 @@
     try {
       const result = await api('whoami');
       currentRank = result.rank;
-      if (currentRank === 'Admin') $('badge-management').hidden = false;
+      if (currentRank === 'Admin') { $('badge-management').hidden = false; $('scavenger-code-management').hidden = false; }
       $('badge').disabled = currentRank !== 'Admin';
       if (currentRank !== 'Admin') {
         $('change-user-rank').disabled = true;
