@@ -44,7 +44,7 @@
     </div>
 
     <div style="display: flex; align-items: center; gap: 10px;">
-        <a href="#" class="btn btn-secondary" title="Search"><span style="font-size: 1.2rem;">🔍</span></a>
+        <button type="button" class="btn btn-secondary" id="scavenger-secret-trigger" title="Search" aria-label="Secret badge redemption"><span style="font-size: 1.2rem;">🔍</span></button>
         <a href="/auth/login.html" class="btn btn-secondary" id="login">Login</a>
         <a href="/auth/signup.html" class="btn btn-primary">Sign Up</a>
     </div>
@@ -119,6 +119,17 @@
         <a href="/report.html">Report a Problem</a>
     </div>
 </footer>
+
+<!-- Secret Scavenger Hunt redemption dialog -->
+<div id="scavenger-redeem-modal" role="dialog" aria-modal="true" aria-labelledby="scavenger-modal-title" hidden style="position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.65);align-items:center;justify-content:center;padding:20px">
+  <div style="max-width:420px;width:100%;padding:24px;border-radius:16px;background:var(--bg-card,#202b31);color:var(--main-text,#fff);border:1px solid var(--border-color,#445);box-shadow:0 18px 50px rgba(0,0,0,.35)">
+    <h2 id="scavenger-modal-title">Secret Badge Redeemer</h2><p>Found a scavenger hunt code? Enter it here to unlock your badge.</p>
+    <label for="scavenger-code">Redemption code</label><input id="scavenger-code" class="form-input" type="text" maxlength="32" autocomplete="off" placeholder="GN-XXXXXX-XXXXXX" style="width:100%;margin:10px 0;text-transform:uppercase">
+    <p id="scavenger-redeem-status" role="status" aria-live="polite"></p>
+    <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap"><button type="button" class="btn btn-secondary" id="scavenger-redeem-close">Close</button><button type="button" class="btn btn-primary" id="scavenger-redeem-submit">Redeem</button></div>
+  </div>
+</div>
+
 </body>
 </html>
 
