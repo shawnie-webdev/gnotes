@@ -16,6 +16,45 @@ const supabaseClient = window.supabaseClient || createClient(supabaseUrl, supaba
 });
 window.supabaseClient = supabaseClient;
 
+
+ // Secret scavenger badge redemption: magnifying-glass opens the code dialog.
+ const scavengerModal = document.getElementById('scavenger-redeem-modal');
+ const scavengerCodeInput = document.getElementById('scavenger-code');
+ const scavengerStatus = document.getElementById('scavenger-redeem-status');
+ const scavengerOpen = document.getElementById('scavenger-secret-trigger');
+ const scavengerClose = document.getElementById('scavenger-redeem-close');
+ const scavengerSubmit = document.getElementById('scavenger-redeem-submit');
+ function openScavengerModal() {
+   if (!scavengerModal) return;
+   scavengerModal.hidden = false; scavengerModal.style.display = 'flex';
+   scavengerStatus.textContent = ''; scavengerCodeInput?.focus();
+ }
+ function closeScavengerModal() {
+   if (!scavengerModal) return;
+   scavengerModal.hidden = true; scavengerModal.style.display = 'none';
+ }
+ scavengerOpen?.addEventListener('click', openScavengerModal);
+ scavengerClose?.addEventListener('click', closeScavengerModal);
+ scavengerModal?.addEventListener('click', event => { if (event.target === scavengerModal) closeScavengerModal(); });
+ scavengerCodeInput?.addEventListener('keydown', event => { if (event.key === 'Enter') scavengerSubmit?.click(); });
+ scavengerSubmit?.addEventListener('click', async () => {
+   const code = scavengerCodeInput?.value.trim().toUpperCase() || '';
+   if (!code) { scavengerStatus.textContent = 'Enter a code first.'; return; }
+   scavengerSubmit.disabled = true; scavengerStatus.textContent = 'Checking code…';
+   try {
+     const { data: { session }, error } = await supabaseClient.auth.getSession();
+     if (error || !session?.access_token) throw new Error('Sign in first to redeem a badge.');
+     const response = await fetch('/api/scavenger/redeem', { method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token}, body:JSON.stringify({code}) });
+     const result = await response.json().catch(()=>({}));
+     if (!response.ok) throw new Error(result.error || 'Could not redeem code.');
+     scavengerStatus.textContent = result.message || 'Badge redeemed!';
+     scavengerStatus.style.color = 'var(--success, #27a66b)'; scavengerCodeInput.value = '';
+   } catch (error) {
+     scavengerStatus.textContent = error.message || 'Could not redeem code.';
+     scavengerStatus.style.color = 'var(--danger, #d33)';
+   } finally { scavengerSubmit.disabled = false; }
+ });
+
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("page loaded")
     const loginBtn = document.getElementById("login");
