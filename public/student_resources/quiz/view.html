@@ -1,244 +1,245 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Take quiz | GoldenNotes</title>
-    <style>
-      /* Quiz-specific layout only; palette and theme come from master-combined.css. */
-      main.quiz-page {
-        width: min(100%, 900px);
-        margin: 28px auto 56px;
-        padding: 0 12px;
-      }
-      #title { margin: 12px 0 8px; line-height: 1.2; overflow-wrap: anywhere; }
-      #description { color: var(--text-muted); margin: 0 0 22px; line-height: 1.6; }
-      #form { display: flex; flex-direction: column; gap: 14px; }
-      #form .quiz-question {
-        width: 100%;
-        margin: 0;
-        padding: clamp(16px, 3vw, 24px);
-      }
-      #form .quiz-question h2 {
-        font-size: clamp(1.05rem, 2.3vw, 1.35rem);
-        line-height: 1.45;
-        margin: 0 0 14px;
-        overflow-wrap: anywhere;
-      }
-      #form label.option {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        padding: 9px 10px;
-        margin: 2px 0;
-        border-radius: var(--radius-md);
-        line-height: 1.45;
-        cursor: pointer;
-      }
-      #form label.option:hover { background: color-mix(in srgb, var(--main-gold) 8%, transparent); }
-      #form input[type="radio"],
-      #form input[type="checkbox"] {
-        flex: 0 0 auto;
-        width: auto;
-        margin: 4px 0 0;
-        accent-color: var(--main-gold);
-      }
-      #form input[type="text"],
-      #form textarea,
-      #form select {
-        display: block;
-        box-sizing: border-box;
-        width: 100%;
-        max-width: 100%;
-        min-height: 42px;
-        margin: 8px 0 0;
-        padding: 10px 12px;
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-md);
-        background: var(--bg-main);
-        color: var(--text-main);
-        font: inherit;
-        font-size: 0.96rem;
-        text-align: left;
-      }
-      #form select { align-self: flex-start; }
-      #form input[type="text"]:focus,
-      #form textarea:focus,
-      #form select:focus { outline: 2px solid var(--main-gold); outline-offset: 2px; }
-      #form button[type="submit"] { align-self: flex-start; }
-      #status { min-height: 1.5em; margin-top: 16px; color: var(--text-muted); line-height: 1.6; }
-      #status:empty { display: none; }
-      @media (max-width: 600px) {
-        main.quiz-page { margin-top: 18px; padding: 0 4px; }
-        #form .quiz-question { padding: 15px; }
-      }
-    </style>
-    <link rel="stylesheet" href="../master-combined.css">
-    <link rel="stylesheet" href="../master-experimental.css">
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="/auth/config.js"></script>
-    <script src="/auth/theme.js"></script>
-    <script src="/auth/theme-experimental.js"></script>
-  </head>
-  <body>
-  <header class="top-header">
-    <div class="nav-actions">
-      <div class="header-left">
-        <img src="/favicon.jpeg" alt="logo" id="logo">
-      </div>
-      <a href="/credits.html" class="btn btn-primary" id="credits">Credits</a>
-      <a href="/" class="btn btn-secondary" id="dashboard">Homepage</a>
-      <a href="/man-page/index.html" class="btn btn-secondary">Manual</a>
-      <div class="dropdown btn btn-secondary">
-        Study
-        <div class="dropdown-content">
-          <a href="/corkboard" class="btn btn-secondary" id="cb">Corkboard</a>
-          <a href="/study" class="btn btn-secondary" id="study">Study Guides</a>
-          <a href="/documents" class="btn btn-secondary" id="documents">Documents</a>
-          <a href="/calendar" class="btn btn-secondary" id="calendar">Calendar</a>
-          <a href="/quiz" class="btn btn-secondary" id="calendar">Quiz</a>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Take quiz | GoldenNotes</title>
+  <link rel="stylesheet" href="../master-combined.css">
+  <link rel="stylesheet" href="../master-experimental.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/auth/config.js"></script>
+  <script src="/auth/theme.js"></script>
+  <script src="/auth/theme-experimental.js"></script>
+  <style>
+    .quiz-workspace{width:min(900px,calc(100% - 28px));margin:24px auto 70px}
+    .quiz-back{display:inline-block;margin:4px 0 18px;color:var(--secondary-text)}
+    .quiz-heading{padding:clamp(20px,4vw,34px);border:1px solid var(--border-color);border-radius:20px;background:var(--bg-card);box-shadow:var(--shadow-sm);margin-bottom:18px}
+    .quiz-kicker{font-size:.78rem;text-transform:uppercase;letter-spacing:.13em;color:var(--main-gold);font-weight:800}
+    #title{font-size:clamp(1.7rem,4vw,2.5rem);line-height:1.15;margin:10px 0}
+    #description{color:var(--secondary-text);line-height:1.6;margin:0 0 14px}
+    .quiz-tags{display:flex;gap:8px;flex-wrap:wrap}
+    .quiz-tag{padding:6px 11px;border-radius:999px;background:var(--bg-main);border:1px solid var(--border-color);font-size:.8rem;font-weight:700;text-transform:capitalize}
+    .quiz-reward{margin-top:16px;padding:12px 14px;border-radius:12px;background:color-mix(in srgb,var(--main-gold) 10%,var(--bg-main));border:1px solid color-mix(in srgb,var(--main-gold) 40%,var(--border-color));font-weight:700}
+    .quiz-progress-wrap{display:flex;justify-content:space-between;gap:12px;color:var(--secondary-text);font-size:.9rem;margin:20px 2px 8px}
+    .quiz-progress{height:7px;background:var(--bg-card);border:1px solid var(--border-color);border-radius:99px;overflow:hidden;margin-bottom:16px}
+    .quiz-progress span{display:block;height:100%;width:0;background:var(--main-gold);transition:width .2s ease}
+    #form{display:flex;flex-direction:column;gap:14px}
+    .quiz-question{padding:clamp(17px,3vw,25px);border:1px solid var(--border-color);border-radius:16px;background:var(--bg-card)}
+    .quiz-question h2{font-size:1.08rem;line-height:1.5;margin:0 0 16px}
+    .question-number{color:var(--main-gold);font-size:.8rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px}
+    .quiz-option{display:flex;align-items:flex-start;gap:11px;padding:12px;border:1px solid var(--border-color);border-radius:11px;margin:8px 0;cursor:pointer;transition:border-color .15s,background .15s}
+    .quiz-option:hover{border-color:var(--main-gold);background:color-mix(in srgb,var(--main-gold) 6%,transparent)}
+    .quiz-option input{width:auto;margin:4px 0 0;accent-color:var(--main-gold)}
+    .quiz-answer-input{width:100%;box-sizing:border-box;padding:12px;border:1px solid var(--border-color);border-radius:10px;background:var(--bg-main);color:var(--main-text);font:inherit}
+    .quiz-submit-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px}
+    #status{color:var(--secondary-text);line-height:1.6}
+    .quiz-result{padding:22px;border:1px solid var(--border-color);border-radius:16px;background:var(--bg-card);margin-top:18px}
+    .quiz-result h2{margin:0 0 8px}
+    .quiz-result-score{font-size:2rem;font-weight:850;color:var(--main-gold);margin:8px 0}
+    .quiz-result-note{color:var(--secondary-text);line-height:1.6}
+    .quiz-login-note{padding:13px 15px;border:1px solid var(--border-color);border-radius:12px;background:var(--bg-card);margin:14px 0;color:var(--secondary-text)}
+    @media(max-width:600px){.quiz-workspace{width:calc(100% - 18px);margin-top:14px}.quiz-heading{border-radius:16px}}
+  </style>
+</head>
+<body>
+<header class="top-header">
+  <div class="nav-actions">
+    <div class="header-left"><img src="/favicon.jpeg" alt="GoldenNotes" id="logo"></div>
+    <a href="/" class="btn btn-secondary">Homepage</a>
+    <a href="/man-page/index.html" class="btn btn-secondary">Manual</a>
+    <div class="dropdown btn btn-secondary">Study<div class="dropdown-content">
+      <a href="/corkboard" class="btn btn-secondary">Corkboard</a><a href="/study" class="btn btn-secondary">Study Guides</a>
+      <a href="/documents" class="btn btn-secondary">Documents</a><a href="/calendar" class="btn btn-secondary">Calendar</a><a href="/quiz" class="btn btn-secondary">Quizzes</a>
+    </div></div>
+    <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+  </div>
+</header>
+<main class="quiz-workspace">
+  <a class="quiz-back" href="/quiz">← Back to quiz library</a>
+  <section class="quiz-heading">
+    <div class="quiz-kicker">GoldenNotes · Knowledge check</div>
+    <h1 id="title">Loading quiz…</h1>
+    <p id="description"></p>
+    <div class="quiz-tags"><span id="topic" class="quiz-tag">Topic</span><span id="difficulty" class="quiz-tag">Difficulty</span><span id="question-count" class="quiz-tag">Questions</span></div>
+    <div class="quiz-reward">✨ 10 XP for each correct answer · XP is awarded once per quiz</div>
+  </section>
+  <div id="login-note" class="quiz-login-note" hidden>Sign in to submit your answers and earn XP. <a href="/login">Sign in</a></div>
+  <div class="quiz-progress-wrap"><span id="progress-label">Your progress</span><span id="progress-count">0 answered</span></div>
+  <div class="quiz-progress"><span id="progress-fill"></span></div>
+  <form id="form"></form>
+  <section id="result" class="quiz-result" hidden aria-live="polite"></section>
+  <p id="status" role="status"></p>
+</main>
+<script>
+(() => {
+  const id = new URLSearchParams(location.search).get("uuid") || location.search.replace(/^\?=/,"").split("&")[0];
+  const form = document.getElementById("form");
+  const status = document.getElementById("status");
+  const result = document.getElementById("result");
+  const loginNote = document.getElementById("login-note");
+  let quiz = null;
+  let session = null;
 
-        </div>
-      </div>
+  function setProgress() {
+    if (!quiz) return;
+    const total = quiz.questions.length;
+    let answered = 0;
+    for (let i=0;i<total;i++) {
+      const fields = [...form.querySelectorAll('[name="q'+i+'"]')];
+      if (fields.some(field => field.type === "checkbox" || field.type === "radio" ? field.checked : Boolean(field.value.trim()))) answered++;
+    }
+    document.getElementById("progress-count").textContent = answered + " of " + total + " answered";
+    document.getElementById("progress-fill").style.width = (total ? answered/total*100 : 0) + "%";
+  }
 
-      <a href="/dashboard/settings" class="btn btn-secondary" id="settings-nav">Settings</a>
-      <a href="/dashboard" class="btn btn-secondary" id="d-nav">Dashboard</a>
-    </div>
-  </header>
-    <main class="quiz-page">
-      <p><a href="/quiz">← All quizzes</a></p>
-      <h1 id="title">Loading quiz…</h1>
-      <p id="description"></p>
-      <p id="topic" class="topic-badge">Loading topic…</p>
-      <p id="difficulty" class="difficulty-badge">Loading…</p>
-      <form id="form"></form>
-      <p id="status" role="status"></p>
-    </main>
-    <script>
-      function normalizeDifficulty(value) {
-        const safe = (value || "medium").toString().trim().toLowerCase();
-        const allowed = ["easy", "medium", "hard", "expert"];
-        return allowed.includes(safe) ? safe : "medium";
-      }
+  function buildQuestion(question,index) {
+    const box = document.createElement("section");
+    box.className = "quiz-question";
+    const number = document.createElement("div");
+    number.className = "question-number";
+    number.textContent = "Question " + (index+1);
+    const heading = document.createElement("h2");
+    heading.textContent = question.prompt;
+    box.append(number,heading);
 
-      function difficultyClass(value) {
-        return "difficulty-" + normalizeDifficulty(value);
-      }
-
-      const id =
-        new URLSearchParams(location.search).get("uuid") ||
-        location.search.replace(/^\?=/, "").split("&")[0];
-      const form = document.querySelector("#form"),
-        status = document.querySelector("#status");
-
-      async function load() {
-        try {
-          if (!id) throw Error("Quiz ID is missing from the URL.");
-          const r = await fetch("/api/quizzes/" + encodeURIComponent(id));
-          const d = await r.json();
-          if (!r.ok) throw Error(d.error || "Quiz not found");
-
-          const qz = d.quiz;
-          document.querySelector("#title").textContent = qz.metadata?.title || "Quiz";
-          document.querySelector("#description").textContent = qz.metadata?.description || "";
-          document.querySelector("#topic").textContent = qz.metadata?.topic || "Topic not set";
-
-          const difficultyNode = document.querySelector("#difficulty");
-          const difficultyValue = normalizeDifficulty(qz.metadata?.difficulty || qz.difficulty);
-          difficultyNode.textContent = difficultyValue;
-          difficultyNode.className = "difficulty-badge " + difficultyClass(difficultyValue);
-
-          qz.questions.forEach((q, i) => {
-            const box = document.createElement("section");
-            box.className = "card quiz-question";
-            const h = document.createElement("h2");
-            h.textContent = i + 1 + ". " + q.prompt;
-            box.append(h);
-
-            if (q.type === "single" || q.type === "multiple") {
-              (q.options || []).forEach((o) => {
-                const label = document.createElement("label");
-                label.className = "option";
-                const input = document.createElement("input");
-                input.type = q.type === "multiple" ? "checkbox" : "radio";
-                input.name = "q" + i;
-                input.value = o;
-                label.append(input, document.createTextNode(" " + o));
-                box.append(label);
-              });
-            } else if (q.type === "scale") {
-              const sel = document.createElement("select");
-              sel.name = "q" + i;
-              sel.innerHTML =
-                '<option value="">Choose 1–5</option>' +
-                [1, 2, 3, 4, 5]
-                  .map((n) => '<option value="' + n + '">' + n + "</option>")
-                  .join("");
-              box.append(sel);
-            } else {
-              const input = document.createElement("input");
-              input.type = "text";
-              input.name = "q" + i;
-              input.maxLength = 1000;
-              input.placeholder = "Your answer";
-              box.append(input);
-            }
-
-            form.append(box);
-          });
-
-          const btn = document.createElement("button");
-          btn.type = "submit";
-          btn.textContent = "Submit answers";
-          btn.class = "btn btn-primary";
-          form.append(btn);
-          form.dataset.loaded = "yes";
-          form.dataset.count = qz.questions.length;
-        } catch (e) {
-          status.textContent = e.message;
-        }
-      }
-
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        if (form.dataset.loaded !== "yes") return;
-
-        const answers = [];
-        for (let i = 0; i < Number(form.dataset.count); i++) {
-          const els = [...form.querySelectorAll('[name="q' + i + '"]')];
-          answers.push(
-            els.length && els[0].type === "checkbox"
-              ? els.filter((x) => x.checked).map((x) => x.value)
-              : (els.find((x) => x.checked)?.value ?? els[0]?.value ?? ""),
-          );
-        }
-
-        try {
-          const r = await fetch(
-            "/api/quizzes/" + encodeURIComponent(id) + "/answer",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ answers }),
-            },
-          );
-          const d = await r.json();
-          if (!r.ok) throw Error(d.error || "Could not submit answers");
-          status.textContent = d.gradable
-            ? "Score: " +
-              d.correct +
-              " / " +
-              d.gradable +
-              " automatically gradable questions. " +
-              d.message
-            : d.message;
-          form.querySelector("button[type=submit]").disabled = true;
-        } catch (err) {
-          status.textContent = err.message;
-        }
+    if (question.type === "single" || question.type === "multiple") {
+      (question.options || []).forEach(option => {
+        const label = document.createElement("label");
+        label.className = "quiz-option";
+        const input = document.createElement("input");
+        input.type = question.type === "multiple" ? "checkbox" : "radio";
+        input.name = "q" + index;
+        input.value = option;
+        label.append(input,document.createTextNode(option));
+        box.append(label);
       });
+    } else if (question.type === "scale") {
+      const select = document.createElement("select");
+      select.className = "quiz-answer-input";
+      select.name = "q" + index;
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = "Choose a rating";
+      select.append(placeholder);
+      for (let value=Number(question.min);value<=Number(question.max);value++) {
+        const option = document.createElement("option");
+        option.value = String(value);
+        option.textContent = value + (value===Number(question.min) && question.minLabel ? " · "+question.minLabel : value===Number(question.max) && question.maxLabel ? " · "+question.maxLabel : "");
+        select.append(option);
+      }
+      box.append(select);
+    } else {
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "quiz-answer-input";
+      input.name = "q" + index;
+      input.maxLength = 1000;
+      input.placeholder = "Type your answer";
+      box.append(input);
+    }
+    return box;
+  }
 
-      load();
-    </script>
-  </body>
+  async function load() {
+    try {
+      if (!id) throw new Error("Quiz ID is missing from the URL.");
+      const client = window.GoldenNotesConfig?.initClient?.();
+      if (client) {
+        const {data:{session:activeSession}} = await client.auth.getSession();
+        session = activeSession;
+      }
+      const headers = session?.access_token ? {Authorization:"Bearer "+session.access_token} : {};
+      const response = await fetch("/api/quizzes/"+encodeURIComponent(id),{headers,cache:"no-store"});
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Quiz not found.");
+      quiz = data.quiz;
+      document.getElementById("title").textContent = quiz.metadata?.title || "Quiz";
+      document.getElementById("description").textContent = quiz.metadata?.description || "";
+      document.getElementById("topic").textContent = quiz.metadata?.topic || "General";
+      document.getElementById("difficulty").textContent = quiz.difficulty || "medium";
+      document.getElementById("question-count").textContent = quiz.questions.length + " questions";
+      if (!session) loginNote.hidden = false;
+      if (data.completion?.completed) {
+        status.textContent = "You've already earned XP for this quiz. You can retake it, but it won't award more XP.";
+      }
+      quiz.questions.forEach((question,index)=>form.append(buildQuestion(question,index)));
+      const submitRow = document.createElement("div");
+      submitRow.className = "quiz-submit-row";
+      const submit = document.createElement("button");
+      submit.type = "submit";
+      submit.className = "btn btn-primary";
+      submit.textContent = data.completion?.completed ? "Check answers again" : "Submit answers";
+      submit.disabled = !session;
+      submitRow.append(submit);
+      form.append(submitRow);
+      form.addEventListener("input",setProgress);
+      form.addEventListener("change",setProgress);
+      setProgress();
+    } catch(error) {
+      status.textContent = error.message;
+    }
+  }
+
+  form.addEventListener("submit",async event=>{
+    event.preventDefault();
+    if (!session || !quiz) return;
+    const submit = form.querySelector('button[type="submit"]');
+    submit.disabled = true;
+    submit.textContent = "Checking answers…";
+    status.textContent = "";
+    const answers = quiz.questions.map((question,index)=>{
+      const fields = [...form.querySelectorAll('[name="q'+index+'"]')];
+      return fields.length && fields[0].type==="checkbox"
+        ? fields.filter(field=>field.checked).map(field=>field.value)
+        : (fields.find(field=>field.checked)?.value ?? fields[0]?.value ?? "");
+    });
+    try {
+      const response = await fetch("/api/quizzes/"+encodeURIComponent(id)+"/answer",{
+        method:"POST",
+        headers:{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token},
+        body:JSON.stringify({answers})
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not submit answers.");
+      result.hidden = false;
+      result.replaceChildren();
+      const heading = document.createElement("h2");
+      heading.textContent = "Your results";
+      const score = document.createElement("div");
+      score.className = "quiz-result-score";
+      score.textContent = data.correct + " / " + data.gradable;
+      const scoreLabel = document.createElement("p");
+      scoreLabel.textContent = "correct answers";
+      const xp = document.createElement("p");
+      xp.className = "quiz-result-score";
+      xp.textContent = (data.awarded ? "+"+data.xpAwarded : "+0") + " XP";
+      const note = document.createElement("p");
+      note.className = "quiz-result-note";
+      note.textContent = data.message + " Your XP total is " + data.xpTotal + ".";
+      const retry = document.createElement("button");
+      retry.type = "button";
+      retry.className = "btn btn-secondary";
+      retry.textContent = "Try again";
+      retry.addEventListener("click",()=>{
+        result.hidden = true;
+        status.textContent = "You can practise again, but this quiz can only award XP once.";
+        submit.disabled = false;
+        submit.textContent = "Check answers again";
+        form.scrollIntoView({behavior:"smooth",block:"start"});
+      });
+      result.append(heading,score,scoreLabel,xp,note,retry);
+      status.textContent = data.awarded ? "XP added to your dashboard." : "No additional XP was awarded.";
+      submit.textContent = "Check answers again";
+      submit.disabled = false;
+    } catch(error) {
+      status.textContent = error.message;
+      submit.disabled = false;
+      submit.textContent = "Submit answers";
+    }
+  });
+
+  load();
+})();
+</script>
+</body>
 </html>
