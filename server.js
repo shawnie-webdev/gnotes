@@ -1155,7 +1155,7 @@ app.post('/api/scavenger/redeem', async (req, res) => {
         if (authError || !user) return res.status(401).json({ error: "Your session expired. Please sign in again." });
 
         const code = typeof req.body?.code === "string" ? req.body.code.trim().toUpperCase().replace(/\s+/g, "") : "";
-        if (!/^GN-[A-F0-9]{6}-[A-F0-9]{6}$/.test(code)) return res.status(400).json({ error: "Enter a valid scavenger hunt code." });
+        if (code.length < 4 || code.length > 32 || !/^[A-Z0-9-]+$/.test(code)) return res.status(400).json({ error: "Enter a code containing 4–32 letters, numbers, or hyphens." });
         const codeHash = crypto.createHash("sha256").update(code).digest("hex");
         const { data: hunt, error: huntError } = await supabaseAdmin.from("scavenger_hunt_codes")
             .select("id,badge_slug,expires_at,active,created_by").eq("code_hash", codeHash).maybeSingle();
