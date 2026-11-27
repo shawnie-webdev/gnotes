@@ -1,227 +1,169 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Quizzes | GoldenNotes</title>
-    <style>
-      :root {
-        --easy-bg: #dff7e8;
-        --easy-text: #186a3b;
-        --medium-bg: #fff3d6;
-        --medium-text: #8a5b00;
-        --hard-bg: #ffe3e2;
-        --hard-text: #9a2d2d;
-        --expert-bg: #e9e1ff;
-        --expert-text: #5632a8;
-      }
-
-      main {
-        max-width: 980px;
-        margin: auto;
-        padding: 24px;
-      }
-
-      header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 16px;
-        flex-wrap: wrap;
-        max-width: 980px;
-        margin: 0 auto;
-        padding: 24px 24px 0;
-      }
-
-      #quizzes {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 18px;
-        margin-top: 20px;
-      }
-
-      .card {
-        background: var(--panel);
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        padding: 18px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
-      }
-
-      .quiz-title {
-        margin: 0 0 10px;
-      }
-
-      .quiz-description {
-        margin: 0 0 12px;
-        color: var(--muted);
-      }
-
-      .difficulty-badge {
-        display: inline-block;
-        padding: 6px 12px;
-        border-radius: 999px;
-        font-size: 0.8rem;
-        font-weight: 700;
-        text-transform: capitalize;
-        margin: 6px 0 12px;
-      }
-
-      .topic-badge {
-        display: inline-block;
-        padding: 6px 12px;
-        border-radius: 999px;
-        font-size: 0.8rem;
-        font-weight: 700;
-        background: var(--panel);
-        border: 1px solid var(--line);
-        margin: 6px 6px 12px 0;
-      }
-
-      .difficulty-easy {
-        background: var(--easy-bg);
-        color: var(--easy-text);
-      }
-
-      .difficulty-medium {
-        background: var(--medium-bg);
-        color: var(--medium-text);
-      }
-
-      .difficulty-hard {
-        background: var(--hard-bg);
-        color: var(--hard-text);
-      }
-
-      .difficulty-expert {
-        background: var(--expert-bg);
-        color: var(--expert-text);
-      }
-
-      .muted {
-        color: var(--muted);
-      }
-
-      .quiz-meta {
-        margin: 0 0 14px;
-        font-size: 0.9rem;
-      }
-
-      .btn {
-        display: inline-block;
-      }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="/auth/config.js"></script>
-    <script src="/auth/theme.js"></script>
-    <script src="/auth/theme-experimental.js"></script>
-    <link rel="stylesheet" href="../master-combined.css">
-    <link rel="stylesheet" href="../master-experimental.css">
-  </head>
-  <body>
-  <header class="top-header">
-    <div class="nav-actions">
-      <div class="header-left">
-        <img src="/favicon.jpeg" alt="logo" id="logo">
-      </div>
-      <a href="/credits.html" class="btn btn-primary" id="credits">Credits</a>
-      <a href="/" class="btn btn-secondary" id="dashboard">Homepage</a>
-      <a href="/man-page/index.html" class="btn btn-secondary">Manual</a>
-      <div class="dropdown btn btn-secondary">
-        Study
-        <div class="dropdown-content">
-          <a href="/corkboard" class="btn btn-secondary" id="cb">Corkboard</a>
-          <a href="/study" class="btn btn-secondary" id="study">Study Guides</a>
-          <a href="/documents" class="btn btn-secondary" id="documents">Documents</a>
-          <a href="/calendar" class="btn btn-secondary" id="calendar">Calendar</a>
-          <a href="/quiz" class="btn btn-secondary" id="calendar">Quiz</a>
-
-        </div>
-      </div>
-
-      <a href="/dashboard/settings" class="btn btn-secondary" id="settings-nav">Settings</a>
-      <a href="/dashboard" class="btn btn-secondary" id="d-nav">Dashboard</a>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Quizzes | GoldenNotes</title>
+  <link rel="stylesheet" href="../master-combined.css">
+  <link rel="stylesheet" href="../master-experimental.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/auth/config.js"></script>
+  <script src="/auth/theme.js"></script>
+  <script src="/auth/theme-experimental.js"></script>
+  <style>
+    .quiz-hub{width:min(1120px,calc(100% - 32px));margin:34px auto 70px}
+    .quiz-hero{padding:clamp(24px,5vw,44px);border:1px solid var(--border-color);border-radius:24px;background:linear-gradient(135deg,color-mix(in srgb,var(--main-gold) 13%,var(--bg-card)),var(--bg-card) 58%);box-shadow:var(--shadow-md)}
+    .quiz-eyebrow{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;font-weight:800;color:var(--main-gold)}
+    .quiz-hero h1{font-size:clamp(2rem,5vw,3.3rem);line-height:1.08;margin:10px 0}
+    .quiz-hero p{max-width:650px;color:var(--secondary-text);line-height:1.65}
+    .quiz-hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+    .quiz-toolbar{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin:30px 0 14px}
+    .quiz-toolbar h2{margin:0}
+    .quiz-search{width:min(340px,100%);padding:12px 14px;border:1px solid var(--border-color);border-radius:12px;background:var(--bg-card);color:var(--main-text);font:inherit}
+    #quizzes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:16px}
+    .quiz-card{display:flex;flex-direction:column;min-height:250px;padding:20px;border:1px solid var(--border-color);border-radius:18px;background:var(--bg-card);box-shadow:var(--shadow-sm);transition:transform .16s ease,border-color .16s ease}
+    .quiz-card:hover{transform:translateY(-3px);border-color:var(--main-gold)}
+    .quiz-card-top{display:flex;justify-content:space-between;gap:10px;align-items:center}
+    .quiz-topic,.quiz-difficulty,.quiz-completed{display:inline-flex;align-items:center;border-radius:999px;padding:5px 10px;font-size:.76rem;font-weight:750;background:var(--bg-main);border:1px solid var(--border-color)}
+    .quiz-difficulty{ text-transform:capitalize}
+    .quiz-completed{color:var(--success,#3ca66b);border-color:color-mix(in srgb,var(--success,#3ca66b) 45%,var(--border-color))}
+    .quiz-card h3{font-size:1.2rem;line-height:1.3;margin:18px 0 8px;overflow-wrap:anywhere}
+    .quiz-card p{color:var(--secondary-text);line-height:1.55;margin:0 0 16px}
+    .quiz-card-meta{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted-text);font-size:.86rem;margin-top:auto;padding:12px 0}
+    .quiz-card .btn{align-self:flex-start;margin-top:4px}
+    #status{color:var(--secondary-text);min-height:1.4em}
+    .quiz-empty{padding:30px;border:1px dashed var(--border-color);border-radius:16px;color:var(--secondary-text);text-align:center}
+    @media(max-width:600px){.quiz-hub{width:calc(100% - 20px);margin-top:18px}.quiz-hero{border-radius:18px}}
+  </style>
+</head>
+<body>
+<header class="top-header">
+  <div class="nav-actions">
+    <div class="header-left"><img src="/favicon.jpeg" alt="GoldenNotes" id="logo"></div>
+    <a href="/" class="btn btn-secondary">Homepage</a>
+    <a href="/man-page/index.html" class="btn btn-secondary">Manual</a>
+    <div class="dropdown btn btn-secondary">Study<div class="dropdown-content">
+      <a href="/corkboard" class="btn btn-secondary">Corkboard</a>
+      <a href="/study" class="btn btn-secondary">Study Guides</a>
+      <a href="/documents" class="btn btn-secondary">Documents</a>
+      <a href="/calendar" class="btn btn-secondary">Calendar</a>
+      <a href="/quiz" class="btn btn-secondary">Quizzes</a>
+    </div></div>
+    <a href="/dashboard/settings" class="btn btn-secondary">Settings</a>
+    <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+  </div>
+</header>
+<main class="quiz-hub">
+  <section class="quiz-hero">
+    <div class="quiz-eyebrow">GoldenNotes · Learning studio</div>
+    <h1>Learn something.<br>Keep the XP.</h1>
+    <p>Explore community-made quizzes, check what you know, and build your learning streak one answer at a time. Earn 10 XP for every correct answer on your first completed attempt.</p>
+    <div class="quiz-hero-actions">
+      <a class="btn btn-primary" href="#quiz-library">Explore quizzes</a>
+      <a class="btn btn-secondary" href="/dashboard">View my dashboard</a>
+      <a class="btn btn-secondary" href="/quiz/make">Create a quiz</a>
     </div>
-  </header>
-    <header>
-      <div>
-        <h1>Quizzes</h1>
-        <p>Practice and test your knowledge.</p>
-      </div>
-      <a class="btn" href="/quiz/make">Create a quiz</a>
-    </header>
-    <main>
-      <p id="status">Loading quizzes…</p>
-      <section id="quizzes"></section>
-    </main>
-    <script>
-      function normalizeDifficulty(value) {
-        const safe = (value || "medium").toString().trim().toLowerCase();
-        const allowed = ["easy", "medium", "hard", "expert"];
-        return allowed.includes(safe) ? safe : "medium";
+  </section>
+  <div class="quiz-toolbar" id="quiz-library">
+    <div><h2>Quiz library</h2><p class="muted" style="margin:5px 0 0">Choose a topic and test your understanding.</p></div>
+    <input id="search" class="quiz-search" type="search" placeholder="Search quizzes or topics" aria-label="Search quizzes">
+  </div>
+  <p id="status" role="status">Loading quizzes…</p>
+  <section id="quizzes" aria-live="polite"></section>
+</main>
+<script>
+(() => {
+  const list = document.getElementById("quizzes");
+  const status = document.getElementById("status");
+  const search = document.getElementById("search");
+  let quizzes = [];
+  let completed = new Set();
+
+  function safeDifficulty(value) {
+    const allowed = ["easy","medium","hard","expert"];
+    const normalized = String(value || "medium").trim().toLowerCase();
+    return allowed.includes(normalized) ? normalized : "medium";
+  }
+
+  function render() {
+    const query = search.value.trim().toLowerCase();
+    const filtered = quizzes.filter(q => {
+      const m = q.metadata || {};
+      return [m.title,m.topic,m.description].join(" ").toLowerCase().includes(query);
+    });
+    list.replaceChildren();
+    if (!filtered.length) {
+      const empty = document.createElement("div");
+      empty.className = "quiz-empty";
+      empty.textContent = quizzes.length ? "No quizzes match that search." : "No quizzes have been published yet.";
+      list.append(empty);
+      return;
+    }
+    filtered.forEach(q => {
+      const metadata = q.metadata || {};
+      const card = document.createElement("article");
+      card.className = "quiz-card";
+      const top = document.createElement("div");
+      top.className = "quiz-card-top";
+      const topic = document.createElement("span");
+      topic.className = "quiz-topic";
+      topic.textContent = metadata.topic || "General";
+      const difficulty = document.createElement("span");
+      difficulty.className = "quiz-difficulty";
+      difficulty.textContent = safeDifficulty(q.difficulty);
+      top.append(topic,difficulty);
+      const title = document.createElement("h3");
+      title.textContent = metadata.title || "Untitled quiz";
+      const description = document.createElement("p");
+      description.textContent = metadata.description || "A community quiz on " + (metadata.topic || "a new topic") + ".";
+      const meta = document.createElement("div");
+      meta.className = "quiz-card-meta";
+      const count = document.createElement("span");
+      count.textContent = (q.questionCount || 0) + " questions";
+      const reward = document.createElement("span");
+      reward.textContent = "Up to " + ((q.questionCount || 0) * 10) + " XP";
+      meta.append(count,reward);
+      const link = document.createElement("a");
+      link.className = "btn btn-primary";
+      link.href = "/quiz/answer?uuid=" + encodeURIComponent(q.uuid);
+      link.textContent = completed.has(q.uuid) ? "Try again · XP earned" : "Start quiz";
+      if (completed.has(q.uuid)) {
+        const done = document.createElement("span");
+        done.className = "quiz-completed";
+        done.textContent = "Completed";
+        top.append(done);
       }
+      card.append(top,title,description,meta,link);
+      list.append(card);
+    });
+  }
 
-      function difficultyClass(value) {
-        return "difficulty-" + normalizeDifficulty(value);
-      }
-
-      async function load() {
-        const status = document.querySelector("#status");
-        const list = document.querySelector("#quizzes");
-
-        try {
-          const r = await fetch("/api/quizzes");
-          const d = await r.json();
-          if (!r.ok) throw Error(d.error || "Unable to load quizzes");
-
-          list.replaceChildren();
-
-          if (!d.quizzes?.length) {
-            status.textContent = "No quizzes have been published yet.";
-            return;
+  async function load() {
+    try {
+      const response = await fetch("/api/quizzes",{cache:"no-store"});
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Unable to load quizzes.");
+      quizzes = data.quizzes || [];
+      const client = window.GoldenNotesConfig?.initClient?.();
+      if (client) {
+        const {data:{session}} = await client.auth.getSession();
+        if (session?.access_token) {
+          const xpResponse = await fetch("/api/xp",{headers:{Authorization:"Bearer "+session.access_token},cache:"no-store"});
+          if (xpResponse.ok) {
+            const xpData = await xpResponse.json();
+            completed = new Set((xpData.completions || []).map(row=>row.quizUuid));
           }
-
-          status.textContent = "Published quizzes";
-
-          for (const q of d.quizzes) {
-            const card = document.createElement("article");
-            card.className = "card";
-
-            const title = document.createElement("h2");
-            title.className = "quiz-title";
-            title.textContent = q.metadata?.title || "Untitled quiz";
-
-            const desc = document.createElement("p");
-            desc.className = "quiz-description";
-            desc.textContent = q.metadata?.description || "No description provided.";
-
-            const topic = document.createElement("span");
-            topic.className = "topic-badge";
-            topic.textContent = q.metadata?.topic || "Topic not set";
-
-            const difficultyValue = normalizeDifficulty(q.metadata?.difficulty || q.difficulty);
-            const difficulty = document.createElement("p");
-            difficulty.className = "difficulty-badge " + difficultyClass(difficultyValue);
-            difficulty.textContent = difficultyValue;
-
-            const count = document.createElement("p");
-            count.className = "quiz-meta muted";
-            count.textContent = (q.questions?.length || 0) + " questions";
-
-            const link = document.createElement("a");
-            link.className = "btn";
-            link.href = "/quiz/answer?uuid=" + encodeURIComponent(q.uuid);
-            link.textContent = "Take quiz";
-
-            card.append(title, desc, topic, difficulty, count, link);
-            list.append(card);
-          }
-        } catch (e) {
-          status.textContent = "Could not load quizzes: " + e.message;
         }
       }
-
-      load();
-    </script>
-  </body>
+      status.textContent = quizzes.length + " published " + (quizzes.length === 1 ? "quiz" : "quizzes");
+      render();
+    } catch(error) {
+      status.textContent = "Could not load quizzes: " + error.message;
+    }
+  }
+  search.addEventListener("input",render);
+  load();
+})();
+</script>
+</body>
 </html>
