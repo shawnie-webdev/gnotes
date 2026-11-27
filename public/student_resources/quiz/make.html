@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Create quiz | GoldenNotes</title>
     <style>
+      main{width:min(900px,calc(100% - 28px));margin:26px auto 70px}
+      main>h1{font-size:clamp(1.8rem,4vw,2.5rem);margin:12px 0}
+      main>p{color:var(--secondary-text);line-height:1.6}
+      main>label{display:block;padding:15px 17px;border:1px solid var(--border-color);border-radius:13px;background:var(--bg-card);margin:12px 0;color:var(--main-text);font-weight:700}
+      main input,main textarea,main select{display:block;box-sizing:border-box;width:100%;margin:8px 0 0;padding:12px;border:1px solid var(--border-color);border-radius:9px;background:var(--bg-main);color:var(--main-text);font:inherit}
+      main .card{background:var(--bg-card);border:1px solid var(--border-color);border-radius:15px;padding:17px;margin:14px 0;box-shadow:var(--shadow-sm)}
+      main .card label{display:block;margin:8px 0;color:var(--main-text)}
+      main .card small{display:block;color:var(--secondary-text);margin-top:7px}
+      main button{margin:5px 8px 5px 0}
+      #status{color:var(--secondary-text);line-height:1.5}
            .card {
         background: var(--panel);
         border: 1px solid var(--line);
@@ -105,6 +115,7 @@
         </select>
       </label>
 
+      <p class="card" style="color:var(--secondary-text)">Scoring: 10 XP per correct answer. A learner can earn XP from this quiz only once.</p>
       <div id="questions"></div>
       <button id="add">+ Add question</button>
       <button id="publish">Publish quiz</button>
