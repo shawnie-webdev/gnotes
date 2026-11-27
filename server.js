@@ -207,13 +207,17 @@ app.get("/quiz/answer", (req, res) => {
 app.get("/api/quizzes", async (req, res) => {
     try {
         const { data, error } = await supabaseAdmin.from("quizzes")
-            .select("uuid,author,metadata,difficulty,created_on")
+            .select("uuid,author,metadata,questions,difficulty,created_on")
             .order("created_on", { ascending: false })
             .limit(200);
         if (error) throw error;
 
         const quizzes = (data || []).map((quiz) => ({
-            ...quiz,
+            uuid: quiz.uuid,
+            author: quiz.author,
+            metadata: quiz.metadata,
+            created_on: quiz.created_on,
+            questionCount: Array.isArray(quiz.questions) ? quiz.questions.length : 0,
             difficulty: normalizeQuizDifficulty(quiz.metadata?.difficulty) ||
                 normalizeQuizDifficulty(quiz.difficulty) || "medium"
         }));
@@ -225,6 +229,7 @@ app.get("/api/quizzes", async (req, res) => {
         return res.status(503).json({ error: "Quizzes are temporarily unavailable." });
     }
 });
+
 app.get("/api/quizzes/:uuid", async (req, res) => {
     try {
         const { data, error } = await supabaseAdmin.from("quizzes")
@@ -234,17 +239,84 @@ app.get("/api/quizzes/:uuid", async (req, res) => {
         if (error) throw error;
         if (!data) return res.status(404).json({ error: "Quiz not found." });
 
-        const questions = (Array.isArray(data.questions) ? data.questions : []).map(({ answer, correct, ...q }) => q);
+        let user = null;
+        const authHeader = req.headers.authorization || "";
+        const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+        if (token) {
+            const { data: authData, error: authError } = await supabase.auth.getUser(token);
+            if (!authError) user = authData?.user || null;
+        }
+
+        let completion = null;
+        if (user) {
+            const { data: row, error: completionError } = await supabaseAdmin
+                .from("quiz_completions")
+                .select("correct_answers,gradable_questions,xp_awarded,completed_at")
+                .eq("user_uuid", user.id)
+                .eq("quiz_uuid", data.uuid)
+                .maybeSingle();
+            if (completionError) throw completionError;
+            completion = row;
+        }
+
+        const questions = (Array.isArray(data.questions) ? data.questions : [])
+            .map(({ answer, correct, ...q }) => q);
         const quizDifficulty = normalizeQuizDifficulty(data.metadata?.difficulty) ||
             normalizeQuizDifficulty(data.difficulty) || "medium";
 
         res.set("Cache-Control", "no-store");
-        return res.json({ quiz: { ...data, difficulty: quizDifficulty, questions } });
+        return res.json({
+            quiz: { ...data, difficulty: quizDifficulty, questions },
+            completion: completion ? {
+                completed: true,
+                correct: completion.correct_answers,
+                gradable: completion.gradable_questions,
+                xpAwarded: completion.xp_awarded,
+                completedAt: completion.completed_at
+            } : { completed: false }
+        });
     } catch (error) {
         console.error("[quiz] read failed:", error.message);
         return res.status(503).json({ error: "Could not load this quiz." });
     }
 });
+
+app.get("/api/xp", async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization || "";
+        const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+        if (!token) return res.status(401).json({ error: "Sign in to view your XP." });
+
+        const { data: authData, error: authError } = await supabase.auth.getUser(token);
+        const user = authData?.user;
+        if (authError || !user) return res.status(401).json({ error: "Your session expired. Please sign in again." });
+
+        const [{ data: profile, error: profileError }, { data: completions, error: completionsError }] = await Promise.all([
+            supabaseAdmin.from("user-background").select("xp").eq("uuid", user.id).maybeSingle(),
+            supabaseAdmin.from("quiz_completions")
+                .select("quiz_uuid,correct_answers,gradable_questions,xp_awarded,completed_at")
+                .eq("user_uuid", user.id)
+                .order("completed_at", { ascending: false })
+        ]);
+        if (profileError || completionsError) throw profileError || completionsError;
+
+        return res.json({
+            xp: Number(profile?.xp || 0),
+            completedQuizzes: (completions || []).length,
+            completions: (completions || []).map(row => ({
+                quizUuid: row.quiz_uuid,
+                correct: row.correct_answers,
+                gradable: row.gradable_questions,
+                xpAwarded: row.xp_awarded,
+                completedAt: row.completed_at
+            }))
+        });
+    } catch (error) {
+        console.error("[quiz] XP lookup failed:", error.message);
+        return res.status(503).json({ error: "Could not load your XP right now." });
+    }
+});
+
 app.post("/api/quizzes", async (req, res) => {
     try {
         const authHeader = req.headers.authorization || "";
@@ -285,7 +357,7 @@ app.post("/api/quizzes", async (req, res) => {
         const metadata = { title, topic, description, difficulty };
         const cleanQuestions = questions.map(q => ({
             prompt: q.prompt.trim().slice(0, 1000), type: q.type,
-            ...(q.type === "single" || q.type === "multiple" ? {
+            ...(["single", "multiple"].includes(q.type) ? {
                 options: q.options.map(v => String(v).trim().slice(0, 300)).filter(Boolean),
                 answer: Array.isArray(q.answer) ? q.answer.map(String) : [String(q.answer ?? "")]
             } : {}),
@@ -302,18 +374,32 @@ app.post("/api/quizzes", async (req, res) => {
         return res.status(500).json({ error: "Could not publish quiz." });
     }
 });
+
 app.post("/api/quizzes/:uuid/answer", async (req, res) => {
     try {
-        const { data: quiz, error } = await supabaseAdmin.from("quizzes").select("questions").eq("uuid", req.params.uuid).maybeSingle();
+        const authHeader = req.headers.authorization || "";
+        const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+        if (!token) return res.status(401).json({ error: "Sign in to submit a quiz and earn XP." });
+
+        const { data: authData, error: authError } = await supabase.auth.getUser(token);
+        const user = authData?.user;
+        if (authError || !user) return res.status(401).json({ error: "Your session expired. Please sign in again." });
+
+        const { data: quiz, error } = await supabaseAdmin.from("quizzes")
+            .select("uuid,questions")
+            .eq("uuid", req.params.uuid)
+            .maybeSingle();
         if (error) throw error;
         if (!quiz) return res.status(404).json({ error: "Quiz not found." });
-        const submitted = req.body?.answers || {};
+
+        const submitted = req.body?.answers || [];
+        if (!Array.isArray(submitted)) return res.status(400).json({ error: "Answers must be submitted as a list." });
+
         let correct = 0, gradable = 0;
-        for (let i = 0; i < quiz.questions.length; i++) {
+        for (let i = 0; i < (Array.isArray(quiz.questions) ? quiz.questions.length : 0); i++) {
             const q = quiz.questions[i];
             if (!["single", "multiple", "text"].includes(q.type)) continue;
 
-            // Choice answers are stored as arrays; text answers are stored as strings.
             const rawExpected = Array.isArray(q.answer) ? q.answer : [q.answer ?? ""];
             const expected = rawExpected.map(v => String(v).trim().toLowerCase()).filter(Boolean).sort();
             if (!expected.length) continue;
@@ -324,7 +410,33 @@ app.post("/api/quizzes/:uuid/answer", async (req, res) => {
                 .map(v => String(v).trim().toLowerCase()).filter(Boolean).sort();
             if (expected.length === actual.length && expected.every((v, n) => v === actual[n])) correct++;
         }
-        return res.json({ correct, gradable, total: quiz.questions.length, message: gradable ? "Your answers have been checked." : "Answers submitted. This quiz has no automatically gradable questions." });
+
+        const xpForThisAttempt = correct * 10;
+        const { data: awardRows, error: awardError } = await supabaseAdmin.rpc("award_quiz_completion", {
+            p_user_uuid: user.id,
+            p_quiz_uuid: quiz.uuid,
+            p_correct_answers: correct,
+            p_gradable_questions: gradable,
+            p_xp_awarded: xpForThisAttempt
+        });
+        if (awardError) throw awardError;
+
+        const award = Array.isArray(awardRows) ? awardRows[0] : awardRows;
+        if (!award) throw new Error("XP award function returned no result.");
+
+        return res.json({
+            correct,
+            gradable,
+            total: quiz.questions.length,
+            awarded: Boolean(award.awarded),
+            xpAwarded: Number(award.xp_awarded || 0),
+            xpTotal: Number(award.xp_total || 0),
+            xpPerCorrectAnswer: 10,
+            alreadyCompleted: !award.awarded,
+            message: gradable
+                ? (award.awarded ? "Your answers have been checked and your XP has been added." : "Your answers have been checked. You already earned XP for this quiz, so this attempt did not add more.")
+                : "Your answers have been checked, but this quiz has no automatically gradable questions."
+        });
     } catch (error) {
         console.error("[quiz] answer failed:", error.message);
         return res.status(500).json({ error: "Could not check your answers." });
