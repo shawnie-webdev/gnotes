@@ -213,6 +213,21 @@
         <p>User ID (UUID): <span id="display-id" style="font-size: 12px; color: #64748b;">Loading...</span></p>
     </div>
 
+    <section class="card gn-xp-card" id="my-xp" style="margin-top:22px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+            <div>
+                <p style="margin:0;color:var(--muted-text);font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Learning progress</p>
+                <h2 style="margin:6px 0">Your XP</h2>
+                <p style="margin:0;color:var(--secondary-text)">Earn 10 XP for every correct quiz answer. Each quiz rewards you only once.</p>
+            </div>
+            <div style="text-align:right;min-width:110px">
+                <strong id="xp-total" style="display:block;font-size:2.2rem;color:var(--main-gold);line-height:1.1">—</strong>
+                <span style="color:var(--muted-text);font-size:13px">total XP</span>
+            </div>
+        </div>
+        <p id="xp-completed" style="margin:12px 0 0;color:var(--secondary-text)">Loading quiz progress…</p>
+        <a href="/quiz" class="btn btn-secondary" style="margin-top:12px">Explore quizzes</a>
+    </section>
     <section class="card" id="my-badges" style="margin-top:22px">
         <h2>Badges</h2>
         <p>Recognition awarded by GoldenNotes admins.</p>
@@ -403,6 +418,24 @@
         }
       }
       await loadBadges(user.id);
+      // Load quiz XP from the server; the browser never calculates or writes rewards.
+      async function loadQuizXp(accessToken) {
+        try {
+          const response = await fetch('/api/xp', {
+            headers: { Authorization: 'Bearer ' + accessToken },
+            cache: 'no-store'
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok) throw new Error(data.error || 'Could not load XP.');
+          showText($('xp-total'), Number(data.xp || 0).toLocaleString());
+          showText($('xp-completed'), (data.completedQuizzes || 0) + ' quizzes completed · XP rewards are one-time per quiz.');
+        } catch (error) {
+          showText($('xp-total'), '—');
+          showText($('xp-completed'), 'Could not load quiz progress: ' + (error.message || String(error)));
+        }
+      }
+      await loadQuizXp(session.access_token);
+
 
       // Keep first-time rules acknowledgement separate for each signed-in account.
       const acceptedKey = 'rules_accepted:' + user.id;
